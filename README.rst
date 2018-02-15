@@ -10,7 +10,6 @@ Raiden specification
    :maxdepth: 2
    :caption: Contents:
 
-   messaging
    monitoring_service
    pathfinding_service
 
