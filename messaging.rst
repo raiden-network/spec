@@ -1,12 +1,13 @@
-Raiden Messages Specificaiton
-#####################################
+Raiden Messages Specification
+#############################
 
 Overview
-==========
+========
+
 This is the specification document for the messages used in the Raiden protocol.
 
 Terminology
-=============
+===========
 
 - ``transferred_amount``: The monotonically increasing counter of one channel participant’s amount of tokens sent.
 - ``hashlock``: A hashed secret, sha3_keccack(secret)
@@ -15,10 +16,10 @@ Terminology
 - ``secret``: The preimage used to derive a hashlock
 
 Data Structures
-================
+===============
 
 Balance Proof
---------------
+-------------
 
 Data required by the smart contracts to update the payment channel end of the participant that signed the balance proof.
 
@@ -51,12 +52,12 @@ Fields
 
 
 Merkle Tree
-------------
+-----------
 
 A binary tree composed of the hash of the locks. The root of the tree is the value used in the balance proofs. The tree is changed by the ``MediatedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types.
 
 HashTimeLock
----------------
+------------
 
 Invariants
 ^^^^^^^^^^
@@ -83,7 +84,7 @@ Fields
 
 
 Messages
-==========
+========
 
 Direct Transfer
 ---------------
@@ -105,7 +106,7 @@ Fields
 +----------------------+---------------+------------------------------------------------------------+
 
 Mediated Transfer
-------------------
+-----------------
 
 Cancellable and expirable transfer. Sent by a node when a transfer is being initiated, this message adds a new lock to the corresponding merkle tree of the sending participant node.
 
@@ -133,7 +134,7 @@ Fields
 
 
 Secret Request
-----------------
+--------------
 
 Message used to request the secret that unlocks a lock. Sent by the payment target to the initiator once a mediated transfer is received.
 
@@ -172,7 +173,7 @@ Fields
 +----------------------+---------------+------------------------------------------------------------+
 
 Unlock
--------
+------
 
 .. Note:: At the current (15/02/2018) Raiden implementation as of commit ``cccfa572298aac8b14897ee9677e88b2b55c9a29`` this message is known in the codebase as ``Secret``.
 
@@ -199,7 +200,8 @@ Fields
 +----------------------+---------------+------------------------------------------------------------+
 
 RemoveExpiredLock
----------------------
+-----------------
+
 Removes one lock that has expired. Used to trim the merkle tree and recover the locked capacity. This message is only valid if the corresponding lock expiration is lower than the latest block number for the corresponding blockchain.
 
 Fields
@@ -222,7 +224,7 @@ Specification
 The encoding used by the transport layer is independent of this specification, as long as the signatures using the data are encoded in the EVM big endian format.
 
 Transfers
-----------
+---------
 
 The protocol supports two types of transfers, direct and mediated. Direct transfers are non cancellable and unexpirable, while mediated transfers may be cancelled and can expire.
 
@@ -231,7 +233,7 @@ Reserve token capacity for a given payment
 Use the reserved token amount to complete payments
 
 Message Flow
---------------
+------------
 
 TODO: Use message flow from Raiden docs and 101 (https://raiden.network/101.html) page here.
 
