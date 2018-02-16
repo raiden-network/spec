@@ -1,5 +1,5 @@
-Pathfinding Service Specification
-#################################
+Raiden Pathfinding Service Specification
+########################################
 
 Overview
 ========
@@ -24,19 +24,19 @@ Public Interface
 Definitions
 -----------
 
-The following data types are taken from the Raiden Core spec. **TODO**
+The following data types are taken from the Raiden Core spec.
 
-*channel_id*
+*ChannelId*
 
 * **TODO**
 
-*balance_proof*
+*BalanceProof*
 
-* Uint64: nonce
-* Uint256: transferred_amount
-* Bytes32: locksroot
-* Bytes32: extra_hash
-* Bytes: signature
+* uint64: nonce
+* uint256: transferred_amount
+* bytes32: locksroot
+* bytes32: extra_hash
+* bytes: signature
 
 Public Endpoints
 ----------------
@@ -52,12 +52,18 @@ Update the balance for the given channel with the provided balance proof. The re
 
 Arguments
 """""""""
-* *channel_id*: The channel for which the balance proof should be updated.
-* *balance_proof*: The new balance proof which should be used for the given channel.
+
++----------------------+---------------+-------------------------------------------------------------------+
+| Field Name           | Field Type    |  Description                                                      |
++======================+===============+===================================================================+
+| channel_id           | TBD           | The channel for which the balance proof should be updated.        |
++----------------------+---------------+-------------------------------------------------------------------+
+| balance_proof        | BalanceProof  | The new balance proof which should be used for the given channel. |
++----------------------+---------------+-------------------------------------------------------------------+
 
 Returns
 """""""
-True when the balance was updated or one of the following errors:
+*True* when the balance was updated or one of the following errors:
 
 * Invalid balance proof
 * Invalid channel id
@@ -93,13 +99,20 @@ Update the fee for the given channel, for the outgoing channel from the partner 
 
 Arguments
 """""""""
-* *channel_id*: The channel for which the fee should be updated.
-* *fee*: The new fee to be set.
-* *signature*: The signature of the channel partner for whom the channel is outgoing.
+
++----------------------+---------------+-----------------------------------------------------------------------+
+| Field Name           | Field Type    |  Description                                                          |
++======================+===============+=======================================================================+
+| channel_id           | TBD           | The channel for which the fee should be updated.                      |
++----------------------+---------------+-----------------------------------------------------------------------+
+| fee                  | int           | The new fee to be set.                                                |
++----------------------+---------------+-----------------------------------------------------------------------+
+| signature            | bytes         | The signature of the channel partner for whom the channel is outgoing.|
++----------------------+---------------+-----------------------------------------------------------------------+
 
 Returns
 """""""
-True when the fee was updated or one of the following errors:
+*True* when the fee was updated or one of the following errors:
 
 * Invalid channel id
 * Invalid signature
@@ -128,8 +141,8 @@ Example
         "error": "Invalid signature."
     }
 
-``v1.get_paths(from, to, token_address, payment_value, num_paths, extra_data)``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``v1.get_paths(from, to, payment_value, num_paths, extra_data)``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Request a list of possible paths from startpoint to endpoint for a given transfer value.
 
@@ -138,19 +151,32 @@ To get payment information the *get_payment_info* method is used.
 
 Arguments
 """""""""
-* *from*: The address of the payment initiator.
-* *to*: The address of the payment target.
-* *token_address*: The new fee to be set.
-* *payment_value*: The amount of token to be sent.
-* *num_paths*: The maximum number of paths returned.
-* *extra_data*: Optional implementation specific marker for path finding preferences, e.g. shortest path or minimal fees.
+
++----------------------+---------------+-----------------------------------------------------------------------+
+| Field Name           | Field Type    |  Description                                                          |
++======================+===============+=======================================================================+
+| from                 | address       | The address of the payment initiator.                                 |
++----------------------+---------------+-----------------------------------------------------------------------+
+| to                   | address       | The address of the payment target.                                    |
++----------------------+---------------+-----------------------------------------------------------------------+
+| value                | int           | The amount of token to be sent.                                       |
++----------------------+---------------+-----------------------------------------------------------------------+
+| num_paths            | int           | The maximum number of paths returned.                                 |
++----------------------+---------------+-----------------------------------------------------------------------+
+| extra_data           | string        | ptional implementation specific marker for path finding preferences.  |
++----------------------+---------------+-----------------------------------------------------------------------+
 
 Returns
 """""""
 A list of path objects. A path object consists of the following information:
 
-* An ordered list of the addresses that make up the payment path
-* An estimate of the fees required for that path.
++----------------------+---------------+-----------------------------------------------------------------------+
+| Field Name           | Field Type    |  Description                                                          |
++======================+===============+=======================================================================+
+| path                 | List[address] | An ordered list of the addresses that make up the payment path.       |
++----------------------+---------------+-----------------------------------------------------------------------+
+| estimated_fee        | int           | An estimate of the fees required for that path.                       |
++----------------------+---------------+-----------------------------------------------------------------------+
 
 If no possible path is found, one of the following errors is returned:
 
@@ -213,14 +239,26 @@ The service is paid in RDN tokens, so they payer might need to open an additiona
 
 Arguments
 """""""""
-* *rdn_source_address*: The address of payer in the RDN token network.
+
++----------------------+---------------+-----------------------------------------------------------------------+
+| Field Name           | Field Type    |  Description                                                          |
++======================+===============+=======================================================================+
+| rdn_source_address   | address       | The address of payer in the RDN token network.                        |
++----------------------+---------------+-----------------------------------------------------------------------+
 
 Returns
 """""""
 An object consisting of two properties:
 
-* *price_per_request*: The price of one path request for this path finding service
-* *paths*: A list of possible paths to pay the path finding service in the RDN token network. Each object in the list contains a path and an estimated_fee property.
++----------------------+---------------+-----------------------------------------------------------------------+
+| Field Name           | Field Type    |  Description                                                          |
++======================+===============+=======================================================================+
+| price_per_request    | int           | The address of payer in the RDN token network.                        |
++----------------------+---------------+-----------------------------------------------------------------------+
+| paths                | list          | A list of possible paths to pay the path finding service in the RDN   |
+|                      |               | token network. Each object in the list contains a *path* and an       |
+|                      |               | *estimated_fee* property.                                             |
++----------------------+---------------+-----------------------------------------------------------------------+
 
 If no possible path is found, the following error is returned:
 
@@ -274,4 +312,4 @@ Next steps
 ==========
 
 * Wait for a final specification of a channel id and balance proof and link the raiden protocol spec
-* Define data types for all arguments
+* Find a solution for https://github.com/raiden-network/spec/issues/2
