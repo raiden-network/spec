@@ -13,6 +13,7 @@ Raiden specification
    messaging
    monitoring_service
    pathfinding_service
+   mobile_wallet
 
 ..  Indices and tables
     ==================
