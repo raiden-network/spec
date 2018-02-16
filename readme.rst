@@ -11,6 +11,7 @@ Raiden specification
    :caption: Contents:
 
    messaging
+   smart_contracts
    monitoring_service
    pathfinding_service
    mobile_wallet
