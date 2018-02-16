@@ -73,6 +73,7 @@ Cons:
 
 General requirements
 --------------------
+
 MS that wish to get assigned a MS address (term?) in the global chat room MUST provide a registration deposit via SC [TBD]
 
 Users wishing to use a MS are RECOMMENDED to provide a reward deposit via smart contract [TBD]
@@ -97,6 +98,7 @@ MS SHOULD inspect pending transactions to determine if there are already pending
     
 Fees/Rewards structure
 ----------------------
+
 In Broadcast mode, monitoring servers compete to be the first to provide a balance proof update. This mechanism is simple to implement: MS will decide if the risk/reward ratio is worth it and submits an on-chain transaction.
 
 Fees have to be paid upfront. A smart contract governing the reward payout is required, and will probably add an additional logic to the NettingChannel contract code.
@@ -107,6 +109,7 @@ How fees work in Broadcast mode is still unclear - SC for the fee collection and
 
 Proposed SC logic
 '''''''''''''''''
+
 1) Raiden node will transfer tokens used as a reward to the NettingChannelContract
 2) Whoever calls SC’s updateTransfer method MUST supply payout address as a parameter. This address is stored in the SC. updateTransfer MAY be called multiple times, but it will only accept BP newer than the previous one.
 3) When settling (calling contract suicide), the reward tokens will be sent to the payout address.

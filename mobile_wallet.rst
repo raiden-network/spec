@@ -7,7 +7,7 @@ Overview
 Specification document for a Raiden Network Mobile Wallet implementation.
 
 Goal
-=====
+====
 
 Build an easy to use wallet where (in general) the user does not need to worry about how sending and receiving payments is done.
 
@@ -140,6 +140,7 @@ MobileApp
 
 Visuals
 -------
+
 https://www.ethereum.org/images/logos/Ethereum_Visual_Identity_1.0.0.pdf
 
 User Onboarding Flow Example
@@ -251,7 +252,8 @@ Protocols
 =========
 
 Easy onboarding
-----------------
+---------------
+
 - https://github.com/ethereum/EIPs/issues/865#issuecomment-362920866 pay with tokens for gas
 
 Payment Requests
@@ -272,6 +274,7 @@ Push Notifications
 
 Other
 -----
+
 - https://github.com/ethereum/go-ethereum/wiki/Mobile:-Account-management
 - https://github.com/ethereum/go-ethereum/wiki/Mobile%3A-Introduction
 - https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md - address checksums

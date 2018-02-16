@@ -65,7 +65,7 @@ Invariants
 - Expiration must be larger than the current block number and smaller than the channel’s settlement period.
 
 Hash
-^^^^^
+^^^^
 
 - ``sha3_keccak(expiration || amount || hashlock)``
 
@@ -157,7 +157,7 @@ Fields
 +----------------------+---------------+------------------------------------------------------------+
 
 Secret Reveal
---------------
+-------------
 
 Message used by the nodes to inform others that the secret is known. Used to request an updated balance proof with the transferred amount increased and the lock removed.
 

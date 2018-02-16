@@ -310,7 +310,7 @@ Balance Proof
 
 
 Decisions
-==============
+=========
 
 - Batch operations should not be supported in Raiden Network smart contracts. They can be done in a smart contract wrapper instead.
    - Provide smart contract to batch operations with the same function names but vectorized types. Example: opening multiple channels in the same transaction.
