@@ -235,19 +235,49 @@ Use the reserved token amount to complete payments
 Message Flow
 ------------
 
-TODO: Use message flow from Raiden docs and 101 (https://raiden.network/101.html) page here.
+Nodes may use direct or mediated transfers to send payments.
 
+Direct Transfer
+^^^^^^^^^^^^^^^
 
+A ``DirectTransfer`` does not rely on locks to complete. It is automatically completed once the network packet is sent off. Since Raiden runs on top of an asynchronous network that can not guarantee delivery, transfers can not be completed atomically. The main points to consider about direct transfers are the following:
 
-Nodes may use direct or mediated transfers.
+- The messages are not locked, meaning the envelope transferred_amount is incremented and the message may be used to withdraw the token. This means that a ``payer`` is unconditionally transferring the token, regardless of getting a service or not. Trust is assumed among the ``payer``/``payee`` to complete the goods transaction.
 
-Direct transfers can only be used with a direct channel open among the participants. The node that wants to make a payment must increase the transferred amount of the balance proof by the payment amount. The node receiving a direct transfer must validate the balance proof and ensure that the nonce was increased, the transferred amount was increased but not by an amount larger than the available capacity, and that the locksroot used in the balance proof corresponds to the unmodified merkle tree.
+- The sender must assume the transfer is completed once the message is sent to the network, there is no workaround. The acknowledgement in this case is only used as a synchronization primitive, the payer will only know about the transfer once the message is received.
 
-Mediated transfers are done with the support of other nodes in the network, there are three roles: initiator, mediator and target.
+A succesfull direct transfer involves only 2 messages. The direct transfer message and an ``ACK``. For an Alice - Bob example:
 
-The initiator starts a transfer, it is responsible to choose a random secret that it considers secure and start the mediated transfer using one of it’s available channels.
+* Alice wants to transfer ``n`` tokens to Bob.
+* Alice creates a new transfer with.
+    - transferred_amount = ``current_value + n``
+    - ``locksroot`` = ``current_locksroot_value``
+    - nonce = ``current_value + 1``
+* Alice signs the transfer and sends it to Bob and at this point should consider the transfer complete.
 
-Mediator nodes are all the nodes that participate in the transfer, but are neither the initiator nor the target, these nodes don’t control the secret and are only
+Mediated Transfer
+^^^^^^^^^^^^^^^^^
+A ``MediatedTransfer`` is a hashlocked transfer. Currently raiden supports only one type of lock. The lock has an amount that is being transferred, a ``hashlock`` used to verify the secret that unlocks it, and a ``lock expiration`` to determine its validity.
 
+Mediated transfers have an ``initiator`` and a ``target`` and a number of hops in between. The number of hops can also be zero as these transfers can also be sent to a direct partner. Assuming ``N`` number of hops a mediated transfer will require ``6N + 8`` messages to complete. These are:
 
+- ``N + 1`` mediated or refund messages
+- ``1`` secret request
+- ``N + 1`` secret reveal
+- ``N + 1`` secret
+- ``3N + 4`` ACK
 
+For the simplest Alice - Bob example:
+
+- Alice wants to transfer ``n`` tokens to Bob.
+- Alice creates a new transfer with:
+    * transferred_amount = ``current_value``
+    * lock = ``Lock(n, hash(secret), expiration)``
+    * locksroot = ``updated value containing  the lock``
+    * nonce = ``current_value + 1``
+- Alice signs the transfer and sends it to Bob.
+- Bob requests the secret that can be used for withdrawing the transfer by sending a ``SecretRequest`` message.
+- Alice sends the ``RevealSecret`` to Bob and at this point she must assume the transfer is complete.
+- Bob receives the secret and at this point has effectively secured the transfer of ``n`` tokens to his side.
+- Bob sends an ``Unlock`` message back to Alice to inform her that the secret is known and acts as a request for off-chain synchronization.
+- Finally Alice sends an ``Unlock`` message to Bob. This acts also as a synchronization message informing Bob that the lock will be removed from the merkle tree and that the transferred_amount and locksroot values are updated.
