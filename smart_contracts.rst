@@ -65,10 +65,10 @@ Deploy a new ``TokenNetwork`` contract and add its address in the registry.
 
 ::
 
-    event TokenNetworkCreated(address token_address, address token_network_addrress)
+    event TokenNetworkCreated(address token_address, address token_network_address)
 
 - ``token_address``: address of the Token contract.
-- ``token_network_addrress``: address of the newly deployed ``TokenNetwork`` contract.
+- ``token_network_address``: address of the newly deployed ``TokenNetwork`` contract.
 
 TokenNetwork Contract
 ^^^^^^^^^^^^^^^^^^^^^
@@ -301,7 +301,7 @@ Balance Proof
 +------------------------+------------+--------------------------------------------------------------+
 |  channel_identifier    | uint       | Channel identifier inside the TokenNetwork contract          |
 +------------------------+------------+--------------------------------------------------------------+
-| token_network_addrress | address    | Address of the TokenNetwork contract                         |
+| token_network_address  | address    | Address of the TokenNetwork contract                         |
 +------------------------+------------+--------------------------------------------------------------+
 |  additional_hash       | bytes32    | Computed from the message. Used for message authentication   |
 +------------------------+------------+--------------------------------------------------------------+
