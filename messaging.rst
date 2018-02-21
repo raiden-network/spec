@@ -6,15 +6,6 @@ Overview
 
 This is the specification document for the messages used in the Raiden protocol.
 
-Terminology
-===========
-
-- ``transferred_amount``: The monotonically increasing counter of one channel participant’s amount of tokens sent.
-- ``hashlock``: A hashed secret, sha3_keccack(secret)
-- ``locksroot``: The root of the merkle tree of all pending locks' lockhashes.
-- ``lockhash``: The hash of a lock.  ``sha3_keccack(lock)``
-- ``secret``: The preimage used to derive a hashlock
-
 Data Structures
 ===============
 
@@ -26,9 +17,9 @@ Data required by the smart contracts to update the payment channel end of the pa
 Invariants
 ^^^^^^^^^^
 
-- Transferred amount starts at 0 and is monotonic.
+- :term:`Transferred amount` starts at 0 and is monotonic.
 - Nonce starts at 1 and is strictly monotonic.
-- Locksroot is the root node of the merkle tree of current pending locks.
+- :term:`Locksroot` is the root node of the merkle tree of current pending locks.
 - Signature must be valid and is defined as: ``ecdsa_recoverable(privkey, sha3_keccak(nonce || transferred amount || locksroot || unique_channel_id || additional hash)``
 
 Fields
@@ -94,7 +85,7 @@ A non cancellable, non expirable payment.
 Invariants
 ^^^^^^^^^^
 
-- Only valid if the transferred amount is larger than the previous value and it increased by an amount smaller than the participant's current capacity.
+- Only valid if the :term:`transferred amount` is larger than the previous value and it increased by an amount smaller than the participant's current :term:`capacity`.
 
 Fields
 ^^^^^^
@@ -108,14 +99,14 @@ Fields
 Mediated Transfer
 -----------------
 
-Cancellable and expirable transfer. Sent by a node when a transfer is being initiated, this message adds a new lock to the corresponding merkle tree of the sending participant node.
+Cancellable and expirable :term:`transfer`. Sent by a node when a transfer is being initiated, this message adds a new lock to the corresponding merkle tree of the sending participant node.
 
 
 Invariants
 ^^^^^^^^^^
 
-- The balance proof's locksroot must be equal to the previous valid merkle tree with the lock provided in the messaged added into it.
-- The transfer is valid only if the lock amount is smaller than the sender's capacity.
+- The :term:`balance proof` locksroot must be equal to the previous valid merkle tree with the lock provided in the messaged added into it.
+- The transfer is valid only if the lock amount is smaller than the sender's :term:`capacity`.
 
 Fields
 ^^^^^^
@@ -136,12 +127,12 @@ Fields
 Secret Request
 --------------
 
-Message used to request the secret that unlocks a lock. Sent by the payment target to the initiator once a mediated transfer is received.
+Message used to request the :term:`secret` that unlocks a lock. Sent by the payment :term:`target` to the :term:`initiator` once a :term:`mediated transfer` is received.
 
 Invariants
 ^^^^^^^^^^
 
-- The initiator must check that the payment target received a valid payment.
+- The :term:`initiator` must check that the payment :term:`target` received a valid payment.
 
 Fields
 ^^^^^^
@@ -159,7 +150,7 @@ Fields
 Secret Reveal
 -------------
 
-Message used by the nodes to inform others that the secret is known. Used to request an updated balance proof with the transferred amount increased and the lock removed.
+Message used by the nodes to inform others that the :term:`secret` is known. Used to request an updated :term:`balance proof` with the :term:`transferred amount` increased and the lock removed.
 
 Fields
 ^^^^^^
@@ -177,12 +168,12 @@ Unlock
 
 .. Note:: At the current (15/02/2018) Raiden implementation as of commit ``cccfa572298aac8b14897ee9677e88b2b55c9a29`` this message is known in the codebase as ``Secret``.
 
-Non cancellable, Non expirable. Updated balance proof, increases the transferred amount and removes the unlocked lock from the merkle tree.
+Non cancellable, Non expirable. Updated :term:`balance proof`, increases the :term:`transferred amount` and removes the unlocked lock from the merkle tree.
 
 Invariants
 ^^^^^^^^^^
 
-- The balance proof merkle tree must have the corresponding lock removed (and only this lock).
+- The :term:`balance proof` merkle tree must have the corresponding lock removed (and only this lock).
 - This message is only sent after the corresponding partner has sent a SecretReveal message.
 
 
@@ -226,10 +217,10 @@ The encoding used by the transport layer is independent of this specification, a
 Transfers
 ---------
 
-The protocol supports two types of transfers, direct and mediated. Direct transfers are non cancellable and unexpirable, while mediated transfers may be cancelled and can expire.
+The protocol supports two types of transfers, direct and mediated. A :term:`Direct transfer` is non cancellable and unexpirable, while a :term:`mediated transfer` may be cancelled and can expire.
 
 A mediated transfer is done in two stages, possibly on a series of channels:
-Reserve token capacity for a given payment
+Reserve token :term:`capacity` for a given payment
 Use the reserved token amount to complete payments
 
 Message Flow
@@ -242,7 +233,7 @@ Direct Transfer
 
 A ``DirectTransfer`` does not rely on locks to complete. It is automatically completed once the network packet is sent off. Since Raiden runs on top of an asynchronous network that can not guarantee delivery, transfers can not be completed atomically. The main points to consider about direct transfers are the following:
 
-- The messages are not locked, meaning the envelope transferred_amount is incremented and the message may be used to withdraw the token. This means that a ``payer`` is unconditionally transferring the token, regardless of getting a service or not. Trust is assumed among the ``payer``/``payee`` to complete the goods transaction.
+- The messages are not locked, meaning the envelope :term:`transferred amount` is incremented and the message may be used to withdraw the token. This means that a :term:`sender` is unconditionally transferring the token, regardless of getting a service or not. Trust is assumed among the :term:`sender`/:term:`receiver` to complete the goods transaction.
 
 - The sender must assume the transfer is completed once the message is sent to the network, there is no workaround. The acknowledgement in this case is only used as a synchronization primitive, the payer will only know about the transfer once the message is received.
 
@@ -257,9 +248,9 @@ A succesfull direct transfer involves only 2 messages. The direct transfer messa
 
 Mediated Transfer
 ^^^^^^^^^^^^^^^^^
-A ``MediatedTransfer`` is a hashlocked transfer. Currently raiden supports only one type of lock. The lock has an amount that is being transferred, a ``hashlock`` used to verify the secret that unlocks it, and a ``lock expiration`` to determine its validity.
+A :term:`Mediated Transfer` is a hashlocked transfer. Currently raiden supports only one type of lock. The lock has an amount that is being transferred, a :term:`hashlock` used to verify the secret that unlocks it, and a :term:`lock expiration` to determine its validity.
 
-Mediated transfers have an ``initiator`` and a ``target`` and a number of hops in between. The number of hops can also be zero as these transfers can also be sent to a direct partner. Assuming ``N`` number of hops a mediated transfer will require ``6N + 8`` messages to complete. These are:
+Mediated transfers have an :term:`initiator` and a :term:`target` and a number of hops in between. The number of hops can also be zero as these transfers can also be sent to a direct partner. Assuming ``N`` number of hops a mediated transfer will require ``6N + 8`` messages to complete. These are:
 
 - ``N + 1`` mediated or refund messages
 - ``1`` secret request
