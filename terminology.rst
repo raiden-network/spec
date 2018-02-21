@@ -54,10 +54,20 @@ Raiden Terminology
    HTL Unlock
        The action of unlocking a given :term:`Hash Time Lock`. This is the message used to finalize a transfer once the path is found and the reserve is acknowledged.
 
+   lock expiration
+       The lock expiration is the highest block_number until which the transfer can be settled.
+
    merkletree root
    locksroot
        The root of the merkle tree which holds the hashes of all the locks in the channel.
 
+   lockhash
+       The hash of a lock.  ``sha3_keccack(lock)``
+
+   hashlock
+       The hash of a :term:`secret`.  ``sha3_keccack(secret)``
+
+   balance proof
    Participant Balance Proof
        Signed data required by the Payment Channel to prove the balance of one of the parties.
 
