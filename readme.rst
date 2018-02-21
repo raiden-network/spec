@@ -11,6 +11,7 @@ Raiden specification
    :caption: Contents:
 
    messaging
+   transport
    smart_contracts
    monitoring_service
    pathfinding_service
