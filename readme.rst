@@ -15,6 +15,7 @@ Raiden specification
    monitoring_service
    pathfinding_service
    mobile_wallet
+   terminology
 
 ..  Indices and tables
     ==================
