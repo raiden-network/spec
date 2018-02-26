@@ -28,7 +28,7 @@ The following data types are taken from the Raiden Core spec.
 
 *ChannelId*
 
-* **TODO**
+* uint: channel_identifier
 
 *BalanceProof*
 
