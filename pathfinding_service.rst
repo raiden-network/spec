@@ -45,8 +45,8 @@ A path finding service must provide the following endpoints. The communication p
 
 The examples provided for each of the endpoints is for communication in JSON-RPC format.
 
-``v1.update_balance(channel_id, balance_proof)``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``v1.update_balance(channel_id, balance_proof, locks)``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Update the balance for the given channel with the provided balance proof. The receiver can be read from the balance proof.
 
@@ -56,9 +56,11 @@ Arguments
 +----------------------+---------------+-------------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                                      |
 +======================+===============+===================================================================+
-| channel_id           | TBD           | The channel for which the balance proof should be updated.        |
+| channel_id           | int           | The channel for which the balance proof should be updated.        |
 +----------------------+---------------+-------------------------------------------------------------------+
 | balance_proof        | BalanceProof  | The new balance proof which should be used for the given channel. |
++----------------------+---------------+-------------------------------------------------------------------+
+| locks                | List[Lock]    | The list of all locks used to compute the locksroot.              |
 +----------------------+---------------+-------------------------------------------------------------------+
 
 Returns
@@ -103,7 +105,7 @@ Arguments
 +----------------------+---------------+-----------------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                                          |
 +======================+===============+=======================================================================+
-| channel_id           | TBD           | The channel for which the fee should be updated.                      |
+| channel_id           | int           | The channel for which the fee should be updated.                      |
 +----------------------+---------------+-----------------------------------------------------------------------+
 | fee                  | int           | The new fee to be set.                                                |
 +----------------------+---------------+-----------------------------------------------------------------------+
