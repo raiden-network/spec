@@ -55,6 +55,10 @@ Functional decomposition
 TokenNetworksRegistry Contract
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Attributes:
+
+- ``address public secret_registry_address``
+
 **Register a token**
 
 Deploy a new ``TokenNetwork`` contract and add its address in the registry.
@@ -70,12 +74,18 @@ Deploy a new ``TokenNetwork`` contract and add its address in the registry.
 - ``token_address``: address of the Token contract.
 - ``token_network_address``: address of the newly deployed ``TokenNetwork`` contract.
 
+.. Note::
+    It also provides the ``SecretRegistry`` contract address to the ``TokenNetwork`` constructor.
+
 TokenNetwork Contract
 ^^^^^^^^^^^^^^^^^^^^^
 
 Provides the interface to interact with payment channels. The channels can only transfer the type of token that this contract defines through ``token_address``.
 
-Attribute: ``address token_address public constant``
+Attributes:
+
+- ``Token public token``
+- ``SecretRegistry public secret_registry;``
 
 **Open a channel**
 
@@ -83,7 +93,7 @@ Opens a channel between ``participant1`` and ``participant2`` and sets the chall
 
 ::
 
-    function openChannel(address participant1, address participant2, uint settle_timeout) public returns (address)
+    function openChannel(address participant1, address participant2, uint settle_timeout) public returns (uint256 channel_identifier)
 
 ::
 
@@ -100,31 +110,29 @@ Opens a channel between ``participant1`` and ``participant2`` and sets the chall
 
 **Fund a channel**
 
-Deposit more tokens into a channel. This will only increase the balance of one of the channel participants: the ``beneficiary``.
+Deposit more tokens into a channel. This will only increase the deposit of one of the channel participants: the ``participant``.
 
 ::
 
-    function deposit(
+    function setDeposit(
         uint channel_identifier,
-        address beneficiary,
-        uint256 added_amount)
+        address participant,
+        uint256 total_deposit)
         public
-        returns (bool)
 
 ::
 
-    event ChannelNewBalance(uint channel_identifier, address participant, uint balance);
+    event ChannelNewDeposit(uint channel_identifier, address participant, uint deposit);
 
 - ``channel_identifier``: Channel identifier assigned by the current contract.
-- ``beneficiary``: Ethereum address of a channel participant whom's balance will be increased.
-- ``added_amount``: Amount of tokens with which the ``beneficiary``'s ``balance`` will increase.
-- ``participant``: Ethereum address of a channel participant.
-- ``balance``: The total amount of tokens deposited in a channel by a participant.
+- ``participant``: Ethereum address of a channel participant who's deposit will be increased.
+- ``total_deposit``: Total amount of tokens that the ``participant`` will have as ``deposit`` in the channel.
+- ``deposit``: The total amount of tokens deposited in a channel by a participant.
 
 .. Note::
-    Allowed to be called multiple times.
+    Allowed to be called multiple times. Can be called by anyone.
 
-    Can be called by anyone.
+    This function is idempotent. The UI and internal smart contract logic has to make sure that the amount of tokens actually transferred is the difference between ``total_deposit`` and the ``deposit`` at transaction time.
 
 **Close a channel**
 
@@ -150,13 +158,13 @@ Allows a channel participant to close the channel. The channel cannot be settled
 - ``transferred_amount``: The monotonically increasing counter of the counterparty's amount of tokens sent.
 - ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the counterparty.
 - ``additional_hash``: Computed from the message. Used for message authentication.
-- ``signature``: Elliptic Curve 256k1 signature of the counterparty.
+- ``signature``: Elliptic Curve 256k1 signature of the channel partner on the balance proof data.
 - ``closing_address``: Ethereum address of the channel participant who calls this contract function.
 
 .. Note::
     Only a participant may close the channel.
 
-    Only a valid signed balance proof from the counterparty (the other channel participant) must be accepted.
+    Only a valid signed balance proof from the channel partner (the other channel participant) must be accepted. This balance proof sets the amount of tokens owed to the participant by the channel partner.
 
 **Update transfer state**
 
@@ -173,6 +181,16 @@ Called after a channel has been closed. Allows the non-closing participant to pr
         bytes signature)
         public
 
+    function updateTransferDelegate(
+        uint channel_identifier,
+        uint64 nonce,
+        uint256 transferred_amount,
+        bytes32 locksroot,
+        bytes32 additional_hash,
+        bytes closing_signature,
+        bytes non_closing_signature)
+        public
+
 ::
 
     event TransferUpdated(uint channel_identifier, address participant);
@@ -182,22 +200,26 @@ Called after a channel has been closed. Allows the non-closing participant to pr
 - ``transferred_amount``: The monotonically increasing counter of the closing participant's amount of tokens sent.
 - ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the closing participant.
 - ``additional_hash``: Computed from the message. Used for message authentication.
-- ``signature``: Elliptic Curve 256k1 signature of the closing participant.
+- ``signature``: Elliptic Curve 256k1 signature of the closing participant on the balance proof data.
+- ``closing_signature``: Elliptic Curve 256k1 signature of the closing participant on the balance proof data.
+- ``non_closing_signature``: Elliptic Curve 256k1 signature of the non-closing participant on the balance proof data.
 - ``participant``: Ethereum address of the non-closing participant.
 
 .. Note::
-    Can be called by a third party with a balance proof of the closing party.
+    ``updateTransfer`` can only be called by the non-closing channel participant with a balance proof of the closing participant.
+
+    ``updateTransferDelegate`` can be called by anyone with a balance proof of the closing party and a signature from the non-closing participant on the same balance proof data.
 
 **Unlock lock**
 
-Unlocks a pending transfer by providing the secret and increases the counterparty's transferred amount with the transfer value. A lock can be unlocked only once per participant.
+Unlocks a pending transfer by providing the secret and increases the counterparty's transferred amount with the transfer value. A lock can be unlocked only once per a participant's balance proof.
 
 ::
 
     function unlock(
         uint channel_identifier,
-        uint64 expiration,
-        uint amount,
+        uint64 expiration_block,
+        uint locked_amount,
         bytes32 hashlock,
         bytes merkle_proof,
         bytes32 secret)
@@ -205,18 +227,22 @@ Unlocks a pending transfer by providing the secret and increases the counterpart
 
 ::
 
-    event ChannelUnlocked(uint channel_identifier, uint transferred_amount);
+    event ChannelUnlocked(uint256 channel_identifier, address payer_address, uint256 transferred_amount);
 
 - ``channel_identifier``: Channel identifier assigned by the current contract.
-- ``expiration``: The absolute block number at which the lock expires.
-- ``amount``: The number of tokens being transferred.
+- ``expiration_block``: The absolute block number at which the lock expires.
+- ``locked_amount``: The number of tokens being transferred.
 - ``hashlock``: A hashed secret, ``sha3_keccack(secret)``.
 - ``merkle_proof``: The merkle proof needed to compute the merkle root.
 - ``secret``: The preimage used to derive a hashlock.
-- ``transferred_amount``: The monotonically increasing counter of the counterparty’s amount of tokens sent.
+- ``payer_address``: Ethereum address of a channel participant who's ``transferred_amount`` will be increased.
+- ``transferred_amount``: The total amount of tokens that the ``payer_address`` owes to the channel participant that calls this function.
 
 .. Note::
-    Must register the corresponding secret in the SecretRegistry smart contract, saving the block number in which the secret was revealed.
+    Must register the corresponding secret in the ``SecretRegistry`` smart contract, saving the block number in which the secret was revealed.
+
+    Anyone can unlock a transfer on behalf of a channel participant.
+    In case there is another ``updateTransfer`` that has occured after the locks have been initially unlocked, the locks have to be unlocked again if neccessary, with the new `locksroot`.
 
 **Settle channel**
 
@@ -268,11 +294,11 @@ In collaboration with a monitoring service, it acts as a security measure, to al
 
 ::
 
-    function registerSecret(bytes32 secret) public  returns (bool)
+    function registerSecret(bytes32 secret) public returns (bool)
 
 ::
 
-    event ChannelSecretRevealed(bytes32 secret, address receiver_address);
+    event SecretRevealed(bytes32 secret);
 
 Getters
 ::
@@ -280,7 +306,6 @@ Getters
     function getSecretBlockHeight(bytes32 secret) public constant returns (uint64)
 
 - ``secret``: The preimage used to derive a hashlock.
-- ``receiver_address``: Ethereum address of the channel participant who has received the ``secret``.
 
 Data types definition
 ---------------------
@@ -303,6 +328,8 @@ Balance Proof
 +------------------------+------------+--------------------------------------------------------------+
 | token_network_address  | address    | Address of the TokenNetwork contract                         |
 +------------------------+------------+--------------------------------------------------------------+
+| chain_id               | uint256    | Chain identifier as defined in EIP155                        |
++------------------------+------------+--------------------------------------------------------------+
 |  additional_hash       | bytes32    | Computed from the message. Used for message authentication   |
 +------------------------+------------+--------------------------------------------------------------+
 |  signature             | bytes      | Elliptic Curve 256k1 signature                               |
@@ -323,14 +350,9 @@ Open Questions
 - What token standard should we support? We can wait for a winner to detach itself or support multiple (compatible!) standards.
    - https://github.com/ethereum/EIPs/issues/223, https://github.com/ethereum/EIPs/issues/677,  https://github.com/ethereum/EIPs/issues/777 , https://github.com/ethereum/EIPs/issues/827 (not compatible with 223)
    - Linked issues: https://github.com/raiden-network/raiden/issues/1105
-- What should be the channel identifier? This is required for third party services. The channel identifier will be included in the channel creation event.
-   - Just a increasing uint ID.
-   - A hash composed (sender, receiver, block number). Used by itself, there is no additional advantage compared to using a simple ``uint``. It actually introduces an additional ``keccak256`` operation. However, this can be useful if we decide to only store the hash instead of the data inside it (sender, receiver, block number or anything that can be retrieved from contract events), reducing gas cost. We need to test how much gas will we actually save.
-- Channel specific data discussion. We settled on the ``channel_identifier`` + ``TokenNetwork`` contract address. This does not protect against forks. There is an already open issue here: https://github.com/raiden-network/raiden/issues/292.
 - Settle on contract and channels upgradability pattern.
-- Discuss third party channel closing ``closeChannel`` using a whitelist or providng a second signature for the participant on behalf of which the closing is done. Example: ``closeChannelDelegate`` with additional argument: "bytes signature_closer". Signature message should contain ``token_network_address``, ``channel_identifier``.
 - Discuss support for https://github.com/ethereum/EIPs/pull/712 when finalized.
-- Deposit allows for a beneficiary -- do we need functionality to have a beneficiary of settle payouts? Example: embedded devices with their own privatekey that are funded by human user with a different privatekey. This can also apply to third party services that can provide token deposits on behalf of a channel participant (e.g. easier onboarding).
+- Do we need functionality to have a beneficiary of settle payouts? Example: embedded devices with their own privatekey that are funded by human user with a different privatekey. This can also apply to third party services that can provide token deposits on behalf of a channel participant (e.g. easier onboarding).
 - What should the monitoring service do if the node callled update but it did not unlock all the locks that have the secret revealed?
 - How are rewards paid? Add a boolean to the functions that need a monitoring service call.
 - Integrate interest rates for keeping a channel open
