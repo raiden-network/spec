@@ -34,7 +34,7 @@ Fields
 +-----------------------+-------------+------------------------------------------------------------+
 |  locksroot            | bytes32     | Root of merkle tree of all pending lock lockhashes         |
 +-----------------------+-------------+------------------------------------------------------------+
-|  channel_identifier   | uint        | Channel identifier inside the TokenNetwork contract        |
+|  channel_identifier   | uint256     | Channel identifier inside the TokenNetwork contract        |
 +-----------------------+-------------+------------------------------------------------------------+
 | token_network_address | address     | Address of the TokenNetwork contract                       |
 +-----------------------+-------------+------------------------------------------------------------+
