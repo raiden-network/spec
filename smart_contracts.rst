@@ -125,7 +125,7 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
     event ChannelNewDeposit(uint channel_identifier, address participant, uint deposit);
 
 - ``channel_identifier``: Channel identifier assigned by the current contract.
-- ``participant``: Ethereum address of a channel participant who's deposit will be increased.
+- ``participant``: Ethereum address of a channel participant whose deposit will be increased.
 - ``total_deposit``: Total amount of tokens that the ``participant`` will have as ``deposit`` in the channel.
 - ``deposit``: The total amount of tokens deposited in a channel by a participant.
 
@@ -151,15 +151,15 @@ Allows a channel participant to close the channel. The channel cannot be settled
 
 ::
 
-    event ChannelClosed(uint channel_identifier, address closing_address);
+    event ChannelClosed(uint channel_identifier, address closing_participant);
 
 - ``channel_identifier``: Channel identifier assigned by the current contract.
 - ``nonce``: Strictly monotonic value used to order transfers.
-- ``transferred_amount``: The monotonically increasing counter of the counterparty's amount of tokens sent.
-- ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the counterparty.
+- ``transferred_amount``: The monotonically increasing counter of the partner's amount of tokens sent.
+- ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the partner.
 - ``additional_hash``: Computed from the message. Used for message authentication.
 - ``signature``: Elliptic Curve 256k1 signature of the channel partner on the balance proof data.
-- ``closing_address``: Ethereum address of the channel participant who calls this contract function.
+- ``closing_participant``: Ethereum address of the channel participant who calls this contract function.
 
 .. Note::
     Only a participant may close the channel.
@@ -178,7 +178,7 @@ Called after a channel has been closed. Allows the non-closing participant to pr
         uint256 transferred_amount,
         bytes32 locksroot,
         bytes32 additional_hash,
-        bytes signature)
+        bytes closing_signature)
         public
 
     function updateTransferDelegate(
@@ -193,31 +193,46 @@ Called after a channel has been closed. Allows the non-closing participant to pr
 
 ::
 
-    event TransferUpdated(uint channel_identifier, address participant);
+    event TransferUpdated(
+        uint256 channel_identifier,
+        address closing_participant
+    );
 
 - ``channel_identifier``: Channel identifier assigned by the current contract.
 - ``nonce``: Strictly monotonic value used to order transfers.
 - ``transferred_amount``: The monotonically increasing counter of the closing participant's amount of tokens sent.
 - ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the closing participant.
 - ``additional_hash``: Computed from the message. Used for message authentication.
-- ``signature``: Elliptic Curve 256k1 signature of the closing participant on the balance proof data.
 - ``closing_signature``: Elliptic Curve 256k1 signature of the closing participant on the balance proof data.
 - ``non_closing_signature``: Elliptic Curve 256k1 signature of the non-closing participant on the balance proof data.
-- ``participant``: Ethereum address of the non-closing participant.
+- ``closing_participant``: Ethereum address of the participant who closed the channel.
 
 .. Note::
     ``updateTransfer`` can only be called by the non-closing channel participant with a balance proof of the closing participant.
 
     ``updateTransferDelegate`` can be called by anyone with a balance proof of the closing party and a signature from the non-closing participant on the same balance proof data.
 
+**Register a secret**
+
+Registers a secret in the ``SecretRegistry`` smart contract, which saves the block number in which the secret was revealed.
+
+::
+
+    function registerSecret(bytes32 secret) public
+
+
+.. Note::
+    Can be called by anyone.
+
 **Unlock lock**
 
-Unlocks a pending transfer by providing the secret and increases the counterparty's transferred amount with the transfer value. A lock can be unlocked only once per a participant's balance proof.
+Unlocks a pending transfer by providing the secret and increases the partner's transferred amount with the transfer value. A lock can be unlocked only once per a participant's balance proof.
 
 ::
 
     function unlock(
         uint channel_identifier,
+        address partner,
         uint64 expiration_block,
         uint locked_amount,
         bytes32 hashlock,
@@ -225,24 +240,35 @@ Unlocks a pending transfer by providing the secret and increases the counterpart
         bytes32 secret)
         public
 
+    function registerSecretAndUnlock(
+        uint256 channel_identifier,
+        address partner,
+        uint64 expiration_block,
+        uint256 locked_amount,
+        bytes32 hashlock,
+        bytes merkle_proof,
+        bytes32 secret)
+        external
+
 ::
 
-    event ChannelUnlocked(uint256 channel_identifier, address payer_address, uint256 transferred_amount);
+    event ChannelUnlocked(uint256 channel_identifier, address payer_participant, uint256 transferred_amount);
 
 - ``channel_identifier``: Channel identifier assigned by the current contract.
+- ``partner``: Ethereum address of the channel participant that pays the ``locked_amount``.
 - ``expiration_block``: The absolute block number at which the lock expires.
 - ``locked_amount``: The number of tokens being transferred.
 - ``hashlock``: A hashed secret, ``sha3_keccack(secret)``.
 - ``merkle_proof``: The merkle proof needed to compute the merkle root.
 - ``secret``: The preimage used to derive a hashlock.
-- ``payer_address``: Ethereum address of a channel participant who's ``transferred_amount`` will be increased.
-- ``transferred_amount``: The total amount of tokens that the ``payer_address`` owes to the channel participant that calls this function.
+- ``payer_participant``: Ethereum address of the channel participant whose ``transferred_amount`` will be increased.
+- ``transferred_amount``: The total amount of tokens that the ``payer_participant`` owes to the channel participant that calls this function.
 
 .. Note::
-    Must register the corresponding secret in the ``SecretRegistry`` smart contract, saving the block number in which the secret was revealed.
-
     Anyone can unlock a transfer on behalf of a channel participant.
     In case there is another ``updateTransfer`` that has occured after the locks have been initially unlocked, the locks have to be unlocked again if neccessary, with the new `locksroot`.
+
+    The ``registerSecretAndUnlock`` is a wrapper function for both  ``registerSecret`` and ``unlock``.
 
 **Settle channel**
 
@@ -250,7 +276,11 @@ Settles the channel by transferring the amount of tokens each participant is owe
 
 ::
 
-    function settleChannel(uint channel_identifier) public
+    function settleChannel(
+        uint256 channel_identifier,
+        address participant1,
+        address participant2)
+        public
 
 ::
 
@@ -269,6 +299,8 @@ Allows the participants to cooperate and provide both of their balances and sign
 
     function cooperativeSettle(
         uint channel_identifier,
+        address participant1,
+        address participant2,
         uint256 balance1,
         uint256 balance2,
         bytes signature1,
