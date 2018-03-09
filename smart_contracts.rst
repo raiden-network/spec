@@ -31,15 +31,14 @@ Cheap
 Project Requirements
 ====================
 
-- The system must work with the most popular token standard (ERC20 tokens).
-- The system must hold tokens in escrow for the lifetime of a channel.
-- There must not be a way for a single party to hold other user’s tokens hostage.
+- The system must work with the most popular token standards (e.g. ERC20).
+- There must not be a way for a single party to hold other user’s tokens hostage, therefore the system must hold in escrow any tokens that are deposited in a channel.
 - There must be no way for a party to steal funds.
 - The proof must be non malleable.
 - Losing funds as a penalty is not considered stealing, but must be clearly documented.
 - The system must support smart locks.
-- Determine if and how different version of the smart contracts should interoperate.
-- Channels should be automatically upgraded.
+- Determine if and how different versions of the smart contracts should interoperate.
+- Determine if and how channels should be upgraded.
 
 Project Specification
 =====================
@@ -356,7 +355,7 @@ Balance Proof
 +------------------------+------------+--------------------------------------------------------------+
 |  locksroot             | bytes32    | Root of merkle tree of all pending lock lockhashes           |
 +------------------------+------------+--------------------------------------------------------------+
-|  channel_identifier    | uint       | Channel identifier inside the TokenNetwork contract          |
+|  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract          |
 +------------------------+------------+--------------------------------------------------------------+
 | token_network_address  | address    | Address of the TokenNetwork contract                         |
 +------------------------+------------+--------------------------------------------------------------+
@@ -374,21 +373,3 @@ Decisions
 - Batch operations should not be supported in Raiden Network smart contracts. They can be done in a smart contract wrapper instead.
    - Provide smart contract to batch operations with the same function names but vectorized types. Example: opening multiple channels in the same transaction.
    - To save on the number of transactions, add optimization functions that do multiple smart contract function calls
-
-Open Questions
-==============
-
-- add facade functions, e.g. ``openChannelAndDeposit``
-- What token standard should we support? We can wait for a winner to detach itself or support multiple (compatible!) standards.
-   - https://github.com/ethereum/EIPs/issues/223, https://github.com/ethereum/EIPs/issues/677,  https://github.com/ethereum/EIPs/issues/777 , https://github.com/ethereum/EIPs/issues/827 (not compatible with 223)
-   - Linked issues: https://github.com/raiden-network/raiden/issues/1105
-- Settle on contract and channels upgradability pattern.
-- Discuss support for https://github.com/ethereum/EIPs/pull/712 when finalized.
-- Do we need functionality to have a beneficiary of settle payouts? Example: embedded devices with their own privatekey that are funded by human user with a different privatekey. This can also apply to third party services that can provide token deposits on behalf of a channel participant (e.g. easier onboarding).
-- What should the monitoring service do if the node callled update but it did not unlock all the locks that have the secret revealed?
-- How are rewards paid? Add a boolean to the functions that need a monitoring service call.
-- Integrate interest rates for keeping a channel open
-- Assess whether we can support withdrawing tokens without closing the channel.
-- How does this play with pathfinding and the raiden wallet?
-- Support for distributed pathfinding - it must enforce structure in the network
-- Which special flows exists for the raiden wallet that may required additional functions?
