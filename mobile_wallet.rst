@@ -1,6 +1,8 @@
 Raiden Mobile Wallet Specification
 ##################################
 
+(This is work in progress and will be updated as soon as integration related specifications for core protocol and other services are settled on and implemented)
+
 Overview
 ========
 
@@ -43,7 +45,7 @@ High Level Features
 - iOS, Android; depending on tech & tooling -> +/- web & desktop
 - language: English (internationalization?)
 - support main net + test nets (Ropsten, Kovan, Rinkeby) + custom test net
-- support official/popular token standards: ERC20, ERC223 / 777
+- support official/popular token standards
 - atomic token swap transactions (through Raiden API)
 - request payments via SMS, Email, Whatsapp or Whisper (Shh) maybe with prepared data (like an order) -> receiver should click on the link and the wallet should already display the transaction and ask the user to sign it.
 - notifications for
@@ -52,7 +54,7 @@ High Level Features
    - off-chain payments (payment received, successful payment sent)
 - hub reputation system
 - user encrypted chat? (Signal protocol, Whisper, Matrix etc.)
-- adding new/custom tokens to interact with ? - this is easy for on-chain, but for off-chain it would mean deploying a new TokenNetwork contract (will not probably be supported)
+- adding new/custom tokens to interact with ? - this is easy for on-chain, but for off-chain it would mean deploying a new TokenNetwork contract (will probably not be supported in the wallet)
 
 Platforms & Languages
 =====================
@@ -72,7 +74,7 @@ Progressive Apps
 Native
 ^^^^^^
 
-- more efficient, compile to wasm
+- more efficient, can be compiled to wasm
 
 Languages
 ---------
@@ -153,7 +155,7 @@ User Onboarding Flow Example
 - fund wallet with ETH (should be easy to copy/paste address or share)
 - fund wallet with RDN / have an easy way to buy RDN from the app (agreement with an exchange or VendingMachine)
 - choose automatically or show list of trustworthy hubs that have connections with the 3rd party services (settlement, path finding) or hubs that provide 3rd party services
-   - prompt the user to choose one -> this means he has to put some tokens into escrow and pay some ETH, so he might not want to do that right away unless the hub is a goodwill hub and provides some funds himself (how?)
+   - prompt the user to choose one -> this means he has to put some tokens into escrow and pay some ETH, so he might not want to do that right away unless the hub is a goodwill hub and provides some funds himself
 - if the user does have any channels open, he cannot make any transactions yet; a notification can be shown that he has not completed this step (e.g. action todo list)
 - show a list of tokens that RN has in the registry -> show relevant tokens (high liquidity) + a search input
 - prompt the user to choose token networks (he can join even without having any tokens in his wallet, because he can just receive tokens - tbd)
@@ -186,7 +188,7 @@ Settings
 
 - adding / removing custom token for on-chain transactions (address, name, token symbol, decimals)
 - choosing between off-chain (default) and on-chain; this change can also be done in the payment flow if needed (e.g. no available channels, one time payment etc.)
-- choosing currency to show along ETH / token values (BTC / USD / EUR / custom (via Kraken/other API)
+- choosing currency to show along ETH / token values (BTC / USD / EUR / custom
 
 Account
 ^^^^^^^
@@ -311,9 +313,11 @@ Event Watching
 Roadmap
 =======
 
+(purely estimative)
+
 - Finalize feature specs (5 PD)
 - Finalize protocols and standards research (+ competition research) (5 PD)
-- Align with Raiden Network after core,MS,PFS specs are somewhat finalized (4 PD)
+- Align with Raiden Network after core, MS, PFS specs are somewhat finalized (4 PD)
 - Plan milestones (4 PD)
 - Prototype (to test chosen frameworks - native vs. progressive apps etc.) (7 PD)
 - Prototype 2 - standard wallet implementation (10 PD)
