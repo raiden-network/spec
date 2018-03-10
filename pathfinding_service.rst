@@ -35,18 +35,28 @@ The following data types are taken from the Raiden Core spec.
 * uint64: nonce
 * uint256: transferred_amount
 * bytes32: locksroot
-* bytes32: extra_hash
+* uint256: channel_identifier
+* address: token_network_address
+* uint256: chain_id
+* bytes32: additional_hash
 * bytes: signature
+
+
+*Lock*
+
+* uint64: expiration
+* uint256: locked_amount
+* bytes32: hashlock
 
 Public Endpoints
 ----------------
 
-A path finding service must provide the following endpoints. The communication protocol is not yet decided (**TODO**). The interface has to be versioned as well.
+A path finding service must provide the following endpoints. The interface has to be versioned.
 
-The examples provided for each of the endpoints is for communication in JSON-RPC format.
+The examples provided for each of the endpoints is for communication with a REST endpoint.
 
-``v1.update_balance(channel_id, balance_proof, locks)``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``api/1/balance``
+^^^^^^^^^^^^^^^^^
 
 Update the balance for the given channel with the provided balance proof. The receiver can be read from the balance proof.
 
@@ -75,28 +85,42 @@ Example
 ::
 
     // Request
-    curl -X POST --data '{
-        "jsonrpc": "2.0",
-        "method": "update_balance",
-        "params": ["0x12345", balance_proof],
-        "id": 67
-    }'
+    curl -X PUT --data '{
+        "balance_proof": {
+            "nonce" = 1234,
+            "transferred_amount" = 23,
+            "locksroot" = "<keccak-hash>",
+            "channel_id" = 123,
+            "token_network_address" = "0xtoken"],
+            "chain_id" = 1,
+            "additional_hash" = "<keccak-hash>",
+            "signature" = "<signature>"
+        },
+        "locks": [
+            {
+                "expiration": 200
+                "locked_amount": 40
+                "hashlock": "<keccak-hash>"
+            },
+            {
+                "expiration": 50
+                "locked_amount": 10
+                "hashlock": "<keccak-hash>"
+            },
+        ],
+    }'  /api/1/balance
     // Result for success
     {
-        "id": 67,
-        "jsonrpc": "2.0",
-        "result": true
+        "result": "OK"
     }
     // Result for failure
     {
-        "id": 67,
-        "jsonrpc": "2.0",
         "error": "Invalid balance proof"
     }
 
 
-``v1.update_fee(channel_id, fee, signature)``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``api/1/channels/<channel_id>/fee``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Update the fee for the given channel, for the outgoing channel from the partner who signed the message.
 
 Arguments
@@ -124,27 +148,21 @@ Example
 ::
 
     // Request
-    curl -X POST --data '{
-        "jsonrpc": "2.0",
-        "method": "update_fee",
-        "params": ["0x12345", 2345, "0xsignature"],
-        "id":67
-    }'
+    curl -X PUT --data '{
+        "fee": 3,
+        "signature" = "<signature>"
+    }'  /api/1/channels/123/fee
     // Result for success
     {
-        "id": 67,
-        "jsonrpc": "2.0",
-        "result": true
+        "result": "True"
     }
     // Result for failure
     {
-        "id": 67,
-        "jsonrpc": "2.0",
         "error": "Invalid signature."
     }
 
-``v1.get_paths(from, to, payment_value, num_paths, extra_data)``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``api/1/paths``
+^^^^^^^^^^^^^^^
 
 Request a list of possible paths from startpoint to endpoint for a given transfer value.
 
@@ -191,51 +209,47 @@ Example
 ::
 
     // Request
-    curl -X POST --data '{
-        "jsonrpc": "2.0",
-        "method": "get_paths",
-        "params": ["0xalice", "0xbob", 100, 10],
-        "id": 67
-    }'
+    curl -X GET --data '{
+        "from": "0xalice",
+        "to": "0xbob",
+        "value": 45,
+        "num_paths": 10
+    }'  /api/1/paths
     // Request with specific preference
-    curl -X POST --data '{
-        "jsonrpc": "2.0",
-        "method": "get_paths",
-        "params": ["0xalice", "0xbob", 100, 10, "min-fee"],
-        "id": 67
-    }'
+    curl -X PUT --data '{
+        "from": "0xalice",
+        "to": "0xbob",
+        "value": 45,
+        "num_paths": 10,
+        "extra_data": "min-hops"
+    }'  /api/1/paths
     // Result for success
     {
-        "id": 67,
-        "jsonrpc": "2.0",
         "result": [
         {
             "path": ["0xalice", "0xcharlie", "0xbob"],
-            "estimated_fees": 12_000
+            "estimated_fees": 3
         },
         {
             "path": ["0xalice", "0xeve", "0xdave", "0xbob"]
-            "estimated_fees": 25_000
+            "estimated_fees": 5
         },
         ...
         ]
     }
     // Result for failure
     {
-        "id": 67,
-        "jsonrpc": "2.0",
         "error": "No suitable path found."
     }
     // Result for exceeded rate limit
     {
-        "id": 67,
-        "jsonrpc": "2.0",
-        "error": "Rate limit exceeded, payment required. Please call ‘get_payment_info’ to establish a payment channel or wait."
+        "error": "Rate limit exceeded, payment required. Please call 'api/1/payment/info' to establish a payment channel or wait."
     }
 
 
-``v1.get_payment_info(rdn_source_address)``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``api/1/payment/info``
+^^^^^^^^^^^^^^^^^^^^^^
+
 Request price and path information on how and how much to pay the service for additional path requests.
 The service is paid in RDN tokens, so they payer might need to open an additional channel in the RDN token network.
 
@@ -271,16 +285,11 @@ Example
 ::
 
     // Request
-    curl -X POST --data '{
-        "jsonrpc": "2.0",
-        "method": "get_payment_info",
-        "params": ["0xrdn_alice"],
-        "id":67
-    }'
+    curl -X GET --data '{
+        "rdn_source_addressfrom": "0xrdn_alice",
+    }'  api/1/payment/info
     // Result for success
     {
-        "id": 67,
-        "jsonrpc": "2.0",
         "result":
         {
             "price_per_request": 1000,
@@ -295,8 +304,6 @@ Example
         }
     // Result for failure
     {
-        "id": 67,
-        "jsonrpc": "2.0",
         "error": "No suitable path found."
     }
 
@@ -306,12 +313,4 @@ Open questions
 
 * How do clients open channels? Additional service offered by the pathfinding server?
 * Is it OK to assume that clients address in the RDN token network is the same as in the (possibly) different network it asks the pathfinding service for a path?
-* Do we need some kind of monitoring?
 * Are the updating endpoints publicly available or just for the matrix channel listener?
-* Is JSON-RPC a suitable communication protocol? What is the plan for the Monitoring service?
-
-Next steps
-==========
-
-* Wait for a final specification of a channel id and balance proof and link the raiden protocol spec
-* Find a solution for https://github.com/raiden-network/spec/issues/2
