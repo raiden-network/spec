@@ -307,10 +307,3 @@ Example
         "error": "No suitable path found."
     }
 
-
-Open questions
-==============
-
-* How do clients open channels? Additional service offered by the pathfinding server?
-* Is it OK to assume that clients address in the RDN token network is the same as in the (possibly) different network it asks the pathfinding service for a path?
-* Are the updating endpoints publicly available or just for the matrix channel listener?
