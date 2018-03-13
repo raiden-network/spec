@@ -1,8 +1,8 @@
-SPEC Raiden Transport
-#####################
+Raiden Transport
+################
 
-Requirements (for a messaging transport solution)
-=================================================
+Requirements
+============
 * Unicast Messages
 * Broadcast Messages
 * E2E encryption for unicast messages
@@ -80,45 +80,4 @@ In Matrix, users can send direct e2e encrypted messages to each other.
 Blockchain Event Rooms
 ''''''''''''''''''''''
 Each RSB operator could provide a room, where relevant events from Raiden Token Networks are published. E.g. signed, so that false info could be challenged.
-
-Open Questions
-==============
-
-We need a way to distinguish communication between the various test and main (ethereum) networks. Proposal: network id included in the room name.
-
-What’s Blockchain event room? Who will post in it, how will it be protected from publishing false info, who can challenge?
-
-How many users can one homeserver support? Proposal: contact Matrix team
-
-Current reference home server is written in Python. A more efficient/performant version written in Go is in the works, but it is unclear when will it be usable in production. TBD: as we should require as few advanced features as possible (to not couple too much with Matrix implementation), alternative implementations like Go could be useable earlier.
-
-How far can history go? What are storage requirements? Is it possible to prune the room history? Proposal: contact Matrix team
-
-Since all rooms “belong” to (i.e. are created at and initially federated from) a specific Homeserver, how are room names discovered? For the initial PoC we can just hardcode a specific hostname but for MVP this seems not suitable.
-
-
-How would a MVP (e2e viability demo) look like ?
-================================================
-
-1) Remove service discovery SC and port it to Matrix: a groupchat will be used to discover peers
-
-2) Specify message format (preferrably JSON?)
-
-3) Port current UDP transport to Matrix protocol
-
-
-Requirements evaluation for Matrix
-==================================
-
-* Unicast Messages: direct messaging possible ✔
-* Broadcast Messages: groupchats might be used for this ✔
-* E2E encryption for unicast messages ✔
-* Authentication (i.e. messages should be linkable to an Ethereum account): Linking to ethereum account might be possible with a home server extension developed by BB. User accounts available. It'd be sanitization/spam protection measure, as all messages should be signed and validated by all users, so proper authentication isn't required in the transport layer.
-* Low latency (~100ms): TBD, needs further evaluation/testing. Same for message throughput
-* Scalability (??? messages/s): reference server uses rate-limit for incoming messages (per-user and per-federation connection). Not clear if and when it’ll be possible to rate limit individual groupchats
-* Spam protection / Sybil Attack resistance: see above, throttling available
-* Decentralized (no single point of failure / censorship resistance): groupchats are replicated on every participating home server
-* Off the shelf solution, well maintained: Matrix is beta, in active development. Some maintenance by BB may be required if we want any special features
-* JS + Python SDK: ✔
-* Open Source / Open Protocol: ✔ (reference server is P2.7 only)
 
