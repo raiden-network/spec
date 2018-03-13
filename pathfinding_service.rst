@@ -87,14 +87,14 @@ Example
     // Request
     curl -X PUT --data '{
         "balance_proof": {
-            "nonce" = 1234,
-            "transferred_amount" = 23,
-            "locksroot" = "<keccak-hash>",
-            "channel_id" = 123,
-            "token_network_address" = "0xtoken"],
-            "chain_id" = 1,
-            "additional_hash" = "<keccak-hash>",
-            "signature" = "<signature>"
+            "nonce": 1234,
+            "transferred_amount": 23,
+            "locksroot": "<keccak-hash>",
+            "channel_id": 123,
+            "token_network_address": "0xtoken"],
+            "chain_id": 1,
+            "additional_hash": "<keccak-hash>",
+            "signature": "<signature>"
         },
         "locks": [
             {
@@ -150,7 +150,7 @@ Example
     // Request
     curl -X PUT --data '{
         "fee": 3,
-        "signature" = "<signature>"
+        "signature": "<signature>"
     }'  /api/1/channels/123/fee
     // Result for success
     {
