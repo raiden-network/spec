@@ -69,6 +69,7 @@ Raiden Terminology
 
    balance proof
    Participant Balance Proof
+   BP
        Signed data required by the Payment Channel to prove the balance of one of the parties.
 
    Message
@@ -96,6 +97,7 @@ Raiden Terminology
        A :term:`mediated transfer` sent by a node. The node may be a :term:`Mediator` in the path or the :term:`Initiator`.
 
    Monitoring Service
+   MS
        The service that monitors channel state on behalf of the user and takes an action if the channel is being closed with a balance proof that would violate the agreed on balances. Responsibilities
        - Watch channels
        - Delegate closing
@@ -120,6 +122,12 @@ Raiden Terminology
 
    Net Balance
        Net of balance in a contract. May be negative or positive. Negative for ``A(B)`` if ``A(B)`` received more tokens than it spent. For example ``net_balance(A) = transferred_amount(A) - transferred_amount(B)``
+
+   Challenge Period
+       The state of a channel initiated by one of the channel participants. This phase is limited for a period of ``n`` block updates.
+
+   Challenge Period Update
+       Update of the channel state during the :term:`Challenge period`. The state can be updated either by the channel participants, or by a delegate (:term:`MS`).
 
    Settlement Window
    Settle Timeout
