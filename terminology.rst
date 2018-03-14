@@ -75,6 +75,9 @@ Raiden Terminology
    Message
        Any message sent from one Raiden Node to the other.
 
+   Message Field
+       An individual item included in the transmitted Message
+
    Initiator
        The node that sends a Payment.
 
