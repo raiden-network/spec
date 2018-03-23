@@ -234,7 +234,7 @@ Unlocks a pending transfer by providing the secret and increases the partner's t
         address partner,
         uint64 expiration_block,
         uint locked_amount,
-        bytes32 hashlock,
+        bytes32 secrethash,
         bytes merkle_proof,
         bytes32 secret)
         public
@@ -244,7 +244,7 @@ Unlocks a pending transfer by providing the secret and increases the partner's t
         address partner,
         uint64 expiration_block,
         uint256 locked_amount,
-        bytes32 hashlock,
+        bytes32 secrethash,
         bytes merkle_proof,
         bytes32 secret)
         external
@@ -257,9 +257,9 @@ Unlocks a pending transfer by providing the secret and increases the partner's t
 - ``partner``: Ethereum address of the channel participant that pays the ``locked_amount``.
 - ``expiration_block``: The absolute block number at which the lock expires.
 - ``locked_amount``: The number of tokens being transferred.
-- ``hashlock``: A hashed secret, ``sha3_keccack(secret)``.
+- ``secrethash``: A hashed secret, ``sha3_keccack(secret)``.
 - ``merkle_proof``: The merkle proof needed to compute the merkle root.
-- ``secret``: The preimage used to derive a hashlock.
+- ``secret``: The preimage used to derive a secrethash.
 - ``payer_participant``: Ethereum address of the channel participant whose ``transferred_amount`` will be increased.
 - ``transferred_amount``: The total amount of tokens that the ``payer_participant`` owes to the channel participant that calls this function.
 
@@ -336,7 +336,7 @@ Getters
 
     function getSecretBlockHeight(bytes32 secret) public constant returns (uint64)
 
-- ``secret``: The preimage used to derive a hashlock.
+- ``secret``: The preimage used to derive a secrethash.
 
 Data types definition
 ---------------------

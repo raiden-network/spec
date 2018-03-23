@@ -62,7 +62,7 @@ Invariants
 Hash
 ^^^^
 
-- ``sha3_keccak(expiration || amount || hashlock)``
+- ``sha3_keccak(expiration || amount || secrethash)``
 
 Fields
 ^^^^^^
@@ -74,7 +74,7 @@ Fields
 +----------------------+-------------+------------------------------------------------------------+
 |  locked_amount       | uint256     | amount of tokens held by the lock                          |
 +----------------------+-------------+------------------------------------------------------------+
-|  hashlock            | bytes32     | sha3 of the secret                                         |
+|  secrethash          | bytes32     | sha3 of the secret                                         |
 +----------------------+-------------+------------------------------------------------------------+
 
 
@@ -146,7 +146,7 @@ Fields
 +======================+===============+============================================================+
 |  payment_amount      | uint256       | The amount received by the node once secret is revealed    |
 +----------------------+---------------+------------------------------------------------------------+
-|  lock_hashlock       | bytes32       | Specifies which lock is being unlocked                     |
+|  lock_secrethash     | bytes32       | Specifies which lock is being unlocked                     |
 +----------------------+---------------+------------------------------------------------------------+
 |  signature           | bytes         | Elliptic Curve 256k1 signature                             |
 +----------------------+---------------+------------------------------------------------------------+
@@ -205,7 +205,7 @@ Fields
 +----------------------+---------------+------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                               |
 +======================+===============+============================================================+
-|  hashlock            | bytes32       | The hashlock to remove                                     |
+|  secrethash          | bytes32       | The hashlock to remove                                     |
 +----------------------+---------------+------------------------------------------------------------+
 |  balance_proof       | BalanceProof  | The updated balance proof                                  |
 +----------------------+---------------+------------------------------------------------------------+
@@ -252,7 +252,7 @@ A succesfull direct transfer involves only 2 messages. The direct transfer messa
 
 Mediated Transfer
 ^^^^^^^^^^^^^^^^^
-A :term:`Mediated Transfer` is a hashlocked transfer. Currently raiden supports only one type of lock. The lock has an amount that is being transferred, a :term:`hashlock` used to verify the secret that unlocks it, and a :term:`lock expiration` to determine its validity.
+A :term:`Mediated Transfer` is a hashlocked transfer. Currently raiden supports only one type of lock. The lock has an amount that is being transferred, a :term:`secrethash` used to verify the secret that unlocks it, and a :term:`lock expiration` to determine its validity.
 
 Mediated transfers have an :term:`initiator` and a :term:`target` and a number of hops in between. The number of hops can also be zero as these transfers can also be sent to a direct partner. Assuming ``N`` number of hops a mediated transfer will require ``6N + 8`` messages to complete. These are:
 
