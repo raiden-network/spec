@@ -64,7 +64,7 @@ Raiden Terminology
    lockhash
        The hash of a lock.  ``sha3_keccack(lock)``
 
-   hashlock
+   secrethash
        The hash of a :term:`secret`.  ``sha3_keccack(secret)``
 
    balance proof

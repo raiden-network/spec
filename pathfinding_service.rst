@@ -46,7 +46,7 @@ The following data types are taken from the Raiden Core spec.
 
 * uint64: expiration
 * uint256: locked_amount
-* bytes32: hashlock
+* bytes32: secrethash
 
 Public Endpoints
 ----------------
@@ -100,12 +100,12 @@ Example
             {
                 "expiration": 200
                 "locked_amount": 40
-                "hashlock": "<keccak-hash>"
+                "secrethash": "<keccak-hash>"
             },
             {
                 "expiration": 50
                 "locked_amount": 10
-                "hashlock": "<keccak-hash>"
+                "secrethash": "<keccak-hash>"
             },
         ],
     }'  /api/1/balance
