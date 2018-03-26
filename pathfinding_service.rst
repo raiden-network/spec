@@ -307,3 +307,28 @@ Example
         "error": "No suitable path found."
     }
 
+
+Implementation notes
+====================
+
+Network topology updates
+------------------------
+
+.. Note::
+    A pathfinding service might want to cover multiple token networks. However,
+    it always needs to cover the *RDN* token network in order to be able to
+    provide routing information for payments.
+    
+    The creation of new token networks can be followed by listening for
+    `TokenNetworkCreated` events on the `TokenNetworksRegistry` contract. 
+
+To learn about updates of the network topology of a token network the PFS must
+listen for the following events:
+
+- `ChannelOpenened`: Update the network to include the new channel
+- `ChannelClosed`: Remove the channel from the network
+
+Additionally it must listen to the `ChannelNewDeposit` event in order to learn
+about new deposits.
+
+Updates for channel balances and fees are received over the designated API endpoints.
