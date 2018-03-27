@@ -18,6 +18,16 @@ Assumptions
 * Every pathfinding service is responsible for a single token network. Pathfinding services are scaled on process level to handle multiple token networks.
 
 
+High-Level-Description
+======================
+A node can request a list of possible paths from start point to endpoint for a given transfer value.
+The get_paths method implements canonical Dijkstra algorithm to return a given number of paths for a mediated transfers of a given value. The design regards the Raiden network as unidirectional weighted graph, where the default weights (and therefore the primary constraint of the optimization) are the fees of each channel. Additionally we applied two heuristics to quantify desirable properties of the resulting graphs:
+
+i) A hard coded parameter DIVERSITY_PEN_DEFAULT defined in the config; this value is added to each edge that is part of a returned path as a bias. This results in an output of "pseudo-disjoint" paths, i.e. the optimization will prefer paths with a minimal edge intersection. This should enable nodes to have a suitable amount of options for their payment routing in the case some paths are slow or broken. However, if a node has only one channel (i.e. a light client) payments could be routed through, the method will still return the specified number of paths.
+
+
+ii) The second heuristic is configurable via the optional argument 'bias', which models the trade-off between speed and cost of mediated transfer; with default 0, get_paths will  optimize with respect to overall fees only (i.e. the cheapest path). On the other hand, with bias=1, get_paths will look for path's with the minimal number of hops (i.e. the  -theoretical - fastest path). Any value in [0,1] is accepted, an appropriate value depends on the average channel_fee in the network (in simulations mean_fee gave decent results for the trade-off between speed and cost). The reasoning behind this heuristic is that a node may have different needs, w.r.t to good to be paid for - buying a potato should be fast, buying a yacht should incorporate low fees. 
+
 Public Interface
 ================
 
@@ -26,11 +36,11 @@ Definitions
 
 The following data types are taken from the Raiden Core spec.
 
-*ChannelId*
+*Channel_Id*
 
 * uint: channel_identifier
 
-*BalanceProof*
+*Balance_Proof*
 
 * uint64: nonce
 * uint256: transferred_amount
@@ -119,21 +129,26 @@ Example
     }
 
 
-``api/1/channels/<channel_id>/fee``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Update the fee for the given channel, for the outgoing channel from the partner who signed the message.
+``api/1/channels/<channel_id>/update_fee``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Update the fee for the given channel, for the outgoing channel from the partner who signed the message. A nonce is required to be incorporated in the signature for replay protection. 
+
+* Reconstructs the signers public_key of a requested fee update with coincurve's from_signature_and_message method.  
+
+* Derives the two channel_participants from channel_id. Checks if the signing public_key matches one of the channel participant's address, else returns respectively.
 
 Arguments
 """""""""
-
 +----------------------+---------------+-----------------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                                          |
 +======================+===============+=======================================================================+
 | channel_id           | int           | The channel for which the fee should be updated.                      |
 +----------------------+---------------+-----------------------------------------------------------------------+
+|nonce                 | int           | A nonce for replay protection.                                        |
++----------------------+---------------+-----------------------------------------------------------------------+
 | fee                  | int           | The new fee to be set.                                                |
 +----------------------+---------------+-----------------------------------------------------------------------+
-| signature            | bytes         | The signature of the channel partner for whom the channel is outgoing.|
+| signature            | bytes         | signature of a channel partner                                        |
 +----------------------+---------------+-----------------------------------------------------------------------+
 
 Returns
@@ -142,6 +157,7 @@ Returns
 
 * Invalid channel id
 * Invalid signature
+
 
 Example
 """""""
@@ -161,13 +177,16 @@ Example
         "error": "Invalid signature."
     }
 
-``api/1/paths``
-^^^^^^^^^^^^^^^
+``api/1/get_paths``
+^^^^^^^^^^^^^^^^^^^
 
-Request a list of possible paths from startpoint to endpoint for a given transfer value.
+The method will do ``num_path`` iterations of Dijkstra on the last-known state of the Raiden Network (regarded as directed weighted graph) to return num_path different path's for a mediated transfer of _value_.
 
-This method will be rate-limited in a configurable way. If the rate limit is exceeded, clients can be required to pay the path-finding service with RDN tokens via the Raiden Network. The required path for this payment will be provided by the service for free. This enables a simple user experience for light users without the need for additional on-chain transactions for channel creations or payments, while at the same time monetizing extensive use of the API.
-To get payment information the *get_payment_info* method is used.
+* checks if an edge (i.e. a channel) has capacity > value, else ignores it. 
+
+* applies on the fly changes to the graph's weights - depends on DIVERSITY_PEN_DEFAULT from config, to penalize edges which have are part of a path that is returned as well.
+
+* depends on a user preference of fee-level vs path-length (i.e. cost vs speed) via an optional method argument 'bias' - default == is absolute fee minimization. 
 
 Arguments
 """""""""
@@ -183,7 +202,7 @@ Arguments
 +----------------------+---------------+-----------------------------------------------------------------------+
 | num_paths            | int           | The maximum number of paths returned.                                 |
 +----------------------+---------------+-----------------------------------------------------------------------+
-| extra_data           | string        | ptional implementation specific marker for path finding preferences.  |
+| kwargs               | any           | Currently only 'bias' to implement the speed/cost opt. trade-off      |
 +----------------------+---------------+-----------------------------------------------------------------------+
 
 Returns
@@ -273,7 +292,7 @@ An object consisting of two properties:
 +----------------------+---------------+-----------------------------------------------------------------------+
 | paths                | list          | A list of possible paths to pay the path finding service in the RDN   |
 |                      |               | token network. Each object in the list contains a *path* and an       |
-|                      |               | *estimated_fee* property.                                             |
+|                      |               | *estimated_fee* property.                                             |
 +----------------------+---------------+-----------------------------------------------------------------------+
 
 If no possible path is found, the following error is returned:
@@ -306,4 +325,3 @@ Example
     {
         "error": "No suitable path found."
     }
-
