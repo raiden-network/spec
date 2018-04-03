@@ -55,8 +55,8 @@ A path finding service must provide the following endpoints. The interface has t
 
 The examples provided for each of the endpoints is for communication with a REST endpoint.
 
-``api/1/balance``
-^^^^^^^^^^^^^^^^^
+``api/1/<token_network_address>/<channel_id>/balance``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Update the balance for the given channel with the provided balance proof. The receiver can be read from the balance proof.
 
@@ -66,6 +66,8 @@ Arguments
 +----------------------+---------------+-------------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                                      |
 +======================+===============+===================================================================+
+| token_network_address| address       | The token network address for which the balance is updated.       |
++----------------------+---------------+-------------------------------------------------------------------+
 | channel_id           | int           | The channel for which the balance proof should be updated.        |
 +----------------------+---------------+-------------------------------------------------------------------+
 | balance_proof        | BalanceProof  | The new balance proof which should be used for the given channel. |
@@ -108,7 +110,7 @@ Example
                 "secrethash": "<keccak-hash>"
             },
         ],
-    }'  /api/1/balance
+    }'  /api/1/0xtoken_network/balance
     // Result for success
     {
         "result": "OK"
@@ -119,8 +121,8 @@ Example
     }
 
 
-``api/1/channels/<channel_id>/fee``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``api/1/<token_network_address>/<channel_id>/fee``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Update the fee for the given channel, for the outgoing channel from the partner who signed the message.
 
 Arguments
@@ -129,6 +131,8 @@ Arguments
 +----------------------+---------------+-----------------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                                          |
 +======================+===============+=======================================================================+
+| token_network_address| address       | The token network address for which the payment info is requested.    |
++----------------------+---------------+-----------------------------------------------------------------------+
 | channel_id           | int           | The channel for which the fee should be updated.                      |
 +----------------------+---------------+-----------------------------------------------------------------------+
 | fee                  | int           | The new fee to be set.                                                |
@@ -151,7 +155,7 @@ Example
     curl -X PUT --data '{
         "fee": 3,
         "signature": "<signature>"
-    }'  /api/1/channels/123/fee
+    }'  /api/1/0xtoken_network/123/fee
     // Result for success
     {
         "result": "True"
@@ -161,8 +165,8 @@ Example
         "error": "Invalid signature."
     }
 
-``api/1/paths``
-^^^^^^^^^^^^^^^
+``api/1/<token_network_address>/paths``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Request a list of possible paths from startpoint to endpoint for a given transfer value.
 
@@ -175,6 +179,8 @@ Arguments
 +----------------------+---------------+-----------------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                                          |
 +======================+===============+=======================================================================+
+| token_network_address| address       | The token network address for which the paths are requested.          |
++----------------------+---------------+-----------------------------------------------------------------------+
 | from                 | address       | The address of the payment initiator.                                 |
 +----------------------+---------------+-----------------------------------------------------------------------+
 | to                   | address       | The address of the payment target.                                    |
@@ -183,7 +189,7 @@ Arguments
 +----------------------+---------------+-----------------------------------------------------------------------+
 | num_paths            | int           | The maximum number of paths returned.                                 |
 +----------------------+---------------+-----------------------------------------------------------------------+
-| extra_data           | string        | ptional implementation specific marker for path finding preferences.  |
+| extra_data           | string        | Optional implementation specific marker for path finding preferences. |
 +----------------------+---------------+-----------------------------------------------------------------------+
 
 Returns
@@ -222,7 +228,7 @@ Example
         "value": 45,
         "num_paths": 10,
         "extra_data": "min-hops"
-    }'  /api/1/paths
+    }'  /api/1/0xtoken_network/paths
     // Result for success
     {
         "result": [
@@ -247,8 +253,8 @@ Example
     }
 
 
-``api/1/payment/info``
-^^^^^^^^^^^^^^^^^^^^^^
+``api/1/<token_network_address>/payment/info``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Request price and path information on how and how much to pay the service for additional path requests.
 The service is paid in RDN tokens, so they payer might need to open an additional channel in the RDN token network.
@@ -259,6 +265,8 @@ Arguments
 +----------------------+---------------+-----------------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                                          |
 +======================+===============+=======================================================================+
+| token_network_address| address       | The token network address for which the fee is updated.               |
++----------------------+---------------+-----------------------------------------------------------------------+
 | rdn_source_address   | address       | The address of payer in the RDN token network.                        |
 +----------------------+---------------+-----------------------------------------------------------------------+
 
@@ -287,7 +295,7 @@ Example
     // Request
     curl -X GET --data '{
         "rdn_source_addressfrom": "0xrdn_alice",
-    }'  api/1/payment/info
+    }'  api/1/0xtoken_network/payment/info
     // Result for success
     {
         "result":
