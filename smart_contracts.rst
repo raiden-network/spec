@@ -212,52 +212,6 @@ Registers a secret in the ``SecretRegistry`` smart contract, which saves the blo
 .. Note::
     Can be called by anyone.
 
-**Unlock lock**
-
-Unlocks a pending transfer by providing the secret and increases the partner's transferred amount with the transfer value. A lock can be unlocked only once per a participant's balance proof.
-
-::
-
-    function unlock(
-        uint channel_identifier,
-        address partner,
-        uint64 expiration_block,
-        uint locked_amount,
-        bytes32 secrethash,
-        bytes merkle_proof,
-        bytes32 secret)
-        public
-
-    function registerSecretAndUnlock(
-        uint256 channel_identifier,
-        address partner,
-        uint64 expiration_block,
-        uint256 locked_amount,
-        bytes32 secrethash,
-        bytes merkle_proof,
-        bytes32 secret)
-        external
-
-::
-
-    event ChannelUnlocked(uint256 channel_identifier, address payer_participant, uint256 transferred_amount);
-
-- ``channel_identifier``: Channel identifier assigned by the current contract.
-- ``partner``: Ethereum address of the channel participant that pays the ``locked_amount``.
-- ``expiration_block``: The absolute block number at which the lock expires.
-- ``locked_amount``: The number of tokens being transferred.
-- ``secrethash``: A hashed secret, ``sha3_keccack(secret)``.
-- ``merkle_proof``: The merkle proof needed to compute the merkle root.
-- ``secret``: The preimage used to derive a secrethash.
-- ``payer_participant``: Ethereum address of the channel participant whose ``transferred_amount`` will be increased.
-- ``transferred_amount``: The total amount of tokens that the ``payer_participant`` owes to the channel participant that calls this function.
-
-.. Note::
-    Anyone can unlock a transfer on behalf of a channel participant.
-    In case there is another ``updateTransfer`` that has occured after the locks have been initially unlocked, the locks have to be unlocked again if neccessary, with the new `locksroot`.
-
-    The ``registerSecretAndUnlock`` is a wrapper function for both  ``registerSecret`` and ``unlock``.
-
 **Settle channel**
 
 Settles the channel by transferring the amount of tokens each participant is owed. We need to provide the entire balance state because we only store the balance data hash when closing the channel and updating the non-closing participant balance.
@@ -313,6 +267,40 @@ Allows the participants to cooperate and provide both of their balances and sign
     Emits the ChannelSettled event.
 
     Can be called by a third party as long as both participants provide their signatures.
+
+
+**Unlock lock**
+
+Unlocks all pending transfers by providing the entire merkle tree of pending transfers data. The merkle tree is used to calculate the merkle root, which must be the same as the ``locksroot`` provided in the latest balance proof.
+
+::
+
+    function unlock(
+        uint channel_identifier,
+        address participant,
+        address partner,
+        bytes merkle_tree)
+        public
+
+::
+
+    event ChannelUnlocked(uint256 channel_identifier, address payer_participant, uint256 unlocked_amount, uint256 returned_tokens);
+
+- ``channel_identifier``: Channel identifier assigned by the current contract.
+- ``participant``: Ethereum address of the channel participant who will receive the unlocked tokens that correspond to the pending transfers that have a revealed secret.
+- ``partner``: Ethereum address of the channel participant that pays the amount of tokens that correspond to the pending transfers that have a revealed secret. This address will receive the rest of the tokens that correspond to the pending transfers that have not finalized and do not have a revelead secret.
+- ``merkle_tree``: The entire merkle tree of pending transfers. It contains tightly packed data for each transfer, consisting in ``expiration_block``, ``locked_amount``, ``secrethash``.
+- ``expiration_block``: The absolute block number at which the lock expires.
+- ``locked_amount``: The number of tokens being transferred from ``partner`` to ``participant`` in a pending transfer.
+- ``secrethash``: A hashed secret, ``sha3_keccack(secret)``.
+- ``payer_participant``: Ethereum address of the channel participant whose ``transferred_amount`` will be increased.
+- ``unlocked_amount``: The total amount of unlocked tokens that the ``payer_participant`` owes to the channel participant that calls this function.
+- ``returned_tokens``: The total amount of unlocked tokens that return to the ``payer_participant`` because the secret was not revealed, therefore the mediating transfer did not occur.
+
+.. Note::
+    Anyone can unlock a transfer on behalf of a channel participant.
+    ``unlock`` must be called after ``settleChannel`` because it needs the ``locksroot`` from the latest balance proof.
+
 
 SecretRegistry Contract
 ^^^^^^^^^^^^^^^^^^^^^^^
