@@ -57,6 +57,7 @@ TokenNetworksRegistry Contract
 Attributes:
 
 - ``address public secret_registry_address``
+- ``uint256 public chain_id``
 
 **Register a token**
 
@@ -85,6 +86,7 @@ Attributes:
 
 - ``Token public token``
 - ``SecretRegistry public secret_registry;``
+- ``uint256 public chain_id``
 
 **Open a channel**
 
