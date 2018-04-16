@@ -260,14 +260,22 @@ Unlocks a pending transfer by providing the secret and increases the partner's t
 
 **Settle channel**
 
-Settles the channel by transferring the amount of tokens each participant is owed.
+Settles the channel by transferring the amount of tokens each participant is owed. We need to provide the entire balance state because we only store the balance data hash when closing the channel and updating the non-closing participant balance.
 
 ::
 
     function settleChannel(
         uint256 channel_identifier,
         address participant1,
-        address participant2)
+        uint256 participant1_transferred_amount,
+        uint256 participant1_locked_amount,
+        bytes32 participant1_locksroot,
+        bytes32 participant1_additional_hash,
+        address participant2,
+        uint256 participant2_transferred_amount,
+        uint256 participant2_locked_amount,
+        bytes32 participant2_locksroot,
+        bytes32 participant2_additional_hash)
         public
 
 ::
