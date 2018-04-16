@@ -309,7 +309,7 @@ Allows the participants to cooperate and provide both of their balances and sign
 SecretRegistry Contract
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-This contract will store secrets revealed in a mediating transfer. It has to keep track of the block height at which the secret was stored.
+This contract will store the block height at which the secret was revealed in a mediating transfer.
 In collaboration with a monitoring service, it acts as a security measure, to allow all nodes participating in a mediating transfer to withdraw the transferred tokens even if some of the nodes might be offline.
 
 ::
@@ -318,14 +318,15 @@ In collaboration with a monitoring service, it acts as a security measure, to al
 
 ::
 
-    event SecretRevealed(bytes32 secret);
+    event SecretRevealed(bytes32 indexed secrethash);
 
 Getters
 ::
 
-    function getSecretBlockHeight(bytes32 secret) public constant returns (uint64)
+    function getSecretRevealBlockHeight(bytes32 secrethash) public view returns (uint256)
 
 - ``secret``: The preimage used to derive a secrethash.
+- ``secrethash``: ``keccak256(secret)``.
 
 Data types definition
 ---------------------
