@@ -156,7 +156,7 @@ Allows a channel participant to close the channel. The channel cannot be settled
 - ``nonce``: Strictly monotonic value used to order transfers.
 - ``balance_hash``: Hash of the balance data ``keccak256(transferred_amount, locked_amount, locksroot, additional_hash)``
 - ``transferred_amount``: The monotonically increasing counter of the partner's amount of tokens sent.
-- ``locked_amount``: Total amount of tokens locked in pending transfers, regardless if the secret was revealed or not.
+- ``locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers) contained in the merkle tree.
 - ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the partner.
 - ``additional_hash``: Computed from the message. Used for message authentication.
 - ``signature``: Elliptic Curve 256k1 signature of the channel partner on the balance proof data.
@@ -169,7 +169,7 @@ Allows a channel participant to close the channel. The channel cannot be settled
 
 **Update non-closing participant balance proof**
 
-Called after a channel has been closed. Allows the non-closing participant to provide the latest balance proof from the closing participant. This modifies the stored state for the closing participant.
+Called after a channel has been closed. Can be called by any Ethereum address and allows the non-closing participant to provide the latest balance proof from the closing participant. This modifies the stored state for the closing participant.
 
 ::
 
@@ -196,9 +196,7 @@ Called after a channel has been closed. Allows the non-closing participant to pr
 - ``closing_participant``: Ethereum address of the participant who closed the channel.
 
 .. Note::
-    ``updateNonClosingBalanceProof`` can be called by anyone with a balance proof of the closing party and a signature from the non-closing participant on the same balance proof data.
-
-    It can only be called on a closed channel.
+    Can be called by any Ethereum address due to the requirement of providing signatures from both channel participants.
 
 **Register a secret**
 
@@ -284,22 +282,21 @@ Unlocks all pending transfers by providing the entire merkle tree of pending tra
 
 ::
 
-    event ChannelUnlocked(uint256 channel_identifier, address payer_participant, uint256 unlocked_amount, uint256 returned_tokens);
+    event ChannelUnlocked(uint256 channel_identifier, address participant, uint256 unlocked_amount, uint256 returned_tokens);
 
 - ``channel_identifier``: Channel identifier assigned by the current contract.
 - ``participant``: Ethereum address of the channel participant who will receive the unlocked tokens that correspond to the pending transfers that have a revealed secret.
 - ``partner``: Ethereum address of the channel participant that pays the amount of tokens that correspond to the pending transfers that have a revealed secret. This address will receive the rest of the tokens that correspond to the pending transfers that have not finalized and do not have a revelead secret.
-- ``merkle_tree``: The entire merkle tree of pending transfers. It contains tightly packed data for each transfer, consisting in ``expiration_block``, ``locked_amount``, ``secrethash``.
+- ``merkle_tree``: The entire merkle tree of pending transfers. It contains tightly packed data for each transfer, consisting of ``expiration_block``, ``locked_amount``, ``secrethash``.
 - ``expiration_block``: The absolute block number at which the lock expires.
 - ``locked_amount``: The number of tokens being transferred from ``partner`` to ``participant`` in a pending transfer.
 - ``secrethash``: A hashed secret, ``sha3_keccack(secret)``.
-- ``payer_participant``: Ethereum address of the channel participant whose ``transferred_amount`` will be increased.
-- ``unlocked_amount``: The total amount of unlocked tokens that the ``payer_participant`` owes to the channel participant that calls this function.
-- ``returned_tokens``: The total amount of unlocked tokens that return to the ``payer_participant`` because the secret was not revealed, therefore the mediating transfer did not occur.
+- ``unlocked_amount``: The total amount of unlocked tokens that the ``partner`` owes to the channel ``participant``.
+- ``returned_tokens``: The total amount of unlocked tokens that return to the ``partner`` because the secret was not revealed, therefore the mediating transfer did not occur.
 
 .. Note::
     Anyone can unlock a transfer on behalf of a channel participant.
-    ``unlock`` must be called after ``settleChannel`` because it needs the ``locksroot`` from the latest balance proof.
+    ``unlock`` must be called after ``settleChannel`` because it needs the ``locksroot`` from the latest balance proof in order to guarantee that all locks have either been unlocked or have expired.
 
 
 SecretRegistry Contract
@@ -345,7 +342,7 @@ Balance Proof
 +------------------------+------------+--------------------------------------------------------------+
 | chain_id               | uint256    | Chain identifier as defined in EIP155                        |
 +------------------------+------------+--------------------------------------------------------------+
-|  signature             | bytes      | Elliptic Curve 256k1 signature                               |
+|  signature             | bytes      | Elliptic Curve 256k1 signature on the above data             |
 +------------------------+------------+--------------------------------------------------------------+
 
 Balance Data Hash
