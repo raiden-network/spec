@@ -143,8 +143,9 @@ Allows a channel participant to close the channel. The channel cannot be settled
 
     function closeChannel(
         uint channel_identifier,
-        uint64 nonce,
         bytes32 balance_hash,
+        uint64 nonce,
+        bytes32 additional_hash,
         bytes signature)
         public
 
@@ -153,12 +154,12 @@ Allows a channel participant to close the channel. The channel cannot be settled
     event ChannelClosed(uint channel_identifier, address closing_participant);
 
 - ``channel_identifier``: Channel identifier assigned by the current contract.
+- ``balance_hash``: Hash of the balance data ``keccak256(transferred_amount, locked_amount, locksroot)``
 - ``nonce``: Strictly monotonic value used to order transfers.
-- ``balance_hash``: Hash of the balance data ``keccak256(transferred_amount, locked_amount, locksroot, additional_hash)``
+- ``additional_hash``: Computed from the message. Used for message authentication.
 - ``transferred_amount``: The monotonically increasing counter of the partner's amount of tokens sent.
 - ``locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers) contained in the merkle tree.
 - ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the partner.
-- ``additional_hash``: Computed from the message. Used for message authentication.
 - ``signature``: Elliptic Curve 256k1 signature of the channel partner on the balance proof data.
 - ``closing_participant``: Ethereum address of the channel participant who calls this contract function.
 
@@ -175,8 +176,9 @@ Called after a channel has been closed. Can be called by any Ethereum address an
 
     function updateNonClosingBalanceProof(
         uint channel_identifier,
-        uint64 nonce,
         bytes32 balance_hash,
+        uint64 nonce,
+        bytes32 additional_hash,
         bytes closing_signature,
         bytes non_closing_signature)
         public
@@ -189,8 +191,9 @@ Called after a channel has been closed. Can be called by any Ethereum address an
     );
 
 - ``channel_identifier``: Channel identifier assigned by the current contract.
-- ``nonce``: Strictly monotonic value used to order transfers.
 - ``balance_hash``: Hash of the balance data
+- ``nonce``: Strictly monotonic value used to order transfers.
+- ``additional_hash``: Computed from the message. Used for message authentication.
 - ``closing_signature``: Elliptic Curve 256k1 signature of the closing participant on the balance proof data.
 - ``non_closing_signature``: Elliptic Curve 256k1 signature of the non-closing participant on the balance proof data.
 - ``closing_participant``: Ethereum address of the participant who closed the channel.
@@ -222,12 +225,10 @@ Settles the channel by transferring the amount of tokens each participant is owe
         uint256 participant1_transferred_amount,
         uint256 participant1_locked_amount,
         bytes32 participant1_locksroot,
-        bytes32 participant1_additional_hash,
         address participant2,
         uint256 participant2_transferred_amount,
         uint256 participant2_locked_amount,
-        bytes32 participant2_locksroot,
-        bytes32 participant2_additional_hash)
+        bytes32 participant2_locksroot)
         public
 
 ::
@@ -332,9 +333,11 @@ Balance Proof
 +------------------------+------------+--------------------------------------------------------------+
 | Field Name             | Field Type |  Description                                                 |
 +========================+============+==============================================================+
+|  balance_hash          | bytes32    | Balance data hash                                            |
++------------------------+------------+--------------------------------------------------------------+
 |  nonce                 | uint64     | Strictly monotonic value used to order transfers             |
 +------------------------+------------+--------------------------------------------------------------+
-|  balance_hash          | bytes32    | Balance data hash                                            |
+|  additional_hash       | bytes32    | Computed from the message. Used for message authentication   |
 +------------------------+------------+--------------------------------------------------------------+
 |  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract          |
 +------------------------+------------+--------------------------------------------------------------+
@@ -358,8 +361,6 @@ Balance Data Hash
 |  locked_amount         | uint256    | Total amount of tokens locked in pending transfers                                    |
 +------------------------+------------+---------------------------------------------------------------------------------------+
 |  locksroot             | bytes32    | Root of merkle tree of all pending lock lockhashes                                    |
-+------------------------+------------+---------------------------------------------------------------------------------------+
-|  additional_hash       | bytes32    | Computed from the message. Used for message authentication                            |
 +------------------------+------------+---------------------------------------------------------------------------------------+
 
 
