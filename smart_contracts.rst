@@ -57,6 +57,7 @@ TokenNetworksRegistry Contract
 Attributes:
 
 - ``address public secret_registry_address``
+- ``uint256 public chain_id``
 
 **Register a token**
 
@@ -85,6 +86,7 @@ Attributes:
 
 - ``Token public token``
 - ``SecretRegistry public secret_registry;``
+- ``uint256 public chain_id``
 
 **Open a channel**
 
@@ -141,9 +143,8 @@ Allows a channel participant to close the channel. The channel cannot be settled
 
     function closeChannel(
         uint channel_identifier,
+        bytes32 balance_hash,
         uint64 nonce,
-        uint256 transferred_amount,
-        bytes32 locksroot,
         bytes32 additional_hash,
         bytes signature)
         public
@@ -153,10 +154,12 @@ Allows a channel participant to close the channel. The channel cannot be settled
     event ChannelClosed(uint channel_identifier, address closing_participant);
 
 - ``channel_identifier``: Channel identifier assigned by the current contract.
+- ``balance_hash``: Hash of the balance data ``keccak256(transferred_amount, locked_amount, locksroot)``
 - ``nonce``: Strictly monotonic value used to order transfers.
-- ``transferred_amount``: The monotonically increasing counter of the partner's amount of tokens sent.
-- ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the partner.
 - ``additional_hash``: Computed from the message. Used for message authentication.
+- ``transferred_amount``: The monotonically increasing counter of the partner's amount of tokens sent.
+- ``locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers) contained in the merkle tree.
+- ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the partner.
 - ``signature``: Elliptic Curve 256k1 signature of the channel partner on the balance proof data.
 - ``closing_participant``: Ethereum address of the channel participant who calls this contract function.
 
@@ -165,26 +168,16 @@ Allows a channel participant to close the channel. The channel cannot be settled
 
     Only a valid signed balance proof from the channel partner (the other channel participant) must be accepted. This balance proof sets the amount of tokens owed to the participant by the channel partner.
 
-**Update transfer state**
+**Update non-closing participant balance proof**
 
-Called after a channel has been closed. Allows the non-closing participant to provide a balance proof for the latest transfer from the closing participant. This modifies the state for the closing participant.
+Called after a channel has been closed. Can be called by any Ethereum address and allows the non-closing participant to provide the latest balance proof from the closing participant. This modifies the stored state for the closing participant.
 
 ::
 
-    function updateTransfer(
+    function updateNonClosingBalanceProof(
         uint channel_identifier,
+        bytes32 balance_hash,
         uint64 nonce,
-        uint256 transferred_amount,
-        bytes32 locksroot,
-        bytes32 additional_hash,
-        bytes closing_signature)
-        public
-
-    function updateTransferDelegate(
-        uint channel_identifier,
-        uint64 nonce,
-        uint256 transferred_amount,
-        bytes32 locksroot,
         bytes32 additional_hash,
         bytes closing_signature,
         bytes non_closing_signature)
@@ -192,24 +185,21 @@ Called after a channel has been closed. Allows the non-closing participant to pr
 
 ::
 
-    event TransferUpdated(
+    event NonClosingBalanceProofUpdated(
         uint256 channel_identifier,
         address closing_participant
     );
 
 - ``channel_identifier``: Channel identifier assigned by the current contract.
+- ``balance_hash``: Hash of the balance data
 - ``nonce``: Strictly monotonic value used to order transfers.
-- ``transferred_amount``: The monotonically increasing counter of the closing participant's amount of tokens sent.
-- ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the closing participant.
 - ``additional_hash``: Computed from the message. Used for message authentication.
 - ``closing_signature``: Elliptic Curve 256k1 signature of the closing participant on the balance proof data.
 - ``non_closing_signature``: Elliptic Curve 256k1 signature of the non-closing participant on the balance proof data.
 - ``closing_participant``: Ethereum address of the participant who closed the channel.
 
 .. Note::
-    ``updateTransfer`` can only be called by the non-closing channel participant with a balance proof of the closing participant.
-
-    ``updateTransferDelegate`` can be called by anyone with a balance proof of the closing party and a signature from the non-closing participant on the same balance proof data.
+    Can be called by any Ethereum address due to the requirement of providing signatures from both channel participants.
 
 **Register a secret**
 
@@ -223,62 +213,22 @@ Registers a secret in the ``SecretRegistry`` smart contract, which saves the blo
 .. Note::
     Can be called by anyone.
 
-**Unlock lock**
-
-Unlocks a pending transfer by providing the secret and increases the partner's transferred amount with the transfer value. A lock can be unlocked only once per a participant's balance proof.
-
-::
-
-    function unlock(
-        uint channel_identifier,
-        address partner,
-        uint64 expiration_block,
-        uint locked_amount,
-        bytes32 secrethash,
-        bytes merkle_proof,
-        bytes32 secret)
-        public
-
-    function registerSecretAndUnlock(
-        uint256 channel_identifier,
-        address partner,
-        uint64 expiration_block,
-        uint256 locked_amount,
-        bytes32 secrethash,
-        bytes merkle_proof,
-        bytes32 secret)
-        external
-
-::
-
-    event ChannelUnlocked(uint256 channel_identifier, address payer_participant, uint256 transferred_amount);
-
-- ``channel_identifier``: Channel identifier assigned by the current contract.
-- ``partner``: Ethereum address of the channel participant that pays the ``locked_amount``.
-- ``expiration_block``: The absolute block number at which the lock expires.
-- ``locked_amount``: The number of tokens being transferred.
-- ``secrethash``: A hashed secret, ``sha3_keccack(secret)``.
-- ``merkle_proof``: The merkle proof needed to compute the merkle root.
-- ``secret``: The preimage used to derive a secrethash.
-- ``payer_participant``: Ethereum address of the channel participant whose ``transferred_amount`` will be increased.
-- ``transferred_amount``: The total amount of tokens that the ``payer_participant`` owes to the channel participant that calls this function.
-
-.. Note::
-    Anyone can unlock a transfer on behalf of a channel participant.
-    In case there is another ``updateTransfer`` that has occured after the locks have been initially unlocked, the locks have to be unlocked again if neccessary, with the new `locksroot`.
-
-    The ``registerSecretAndUnlock`` is a wrapper function for both  ``registerSecret`` and ``unlock``.
-
 **Settle channel**
 
-Settles the channel by transferring the amount of tokens each participant is owed.
+Settles the channel by transferring the amount of tokens each participant is owed. We need to provide the entire balance state because we only store the balance data hash when closing the channel and updating the non-closing participant balance.
 
 ::
 
     function settleChannel(
         uint256 channel_identifier,
         address participant1,
-        address participant2)
+        uint256 participant1_transferred_amount,
+        uint256 participant1_locked_amount,
+        bytes32 participant1_locksroot,
+        address participant2,
+        uint256 participant2_transferred_amount,
+        uint256 participant2_locked_amount,
+        bytes32 participant2_locksroot)
         public
 
 ::
@@ -317,10 +267,43 @@ Allows the participants to cooperate and provide both of their balances and sign
 
     Can be called by a third party as long as both participants provide their signatures.
 
+
+**Unlock lock**
+
+Unlocks all pending transfers by providing the entire merkle tree of pending transfers data. The merkle tree is used to calculate the merkle root, which must be the same as the ``locksroot`` provided in the latest balance proof.
+
+::
+
+    function unlock(
+        uint channel_identifier,
+        address participant,
+        address partner,
+        bytes merkle_tree)
+        public
+
+::
+
+    event ChannelUnlocked(uint256 channel_identifier, address participant, uint256 unlocked_amount, uint256 returned_tokens);
+
+- ``channel_identifier``: Channel identifier assigned by the current contract.
+- ``participant``: Ethereum address of the channel participant who will receive the unlocked tokens that correspond to the pending transfers that have a revealed secret.
+- ``partner``: Ethereum address of the channel participant that pays the amount of tokens that correspond to the pending transfers that have a revealed secret. This address will receive the rest of the tokens that correspond to the pending transfers that have not finalized and do not have a revelead secret.
+- ``merkle_tree``: The entire merkle tree of pending transfers. It contains tightly packed data for each transfer, consisting of ``expiration_block``, ``locked_amount``, ``secrethash``.
+- ``expiration_block``: The absolute block number at which the lock expires.
+- ``locked_amount``: The number of tokens being transferred from ``partner`` to ``participant`` in a pending transfer.
+- ``secrethash``: A hashed secret, ``sha3_keccack(secret)``.
+- ``unlocked_amount``: The total amount of unlocked tokens that the ``partner`` owes to the channel ``participant``.
+- ``returned_tokens``: The total amount of unlocked tokens that return to the ``partner`` because the secret was not revealed, therefore the mediating transfer did not occur.
+
+.. Note::
+    Anyone can unlock a transfer on behalf of a channel participant.
+    ``unlock`` must be called after ``settleChannel`` because it needs the ``locksroot`` from the latest balance proof in order to guarantee that all locks have either been unlocked or have expired.
+
+
 SecretRegistry Contract
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-This contract will store secrets revealed in a mediating transfer. It has to keep track of the block height at which the secret was stored.
+This contract will store the block height at which the secret was revealed in a mediating transfer.
 In collaboration with a monitoring service, it acts as a security measure, to allow all nodes participating in a mediating transfer to withdraw the transferred tokens even if some of the nodes might be offline.
 
 ::
@@ -329,14 +312,15 @@ In collaboration with a monitoring service, it acts as a security measure, to al
 
 ::
 
-    event SecretRevealed(bytes32 secret);
+    event SecretRevealed(bytes32 indexed secrethash);
 
 Getters
 ::
 
-    function getSecretBlockHeight(bytes32 secret) public constant returns (uint64)
+    function getSecretRevealBlockHeight(bytes32 secrethash) public view returns (uint256)
 
 - ``secret``: The preimage used to derive a secrethash.
+- ``secrethash``: ``keccak256(secret)``.
 
 Data types definition
 ---------------------
@@ -349,11 +333,11 @@ Balance Proof
 +------------------------+------------+--------------------------------------------------------------+
 | Field Name             | Field Type |  Description                                                 |
 +========================+============+==============================================================+
+|  balance_hash          | bytes32    | Balance data hash                                            |
++------------------------+------------+--------------------------------------------------------------+
 |  nonce                 | uint64     | Strictly monotonic value used to order transfers             |
 +------------------------+------------+--------------------------------------------------------------+
-|  transferred_amount    | uint256    | Total amount of tokens transferred by a channel participant  |
-+------------------------+------------+--------------------------------------------------------------+
-|  locksroot             | bytes32    | Root of merkle tree of all pending lock lockhashes           |
+|  additional_hash       | bytes32    | Computed from the message. Used for message authentication   |
 +------------------------+------------+--------------------------------------------------------------+
 |  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract          |
 +------------------------+------------+--------------------------------------------------------------+
@@ -361,10 +345,23 @@ Balance Proof
 +------------------------+------------+--------------------------------------------------------------+
 | chain_id               | uint256    | Chain identifier as defined in EIP155                        |
 +------------------------+------------+--------------------------------------------------------------+
-|  additional_hash       | bytes32    | Computed from the message. Used for message authentication   |
+|  signature             | bytes      | Elliptic Curve 256k1 signature on the above data             |
 +------------------------+------------+--------------------------------------------------------------+
-|  signature             | bytes      | Elliptic Curve 256k1 signature                               |
-+------------------------+------------+--------------------------------------------------------------+
+
+Balance Data Hash
+^^^^^^^^^^^^^^^^^
+
+``balance_hash`` = ``keccak256`` of the following balance data:
+
++------------------------+------------+---------------------------------------------------------------------------------------+
+| Field Name             | Field Type |  Description                                                                          |
++========================+============+=======================================================================================+
+|  transferred_amount    | uint256    | Total monotonically increasing amount of tokens transferred by a channel participant  |
++------------------------+------------+---------------------------------------------------------------------------------------+
+|  locked_amount         | uint256    | Total amount of tokens locked in pending transfers                                    |
++------------------------+------------+---------------------------------------------------------------------------------------+
+|  locksroot             | bytes32    | Root of merkle tree of all pending lock lockhashes                                    |
++------------------------+------------+---------------------------------------------------------------------------------------+
 
 
 Decisions
