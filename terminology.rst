@@ -26,7 +26,7 @@ Raiden Terminology
        A network of payment channels for a given Token.
 
    Raiden Network
-       A collection of Token networks.
+       The Raiden Network is an off-chain transfer network for Ethereum ERC20 tokens. 
 
    Transfer
        A movement of tokens from a :term:`Sender` to a :term:`Receiver`.
@@ -104,8 +104,8 @@ Raiden Terminology
 
    Pathfinding Service
        A centralized path finding service that has a global view on a token network and provides suitable payment paths for Raiden nodes.
-
-   Raiden Light Client
+     
+    Raiden Light Client
        A client that does not mediate payments.
 
    Sleeping Payment
