@@ -153,3 +153,6 @@ Raiden Terminology
 
    Payment Receipt
        TBD
+   
+   μRaiden (or Micro Raiden) 
+       Shares some properties with the Raiden Network. It can provide trustless, instant and free transfers between two parties.
