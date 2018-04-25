@@ -143,7 +143,7 @@ Raiden Terminology
        Total fees for a Mediated Transfer announced by the Raiden Node doing the Transfer.
 
    Secret
-       A value used as a preimage in a :term:`Hash Time Locked Transfer`.
+       A value used as a preimage in a :term:`Hash Time Locked Transfer`. Its size should be 32 bytes.
 
    Partner
        The other node in a channel. The node with which we have an open :term:`Payment Channel`.
