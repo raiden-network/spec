@@ -151,5 +151,9 @@ Raiden Terminology
    Participants
        The two nodes participating in a :term:`Payment Channel` are called the channel's participants.
 
+   Additional Hash
+   additional_hash
+       Hash of additional data used on the application layer. This can for example be some form of payment metadata. The Raiden Network protocol does not use or enforce the type or content of this additional data.
+
    Payment Receipt
        TBD
