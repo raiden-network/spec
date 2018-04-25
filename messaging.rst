@@ -40,7 +40,7 @@ Fields
 +-----------------------+-------------+-------------------------------------------------------------------------------+
 | chain_id              | uint256     | Chain identifier as defined in EIP155                                         |
 +-----------------------+-------------+-------------------------------------------------------------------------------+
-|  additional_hash      | bytes32     | Hash of additional data used on the application layer. e.g.: payment metadata |
+|  additional_hash      | bytes32     | Hash of additional data used on the application layer, e.g.: payment metadata |
 +-----------------------+-------------+-------------------------------------------------------------------------------+
 |  signature            | bytes       | An elliptic curve 256k1 signature                                             |
 +-----------------------+-------------+-------------------------------------------------------------------------------+
