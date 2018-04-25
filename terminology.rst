@@ -86,6 +86,9 @@ Raiden Terminology
 
    Sender
        The node that is sending a Message.
+       
+   RDN token
+       a virtual currency dedicated to pay for services within the Raiden Network.
 
    Receiver
        The node that is receiving a Message.
