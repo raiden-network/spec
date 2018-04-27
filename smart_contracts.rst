@@ -160,17 +160,17 @@ Allows a channel participant to close the channel. The channel cannot be settled
 - ``transferred_amount``: The monotonically increasing counter of the partner's amount of tokens sent.
 - ``locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers) contained in the merkle tree.
 - ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the partner.
-- ``signature``: Elliptic Curve 256k1 signature of the channel partner on the balance proof data.
+- ``signature``: Elliptic Curve 256k1 signature of the channel partner on the :term:`balance proof` data.
 - ``closing_participant``: Ethereum address of the channel participant who calls this contract function.
 
 .. Note::
     Only a participant may close the channel.
 
-    Only a valid signed balance proof from the channel partner (the other channel participant) must be accepted. This balance proof sets the amount of tokens owed to the participant by the channel partner.
+    Only a valid signed :term:`balance proof` from the channel partner (the other channel participant) must be accepted. This :term:`balance proof` sets the amount of tokens owed to the participant by the channel partner.
 
 **Update non-closing participant balance proof**
 
-Called after a channel has been closed. Can be called by any Ethereum address and allows the non-closing participant to provide the latest balance proof from the closing participant. This modifies the stored state for the closing participant.
+Called after a channel has been closed. Can be called by any Ethereum address and allows the non-closing participant to provide the latest :term:`balance proof` from the closing participant. This modifies the stored state for the closing participant.
 
 ::
 
@@ -194,8 +194,8 @@ Called after a channel has been closed. Can be called by any Ethereum address an
 - ``balance_hash``: Hash of the balance data
 - ``nonce``: Strictly monotonic value used to order transfers.
 - ``additional_hash``: Computed from the message. Used for message authentication.
-- ``closing_signature``: Elliptic Curve 256k1 signature of the closing participant on the balance proof data.
-- ``non_closing_signature``: Elliptic Curve 256k1 signature of the non-closing participant on the balance proof data.
+- ``closing_signature``: Elliptic Curve 256k1 signature of the closing participant on the :term:`balance proof` data.
+- ``non_closing_signature``: Elliptic Curve 256k1 signature of the non-closing participant on the :term:`balance proof` data.
 - ``closing_participant``: Ethereum address of the participant who closed the channel.
 
 .. Note::
@@ -270,7 +270,7 @@ Allows the participants to cooperate and provide both of their balances and sign
 
 **Unlock lock**
 
-Unlocks all pending transfers by providing the entire merkle tree of pending transfers data. The merkle tree is used to calculate the merkle root, which must be the same as the ``locksroot`` provided in the latest balance proof.
+Unlocks all pending transfers by providing the entire merkle tree of pending transfers data. The merkle tree is used to calculate the merkle root, which must be the same as the ``locksroot`` provided in the latest :term:`balance proof`.
 
 ::
 
@@ -297,7 +297,7 @@ Unlocks all pending transfers by providing the entire merkle tree of pending tra
 
 .. Note::
     Anyone can unlock a transfer on behalf of a channel participant.
-    ``unlock`` must be called after ``settleChannel`` because it needs the ``locksroot`` from the latest balance proof in order to guarantee that all locks have either been unlocked or have expired.
+    ``unlock`` must be called after ``settleChannel`` because it needs the ``locksroot`` from the latest :term:`balance proof` in order to guarantee that all locks have either been unlocked or have expired.
 
 
 SecretRegistry Contract
@@ -325,44 +325,7 @@ Getters
 Data types definition
 ---------------------
 
-Format used to encode the values must be the same as the EVM.
-
-Balance Proof
-^^^^^^^^^^^^^
-
-+------------------------+------------+--------------------------------------------------------------+
-| Field Name             | Field Type |  Description                                                 |
-+========================+============+==============================================================+
-|  balance_hash          | bytes32    | Balance data hash                                            |
-+------------------------+------------+--------------------------------------------------------------+
-|  nonce                 | uint64     | Strictly monotonic value used to order transfers             |
-+------------------------+------------+--------------------------------------------------------------+
-|  additional_hash       | bytes32    | Computed from the message. Used for message authentication   |
-+------------------------+------------+--------------------------------------------------------------+
-|  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract          |
-+------------------------+------------+--------------------------------------------------------------+
-| token_network_address  | address    | Address of the TokenNetwork contract                         |
-+------------------------+------------+--------------------------------------------------------------+
-| chain_id               | uint256    | Chain identifier as defined in EIP155                        |
-+------------------------+------------+--------------------------------------------------------------+
-|  signature             | bytes      | Elliptic Curve 256k1 signature on the above data             |
-+------------------------+------------+--------------------------------------------------------------+
-
-Balance Data Hash
-^^^^^^^^^^^^^^^^^
-
-``balance_hash`` = ``keccak256`` of the following balance data:
-
-+------------------------+------------+---------------------------------------------------------------------------------------+
-| Field Name             | Field Type |  Description                                                                          |
-+========================+============+=======================================================================================+
-|  transferred_amount    | uint256    | Total monotonically increasing amount of tokens transferred by a channel participant  |
-+------------------------+------------+---------------------------------------------------------------------------------------+
-|  locked_amount         | uint256    | Total amount of tokens locked in pending transfers                                    |
-+------------------------+------------+---------------------------------------------------------------------------------------+
-|  locksroot             | bytes32    | Root of merkle tree of all pending lock lockhashes                                    |
-+------------------------+------------+---------------------------------------------------------------------------------------+
-
+A detailed description of the :term:`balance proof` can be found in the :ref:`message definition <balance-proof-message>`.
 
 Decisions
 =========

@@ -46,14 +46,7 @@ The following data types are taken from the Raiden Core spec.
 
 *Balance_Proof*
 
-* uint64: nonce
-* uint256: transferred_amount
-* bytes32: locksroot
-* uint256: channel_identifier
-* address: token_network_address
-* uint256: chain_id
-* bytes32: additional_hash
-* bytes: signature
+See :ref:`balance proof definition <balance-proof-message>`.
 
 
 *Lock*
@@ -72,7 +65,7 @@ The examples provided for each of the endpoints is for communication with a REST
 ``api/1/<token_network_address>/<channel_id>/balance``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Update the balance for the given channel with the provided balance proof. The receiver can be read from the balance proof.
+Update the balance for the given channel with the provided :term:`balance proof`. The receiver can be read from the balance proof.
 
 Arguments
 """""""""

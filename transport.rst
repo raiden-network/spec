@@ -67,7 +67,7 @@ One per each token network. Participants can discover peers willing to open more
 
 Monitoring Service Updater Room
 '''''''''''''''''''''''''''''''
-Raiden nodes that plan to go offline for an extended period of time can submit balance proof in Monitoring Service room. The Monitoring Service will challenge Channel on their behalf in case there’s an attempt to cheat (i.e. close the channel using earlier BP)
+Raiden nodes that plan to go offline for an extended period of time can submit a :term:`balance proof` to the Monitoring Service room. The Monitoring Service will challenge Channel on their behalf in case there’s an attempt to cheat (i.e. close the channel using earlier BP)
 
 Pathfinding Service Updater Room
 ''''''''''''''''''''''''''''''''
