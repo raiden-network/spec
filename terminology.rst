@@ -70,16 +70,16 @@ Raiden Terminology
    balance proof
    Participant Balance Proof
    BP
-       Signed data required by the Payment Channel to prove the balance of one of the parties.
+       Signed data required by the :term:`Payment Channel` to prove the balance of one of the parties. See the :ref:`message definition <balance-proof-message>`.
 
    Message
        Any message sent from one Raiden Node to the other.
 
    Initiator
-       The node that sends a Payment.
+       The node that sends a :term:`Payment`.
 
    Target
-       The node that receives a Payment.
+       The node that receives a :term:`Payment`.
 
    Mediator
        A node that mediates a transfer.

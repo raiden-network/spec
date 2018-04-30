@@ -9,47 +9,54 @@ This is the specification document for the messages used in the Raiden protocol.
 Data Structures
 ===============
 
+.. _balance-proof-message:
+
 Balance Proof
 -------------
 
 Data required by the smart contracts to update the payment channel end of the participant that signed the balance proof.
-
-Invariants
-^^^^^^^^^^
-
-- :term:`Transferred amount` starts at 0 and is monotonic.
-- Nonce starts at 1 and is strictly monotonic.
-- :term:`Locksroot` is the root node of the merkle tree of current pending locks.
-- Signature must be valid and is defined as: ``ecdsa_recoverable(privkey, sha3_keccak(nonce || transferred amount || locksroot || unique_channel_id || additional hash)``
+The signature must be valid and is defined as: ``ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id)``
 
 Fields
 ^^^^^^
 
-+-----------------------+-------------+-------------------------------------------------------------------------------+
-| Field Name            | Field Type  |  Description                                                                  |
-+=======================+=============+===============================================================================+
-|  nonce                | uint64      | Strictly monotonic nonce                                                      |
-+-----------------------+-------------+-------------------------------------------------------------------------------+
-|  transferred_amount   | uint256     | counter of tokens sent                                                        |
-+-----------------------+-------------+-------------------------------------------------------------------------------+
-|  locksroot            | bytes32     | Root of merkle tree of all pending lock lockhashes                            |
-+-----------------------+-------------+-------------------------------------------------------------------------------+
-|  channel_identifier   | uint256     | Channel identifier inside the TokenNetwork contract                           |
-+-----------------------+-------------+-------------------------------------------------------------------------------+
-| token_network_address | address     | Address of the TokenNetwork contract                                          |
-+-----------------------+-------------+-------------------------------------------------------------------------------+
-| chain_id              | uint256     | Chain identifier as defined in EIP155                                         |
-+-----------------------+-------------+-------------------------------------------------------------------------------+
-|  additional_hash      | bytes32     | Hash of additional data used on the application layer, e.g.: payment metadata |
-+-----------------------+-------------+-------------------------------------------------------------------------------+
-|  signature            | bytes       | An elliptic curve 256k1 signature                                             |
-+-----------------------+-------------+-------------------------------------------------------------------------------+
++------------------------+------------+--------------------------------------------------------------------------------+
+| Field Name             | Field Type |  Description                                                                   |
++========================+============+================================================================================+
+|  balance_hash          | bytes32    | Balance data hash                                                              |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  nonce                 | uint64     | Strictly monotonic value used to order transfers. The nonce starts at 1        |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  additional_hash       | bytes32    | Hash of additional data used on the application layer, e.g.: payment metadata  |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract                            |
++------------------------+------------+--------------------------------------------------------------------------------+
+| token_network_address  | address    | Address of the TokenNetwork contract                                           |
++------------------------+------------+--------------------------------------------------------------------------------+
+| chain_id               | uint256    | Chain identifier as defined in EIP155                                          |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  signature             | bytes      | Elliptic Curve 256k1 signature on the above data                               |
++------------------------+------------+--------------------------------------------------------------------------------+
 
+Balance Data Hash
+^^^^^^^^^^^^^^^^^
+
+``balance_hash`` = ``keccak256(transferred_amount || locked_amount || locksroot)``
+
++------------------------+------------+---------------------------------------------------------------------------------------+
+| Field Name             | Field Type |  Description                                                                          |
++========================+============+=======================================================================================+
+|  transferred_amount    | uint256    | Monotonically increasing amount of tokens transferred by a channel participant        |
++------------------------+------------+---------------------------------------------------------------------------------------+
+|  locked_amount         | uint256    | Total amount of tokens locked in pending transfers                                    |
++------------------------+------------+---------------------------------------------------------------------------------------+
+|  locksroot             | bytes32    | Root of merkle tree of all pending lock lockhashes                                    |
++------------------------+------------+---------------------------------------------------------------------------------------+
 
 Merkle Tree
 -----------
 
-A binary tree composed of the hash of the locks. The root of the tree is the value used in the balance proofs. The tree is changed by the ``MediatedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types.
+A binary tree composed of the hash of the locks. The root of the tree is the value used in the :ref:`balance proofs <balance-proof-message>`. The tree is changed by the ``MediatedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types.
 
 HashTimeLock
 ------------
@@ -62,7 +69,7 @@ Invariants
 Hash
 ^^^^
 
-- ``sha3_keccak(expiration || amount || secrethash)``
+- ``keccak256(expiration || amount || secrethash)``
 
 Fields
 ^^^^^^
@@ -74,9 +81,8 @@ Fields
 +----------------------+-------------+------------------------------------------------------------+
 |  locked_amount       | uint256     | amount of tokens held by the lock                          |
 +----------------------+-------------+------------------------------------------------------------+
-|  secrethash          | bytes32     | sha3 of the secret                                         |
+|  secrethash          | bytes32     | keccak256 hash of the secret                               |
 +----------------------+-------------+------------------------------------------------------------+
-
 
 Messages
 ========
