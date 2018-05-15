@@ -72,6 +72,13 @@ Raiden Terminology
    BP
        Signed data required by the :term:`Payment Channel` to prove the balance of one of the parties. See the :ref:`message definition <balance-proof-message>`.
 
+   withdraw proof
+   Participant Withdraw Proof
+       Signed data required by the :term:`Payment Channel` to allow a participant to withdraw tokens. See the :ref:`message definition <withdraw-proof-message>`.
+
+   cooperative settle proof
+       Signed data required by the :term:`Payment Channel` to allow :term:`Participants` to close and settle a :term:`Payment Channel` without a :term:`Settlement Window`. See the :ref:`message definition <cooperative-settle-proof-message>`.
+
    Message
        Any message sent from one Raiden Node to the other.
 

@@ -15,7 +15,11 @@ Balance Proof
 -------------
 
 Data required by the smart contracts to update the payment channel end of the participant that signed the balance proof.
-The signature must be valid and is defined as: ``ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id)``
+The signature must be valid and is defined as:
+
+::
+
+    ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id)
 
 Fields
 ^^^^^^
@@ -52,6 +56,77 @@ Balance Data Hash
 +------------------------+------------+---------------------------------------------------------------------------------------+
 |  locksroot             | bytes32    | Root of merkle tree of all pending lock lockhashes                                    |
 +------------------------+------------+---------------------------------------------------------------------------------------+
+
+.. _withdraw-proof-message:
+
+Withdraw Proof
+--------------
+
+Data required by the smart contracts to allow a user to withdraw funds from a channel without closing it.
+Signature must be valid and is defined as:
+
+::
+
+    ecdsa_recoverable(privkey, sha3_keccak(participant_address || total_withdraw || channel_identifier || token_network_address || chain_id)
+
+Invariants
+^^^^^^^^^^
+
+- ``total_withdraw`` is strictly monotonic increasing. This is required for protection against replay attacks with old withdraw proofs.
+
+Fields
+^^^^^^
+
++------------------------+------------+--------------------------------------------------------------------------------+
+| Field Name             | Field Type |  Description                                                                   |
++========================+============+================================================================================+
+|  participant_address   | address    | Channel participant, who withdraws the tokens                                  |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  total_withdraw        | uint256    | Total amount of tokens that participant_address has withdrawn from the channel |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract                            |
++------------------------+------------+--------------------------------------------------------------------------------+
+| token_network_address  | address    | Address of the TokenNetwork contract                                           |
++------------------------+------------+--------------------------------------------------------------------------------+
+| chain_id               | uint256    | Chain identifier as defined in EIP155                                          |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  signature             | bytes      | Elliptic Curve 256k1 signature on the above data                               |
++------------------------+------------+--------------------------------------------------------------------------------+
+
+.. _cooperative-settle-proof-message:
+
+Cooperative Settle Proof
+------------------------
+
+Data required by the smart contracts to allow the two channel participants to close and settle the channel instantly, in one transaction.
+Signature must be valid and is defined as:
+
+::
+
+    ecdsa_recoverable(privkey, sha3_keccak(participant1_address || participant1_balance || participant2_address || participant2_balance || channel_identifier || token_network_address || chain_id)
+
+Fields
+^^^^^^
+
++------------------------+------------+--------------------------------------------------------------------------------+
+| Field Name             | Field Type |  Description                                                                   |
++========================+============+================================================================================+
+|  participant1_address  | address    | One of the channel participants                                                |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  participant1_balance  | uint256    | Amount of tokens that participant1_address will receive aftler settling        |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  participant2_address  | address    | The other channel participant                                                  |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  participant2_balance  | uint256    | Amount of tokens that participant2_address will receive aftler settling        |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract                            |
++------------------------+------------+--------------------------------------------------------------------------------+
+| token_network_address  | address    | Address of the TokenNetwork contract                                           |
++------------------------+------------+--------------------------------------------------------------------------------+
+| chain_id               | uint256    | Chain identifier as defined in EIP155                                          |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  signature             | bytes      | Elliptic Curve 256k1 signature on the above data                               |
++------------------------+------------+--------------------------------------------------------------------------------+
 
 Merkle Tree
 -----------
