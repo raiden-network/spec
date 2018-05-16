@@ -82,6 +82,10 @@ TokenNetwork Contract
 
 Provides the interface to interact with payment channels. The channels can only transfer the type of token that this contract defines through ``token_address``.
 
+.. _channel-identifier:
+
+:term:`Channel Identifier` is currently defined as ``keccak256(address participant1, address participant2)``, where the two participant addresses are in lexicographic order.
+
 Attributes:
 
 - ``Token public token``
@@ -108,7 +112,7 @@ Opens a channel between ``participant1`` and ``participant2`` and sets the chall
 - ``participant1``: Ethereum address of a channel participant.
 - ``participant2``: Ethereum address of the other channel participant.
 - ``settle_timeout``: Number of blocks that need to be mined between a call to ``closeChannel`` and ``settleChannel``.
-- ``channel_identifier``: Channel identifier assigned by the current contract.
+- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 
 **Fund a channel**
 
@@ -117,9 +121,9 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 ::
 
     function setDeposit(
-        uint channel_identifier,
         address participant,
-        uint256 total_deposit
+        uint256 total_deposit,
+        address partner
     )
         public
 
@@ -127,9 +131,10 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 
     event ChannelNewDeposit(uint channel_identifier, address participant, uint deposit);
 
-- ``channel_identifier``: Channel identifier assigned by the current contract.
 - ``participant``: Ethereum address of a channel participant whose deposit will be increased.
 - ``total_deposit``: Total amount of tokens that the ``participant`` will have as ``deposit`` in the channel.
+- ``partner``: Ethereum address of the other channel participant, used for computing ``channel_identifier``.
+- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``deposit``: The total amount of tokens deposited in a channel by a participant.
 
 .. Note::
@@ -189,7 +194,7 @@ Allows a channel participant to close the channel. The channel cannot be settled
 - ``locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers) contained in the merkle tree.
 - ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the partner.
 - ``signature``: Elliptic Curve 256k1 signature of the channel partner on the :term:`balance proof` data.
-- ``channel_identifier``: Channel identifier assigned by the current contract.
+- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``closing_participant``: Ethereum address of the channel participant who calls this contract function.
 
 .. Note::
@@ -264,7 +269,7 @@ Settles the channel by transferring the amount of tokens each participant is owe
 - ``participant2_transferred_amount``: The monotonically increasing counter of the amount of tokens sent by ``participant2`` to ``participant1``.
 - ``participant2_locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers sent by ``participant2`` to ``participant1``) contained in the merkle tree.
 - ``participant2_locksroot``: Root of the merkle tree of all pending lock lockhashes (pending transfers sent by ``participant2`` to ``participant1``).
-- ``channel_identifier``: Channel identifier assigned by the current contract.
+- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 
 .. Note::
     Can be called by anyone after a channel has been closed and the challenge period is over.
@@ -317,11 +322,11 @@ Unlocks all pending transfers by providing the entire merkle tree of pending tra
 
 - ``participant``: Ethereum address of the channel participant who will receive the unlocked tokens that correspond to the pending transfers that have a revealed secret.
 - ``partner``: Ethereum address of the channel participant that pays the amount of tokens that correspond to the pending transfers that have a revealed secret. This address will receive the rest of the tokens that correspond to the pending transfers that have not finalized and do not have a revelead secret.
-- ``merkle_tree_leaves``: The entire merkle tree of pending transfers. It contains tightly packed data for each transfer, consisting of ``expiration_block``, ``locked_amount``, ``secrethash``.
+- ``merkle_tree_leaves``: The data for computing the entire merkle tree of pending transfers. It contains tightly packed data for each transfer, consisting of ``expiration_block``, ``locked_amount``, ``secrethash``.
 - ``expiration_block``: The absolute block number at which the lock expires.
 - ``locked_amount``: The number of tokens being transferred from ``partner`` to ``participant`` in a pending transfer.
 - ``secrethash``: A hashed secret, ``sha3_keccack(secret)``.
-- ``channel_identifier``: Channel identifier assigned by the current contract.
+- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``unlocked_amount``: The total amount of unlocked tokens that the ``partner`` owes to the channel ``participant``.
 - ``returned_tokens``: The total amount of unlocked tokens that return to the ``partner`` because the secret was not revealed, therefore the mediating transfer did not occur.
 

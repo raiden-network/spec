@@ -72,7 +72,7 @@ Signature must be valid and is defined as:
 Invariants
 ^^^^^^^^^^
 
-- ``total_withdraw`` is strictly monotonic increasing. This is required for protection against replay attacks with old withdraw proofs.
+- ``total_withdraw`` is strictly monotonically increasing. This is required for protection against replay attacks with old withdraw proofs.
 
 Fields
 ^^^^^^
@@ -113,11 +113,11 @@ Fields
 +========================+============+================================================================================+
 |  participant1_address  | address    | One of the channel participants                                                |
 +------------------------+------------+--------------------------------------------------------------------------------+
-|  participant1_balance  | uint256    | Amount of tokens that participant1_address will receive aftler settling        |
+|  participant1_balance  | uint256    | Amount of tokens that participant1_address will receive after settling         |
 +------------------------+------------+--------------------------------------------------------------------------------+
 |  participant2_address  | address    | The other channel participant                                                  |
 +------------------------+------------+--------------------------------------------------------------------------------+
-|  participant2_balance  | uint256    | Amount of tokens that participant2_address will receive aftler settling        |
+|  participant2_balance  | uint256    | Amount of tokens that participant2_address will receive after settling         |
 +------------------------+------------+--------------------------------------------------------------------------------+
 |  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract                            |
 +------------------------+------------+--------------------------------------------------------------------------------+
