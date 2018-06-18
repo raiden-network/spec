@@ -274,6 +274,8 @@ Settles the channel by transferring the amount of tokens each participant is owe
 .. Note::
     Can be called by anyone after a channel has been closed and the challenge period is over.
 
+    We currently enforce an ordering of the participant data based on the following rule: ``participant2_transferred_amount + participant2_locked_amount >= participant1_transferred_amount + participant1_locked_amount``. This is an artificial rule to help the settlement algorithm handle overflows and underflows easier, without failing the transaction.
+
 **Cooperatively close and settle a channel**
 
 Allows the participants to cooperate and provide both of their balances and signatures. This closes and settles the channel immediately, without triggering a challenge period.
