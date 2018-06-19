@@ -349,7 +349,7 @@ In collaboration with a monitoring service, it acts as a security measure, to al
 
 ::
 
-    event SecretRevealed(bytes32 indexed secrethash);
+    event SecretRevealed(bytes32 indexed secrethash, bytes32 secret);
 
 Getters
 ::
