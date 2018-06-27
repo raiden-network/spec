@@ -259,7 +259,7 @@ Invariants
 ^^^^^^^^^^
 
 - The :term:`balance proof` merkle tree must have the corresponding lock removed (and only this lock).
-- This message is only sent after the corresponding partner has sent a SecretReveal message.
+- This message is only sent after the corresponding partner has sent a RevealSecret message.
 
 
 Fields
@@ -353,7 +353,7 @@ For the simplest Alice - Bob example:
     * nonce = ``current_value + 1``
 - Alice signs the transfer and sends it to Bob.
 - Bob requests the secret that can be used for withdrawing the transfer by sending a ``SecretRequest`` message.
-- Alice sends the ``SecretReveal`` to Bob and at this point she must assume the transfer is complete.
+- Alice sends the ``RevealSecret`` to Bob and at this point she must assume the transfer is complete.
 - Bob receives the secret and at this point has effectively secured the transfer of ``n`` tokens to his side.
-- Bob sends an ``Unlock`` message back to Alice to inform her that the secret is known and acts as a request for off-chain synchronization.
-- Finally Alice sends an ``Unlock`` message to Bob. This acts also as a synchronization message informing Bob that the lock will be removed from the merkle tree and that the transferred_amount and locksroot values are updated.
+- Bob sends a ``RevealSecret`` message back to Alice to inform her that the secret is known and acts as a request for off-chain synchronization.
+- Finally Alice sends a ``Secret`` message to Bob. This acts also as a synchronization message informing Bob that the lock will be removed from the merkle tree and that the transferred_amount and locksroot values are updated.
