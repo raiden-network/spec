@@ -1,0 +1,24 @@
+participant Initiator
+participant Mediator1
+participant Mediator2
+participant Target
+participant SecretRegistryContract
+
+Initiator -> Mediator1: LockedTransfer(MSG) \n (HTL, BP, initiator_address,\n target_address)
+Mediator1 -> Mediator2: LockedTransfer(MSG) \n (HTL, BP, initiator_address,\n target_address)
+Mediator2 -> Target: LockedTransfer(MSG) \n (HTL, BP, initiator_address,\n target_address)
+Target -> Initiator: SecretRequest(MSG) \n (amount, secrethash,\n signature)
+Initiator -> Target: RevealSecret(MSG) \n (secret, signature)
+Target -> Mediator2: RevealSecret(MSG) \n (secret, signature)
+
+Note over Mediator2, Target: Bad behaviour \n M2 does not send the BP to Target
+
+
+Note over Target: waits until lock \n is about to expire
+Note over Target: CHOICE \n lose the transfer \n or go ON CHAIN
+Target -> SecretRegistryContract: registerSecret(secret)
+Note over Mediator1, Target: Secret can be used by all nodes to UNLOCK the transfer after settling the channels \n SecretRegistry.getSecretRevealBlockHeight(secrethash)
+Mediator2 --> Mediator1: RevealSecret(MSG) \n (secret, signature)
+Mediator1 --> Mediator2: Secret(MSG) BP_M1
+Mediator1 --> Initiator: RevealSecret(MSG) \n (secret, signature)
+Initiator --> Mediator1: Secret(MSG) BP_I

@@ -366,9 +366,37 @@ A detailed description of the :term:`balance proof` can be found in the :ref:`me
 A detailed description of the :term:`withdraw proof` can be found in the :ref:`message definition <withdraw-proof-message>`.
 A detailed description of the :term:`cooperative settle proof` can be found in the :ref:`message definition <cooperative-settle-proof-message>`.
 
-Decisions
-=========
 
-- Batch operations should not be supported in Raiden Network smart contracts. They can be done in a smart contract wrapper instead.
-   - Provide smart contract to batch operations with the same function names but vectorized types. Example: opening multiple channels in the same transaction.
-   - To save on the number of transactions, add optimization functions that do multiple smart contract function calls
+Protocol Overview
+=================
+
+Opened Channel Lifecycle
+------------------------
+
+.. image:: diagrams/RaidenSC_channel_open_lifecycle.png
+    :alt: Opened Channel Lifecycle
+    :width: 500px
+
+
+Channel Settlement
+------------------
+
+.. image:: diagrams/RaidenSC_channel_settlement.png
+    :alt: Channel Settlement
+    :width: 400px
+
+Channel Settlement Window
+-------------------------
+
+The non-closing participant can update the closing participant's balance proof during the settlement window, by calling `TokenNetwork.updateNonClosingBalanceProof`.
+
+.. image:: diagrams/RaidenSC_channel_update.png
+    :alt: Channel Settlement Window Updating NonClosing BalanceProof
+    :width: 650px
+
+Unlocking Pending Transfers
+---------------------------
+
+.. image:: diagrams/RaidenSC_channel_unlock.png
+    :alt: Channel Unlock Pending Transfers
+    :width: 500px

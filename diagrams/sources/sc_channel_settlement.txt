@@ -1,0 +1,28 @@
+[TokenNetwork channel close & settle |
+  [<start>start]->[<state>P1-P2 Channel alive]
+  [<state>P1-P2 Channel alive]->[<choice> P1; wants to close ;Channel]
+  [<choice> P1; wants to close ;Channel]->1[<state>cooperativeSettle]
+  [<choice> P1; wants to close ;Channel]->0[<state>uncooperativeSettle]
+  [<state>cooperativeSettle]->[<state>P1,P2 sign final; settlement balances]
+  [<state>P1,P2 sign final; settlement balances]->[<state>P1/Delegate calls; cooperativeSettle]
+
+  [<state>uncooperativeSettle]->[<state>P1 calls closeChannel; with BP_P2]
+  [<state>P1 calls closeChannel; with BP_P2]->[<state>P2/Delegate update BP_P1]
+
+  [<state>P2/Delegate update BP_P1]->[<state>P1/P2/Delegate; settleChannel]
+
+  [<state>P1/P2/Delegate; settleChannel]->[<state>Token Settlement]
+
+  [<state>P1/Delegate calls; cooperativeSettle]->[<state>Token Settlement]
+
+  [<state>Token Settlement]->[<state>P1 receives tokens owed by P2; P2 receives tokens owed by P1]
+
+  [<state>P1 receives tokens owed by P2; P2 receives tokens owed by P1]->[<state>Channel settled]
+  [<state>Channel settled]->[<state> +/- Unlock pending transfers P1/P2]
+
+  [<state> +/- Unlock pending transfers P1/P2]->[<end>end]
+
+
+
+
+]

@@ -1,0 +1,17 @@
+[+/- Unlock pending transfers P1->P2 |
+  	[<start>start]->[<choice>P1->P2 ; pending transfers ;?]
+	[<choice>P1->P2 ; pending transfers ;?]->0[<end>end]
+	[<choice>P1->P2 ; pending transfers ;?]->1[<state>unlock(P1_merkle_tree)]
+
+	[<state>unlock(P1_merkle_tree)]->[verify each lock |
+		[<state> amount ; expiration ; secrethash]->[verify; expiration block in; SecretRegistry; by secrethash]
+
+	[<state>verify; expiration block in; SecretRegistry]->[<choice>Expired secret?]
+	[<choice>Expired secret?]->0[<state>P1 receives transfer tokens]
+	[<choice>Expired secret?]->1[<state>P2 receives transfer tokens]
+	]
+
+	[verify each lock]->[token transfers]
+	[token transfers]->[<end>end]
+
+  ]

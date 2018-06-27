@@ -1,0 +1,17 @@
+[P2/Delegate update BP_P1 |
+  	[<start>start]->[<choice>Settlement window?]
+  	[<choice>Settlement window?]->0[<end>end]
+	[<choice>Settlement window?]->1[<choice>P2/Delegate; update BP_P1]
+
+	[<choice>P2/Delegate; update BP_P1]->1[<state>P2/Delegate updateNonClosingBalanceProof]
+	[<choice>P2/Delegate; update BP_P1]->0[<state>P2 potentially loses tokens owed by P1]
+
+	[<state>P2 potentially loses tokens owed by P1]->[<choice>Settlement window?]
+	[<state>P2/Delegate updateNonClosingBalanceProof]->[<choice>NONCE; > stored nonce;?]
+	[<choice>NONCE; > stored nonce;?]->0[<state>no change]
+	[<choice>NONCE; > stored nonce;?]->1[<state>BP_P1 updated]
+	[<state>no change]->[<choice>Settlement window?]
+	[<state>BP_P1 updated]->[<choice>Settlement window?]
+
+  ]
+  
