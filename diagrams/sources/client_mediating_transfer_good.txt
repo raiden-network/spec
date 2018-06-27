@@ -1,0 +1,27 @@
+participant Initiator
+participant Mediator1
+participant Mediator2
+participant Target
+
+Note over Initiator: Wants to transfer \n 10 tokens to Target
+
+Note over Mediator1: BP_I_0 (nonce=4, transferred=10,\n locked=5 locksroot_0)
+
+Initiator -> Mediator1: LockedTransfer(MSG) \n (HTL, BP_I_1, initiator_address,\n target_address)
+
+Note over Mediator1: BP_I_1 (nonce=5, transferred=10,\n locked=15 locksroot_1)
+
+Mediator1 -> Mediator2: LockedTransfer(MSG) \n (HTL, BP_M1_1, initiator_address,\n target_address)
+Mediator2 -> Target: LockedTransfer(MSG) \n (HTL, BP_M2_1, initiator_address,\n target_address)
+Target -> Initiator: SecretRequest(MSG) \n (amount, secrethash,\n signature)
+Initiator -> Target: RevealSecret(MSG) \n (secret, signature)
+Target -> Mediator2: RevealSecret(MSG) \n (secret, signature)
+Mediator2 -> Target: Secret(MSG) BP_M2_2
+Mediator2 -> Mediator1: RevealSecret(MSG) \n (secret, signature)
+Mediator1 -> Mediator2: Secret(MSG) BP_M1_2
+Mediator1 -> Initiator: RevealSecret(MSG) \n (secret, signature)
+Initiator -> Mediator1: Secret(MSG) BP_I_2
+
+Note over Mediator1: BP_I_2 (nonce=6, transferred=20,\n locked=5 locksroot_0)
+
+Note over Mediator1: locked, locksroot can vary \n if there are other pending transfers
