@@ -101,6 +101,7 @@ Provides the interface to interact with payment channels. The channels can only 
 
 **Getters**
 
+.. _get-channel-identifier:
 
 We currently limit the number of channels between two participants to one. Therefore, a pair of addresses can have at most one ``channel_identifier``. The ``channel_identifier`` will be ``0`` if the channel does not exist.
 
@@ -110,6 +111,8 @@ We currently limit the number of channels between two participants to one. There
         view
         public
         returns (uint256 channel_identifier)
+
+.. _get-channel-info:
 
 ::
 
@@ -131,6 +134,8 @@ We currently limit the number of channels between two participants to one. There
     Channel state ``Settled`` means the channel was settled and channel data removed. However, there is still data remaining in the contract for calling ``unlock`` - for at least one participant.
 
     Channel state ``Removed`` means that no channel data and no ``unlock`` data remain in the contract.
+
+.. _get-channel-participant-info:
 
 ::
 
@@ -162,6 +167,7 @@ We currently limit the number of channels between two participants to one. There
 - ``locksroot``: Can be set when the channel is in a ``Settled`` state. Must be ``0`` otherwise.
 - ``locked_amount``: Can be set when the channel is in a ``Settled`` state. Must be ``0`` otherwise.
 
+.. _open-channel:
 
 **Open a channel**
 
@@ -184,6 +190,8 @@ Opens a channel between ``participant1`` and ``participant2`` and sets the chall
 - ``participant1``: Ethereum address of a channel participant.
 - ``participant2``: Ethereum address of the other channel participant.
 - ``settle_timeout``: Number of blocks that need to be mined between a call to ``closeChannel`` and ``settleChannel``.
+
+.. _deposit-channel:
 
 **Fund a channel**
 
@@ -218,6 +226,8 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 
     This function is idempotent. The UI and internal smart contract logic has to make sure that the amount of tokens actually transferred is the difference between ``total_deposit`` and the ``deposit`` at transaction time.
 
+.. _withdraw-channel:
+
 **Withdraw tokens from a channel**
 
 Allows a channel participant to withdraw tokens from a channel without closing it. Can be called by anyone. Can only be called once per each signed withdraw message.
@@ -248,6 +258,8 @@ Allows a channel participant to withdraw tokens from a channel without closing i
 - ``partner``: Channel partner address.
 - ``participant_signature``: Elliptic Curve 256k1 signature of the channel ``participant`` on the :term:`withdraw proof` data.
 - ``partner_signature``: Elliptic Curve 256k1 signature of the channel ``partner`` on the :term:`withdraw proof` data.
+
+.. _close-channel:
 
 **Close a channel**
 
@@ -284,6 +296,8 @@ Allows a channel participant to close the channel. The channel cannot be settled
     Only a participant may close the channel.
 
     Only a valid signed :term:`balance proof` from the channel partner (the other channel participant) must be accepted. This :term:`balance proof` sets the amount of tokens owed to the participant by the channel partner.
+
+.. _update-channel:
 
 **Update non-closing participant balance proof**
 
@@ -323,6 +337,8 @@ Called after a channel has been closed. Can be called by any Ethereum address an
 
 .. Note::
     Can be called by any Ethereum address due to the requirement of providing signatures from both channel participants.
+
+.. _settle-channel:
 
 **Settle channel**
 
@@ -366,6 +382,8 @@ Settles the channel by transferring the amount of tokens each participant is owe
 
     We currently enforce an ordering of the participant data based on the following rule: ``participant2_transferred_amount + participant2_locked_amount >= participant1_transferred_amount + participant1_locked_amount``. This is an artificial rule to help the settlement algorithm handle overflows and underflows easier, without failing the transaction.
 
+.. _cooperative-settle-channel:
+
 **Cooperatively close and settle a channel**
 
 Allows the participants to cooperate and provide both of their balances and signatures. This closes and settles the channel immediately, without triggering a challenge period.
@@ -396,6 +414,7 @@ Allows the participants to cooperate and provide both of their balances and sign
 
     Can be called by a third party as long as both participants provide their signatures.
 
+.. _unlock-channel:
 
 **Unlock lock**
 
@@ -442,6 +461,8 @@ SecretRegistry Contract
 
 This contract will store the block height at which the secret was revealed in a mediating transfer.
 In collaboration with a monitoring service, it acts as a security measure, to allow all nodes participating in a mediating transfer to withdraw the transferred tokens even if some of the nodes might be offline.
+
+.. _register-secret:
 
 ::
 
@@ -490,7 +511,7 @@ Channel Settlement
 Channel Settlement Window
 -------------------------
 
-The non-closing participant can update the closing participant's balance proof during the settlement window, by calling `TokenNetwork.updateNonClosingBalanceProof`.
+The non-closing participant can update the closing participant's balance proof during the settlement window, by calling ``TokenNetwork.updateNonClosingBalanceProof``.
 
 .. image:: diagrams/RaidenSC_channel_update.png
     :alt: Channel Settlement Window Updating NonClosing BalanceProof
@@ -502,3 +523,75 @@ Unlocking Pending Transfers
 .. image:: diagrams/RaidenSC_channel_unlock.png
     :alt: Channel Unlock Pending Transfers
     :width: 500px
+
+
+Protocol Value Constraints
+==========================
+
+These are constraints imposed on the values used in the signed messages: :ref:`balance proof <balance-proof-message>`,
+:ref:`withdraw proof <withdraw-proof-message>`, :ref:`cooperative settle proof <cooperative-settle-proof-message>`.
+
+Definitions
+-----------
+
+- ``valid last BP`` = a balance proof that respects the official Raiden client constraints and is the last balance proof known
+- ``valid old BP`` = a balance proof that respects the official Raiden client constraints, but there are other newer balance proofs that were created after it (additional transfers happened)
+- ``invalid BP`` = a balance proof that does not respect the official Raiden client constraints
+- ``P``: A channel participant - :term:`Participants`
+- ``P1``: One of the two channel participants
+- ``P2``: The other channel participant, or ``P1``'s partner
+- ``D1``: Total amount of tokens deposited by ``P1`` in the channel using :ref:`setTotalDeposit <deposit-channel>` and shown by :ref:`getChannelParticipantInfo <get-channel-participant-info>`
+- ``W1``: Total amount of tokens withdrawn from the channel by ``P1`` using :ref:`setTotalWithdraw <withdraw-channel>` and shown by :ref:`getChannelParticipantInfo <get-channel-participant-info>`
+- ``T1``: Off-chain :term:`Transferred amount` from ``P1`` to ``P2``, representing finalized transfers.
+- ``L1``: Locked tokens in pending transfers sent by ``P1`` to ``P2``, that have not finalized yet or have expired. Corresponds to a :term:`locksroot` provided to the smart contract in :ref:`settleChannel <settle-channel>`. ``L1 = Lc1 + Lu1``
+- ``Lc1``: Locked amount that will be transferred to ``P2`` if :ref:`unlock <unlock-channel>` is called with ``P1``'s pending transfers. This only happens if the :term:`secret` s of the pending :term:`Hash Time Locked Transfer` s have been registered with :ref:`registerSecret <register-secret>`
+- ``Lu1``: Locked amount that will return to ``P1`` because the :term:`secret` s were not registered on-chain
+- ``TAD``: Total available deposit
+- ``B1``: Total, final amount that must be received by ``P1`` after channel is settled and no unlocks are left to be done.
+- ``AB1``: available balance for P1: :term:`Capacity`. Determines if ``P1`` can make additional transfers to ``P2`` or not.
+- ``D1k`` = ``D1`` at ``time = k``; same for all of the above.
+
+All the above definitions are also valid for ``P2``. Example: ``D2``, ``T2`` etc.
+
+Value constraints:
+------------------
+
+Must be enforced by the TokenNetwork smart contract:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    (1SC) Dk <= Dt, k < t
+    (2SC) Wk <= Wt, k < t
+    (3SC) TAD = D1 + D2 - W1 - W2 ; TAD >= 0
+
+Must be enforced by the Raiden Client:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    (1R) Tk <= Tt, k < t
+    (2R) AB1 = D1 - W1 + T2 - T1 - L1; AB1 >= 0
+    (3R) W1 <= D1 + T2 - T1 - L1
+    (4R) T1 + L1 < 2^256 ; T2 + L2 < 2^256
+    (5R) Tk + Lck <= Tt + Lct, k < t
+
+.. Note::
+    Any two consecutive balance proofs for ``P1``, named ``BP1k`` and ``BP1t`` were `k < t`,  must respect the following constraints:
+
+    1. A :term:`Direct Transfer` or a :term:`Mediated Transfer` with ``value`` tokens was finalized, therefore ``T1t == T1k + value`` and ``L1t == L1k``.
+    2. A :term:`HTL` with ```value`` was sent, but not yet finalized, therefore ``T1t == T1k`` and ``L1t == L1k + value``.
+    3. A :term:`HTL Unlock` for a previous ``value`` was finalized, therefore ``T1t == T1k + value`` and ``L1t == L1k - value``.
+    4. An :term:`lock expiration` message for a previous ``value`` was done, therefore ``T1t == T1k`` and ``L1t == L1k - value``.
+
+
+Settlement algorithm:
+---------------------
+
+The following must be true if the two participants use their ``last valid BP``:
+
+::
+
+    (1) B1 = D1 - W1 + T2 - T1 + Lc2 - Lc1
+    (2) B2 = D2 - W2 + T1 - T2 + Lc1 - Lc2
+    (3) B1 + B2 = TAD
