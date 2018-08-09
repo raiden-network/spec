@@ -90,6 +90,9 @@ Provides the interface to interact with payment channels. The channels can only 
 
 :term:`Channel Identifier` is currently defined as ``uint256``, a global monotonically increasing counter of all the channels inside a ``TokenNetwork``.
 
+.. Note::
+    A ``channel_identifier`` value of ``0`` is not a valid value for an active channel. The counter starts at ``1``.
+
 **Attributes**
 
 - ``Token public token``
@@ -153,7 +156,7 @@ We currently limit the number of channels between two participants to one. There
 - ``partner``: Ethereum address of the other channel participant.
 - ``deposit``: Can be ``>=0`` after the channel has been opened. Must be ``0`` when the channel is in ``Settled`` or ``Removed`` state.
 - ``withdrawn_amount``: Can be ``>=0`` after the channel has been opened. Must be ``0`` when the channel is in ``Settled`` or ``Removed`` state.
-- ``is_the_closer``: Can be ``true`` if the channel is in ``Closed`` state, if ``participant`` closed the channel. Must be ``false`` otherwise.
+- ``is_the_closer``: Can be ``true`` if the channel is in ``Closed`` state and if ``participant`` closed the channel. Must be ``false`` otherwise.
 - ``balance_hash``: Can be set when the channel is in ``Closed`` state. Must be ``0`` otherwise.
 - ``nonce``: Can be set when the channel is in a ``Closed`` state. Must be ``0`` otherwise.
 - ``locksroot``: Can be set when the channel is in a ``Settled`` state. Must be ``0`` otherwise.
