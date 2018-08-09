@@ -51,13 +51,15 @@ Clients have to collect events in order to derive the network graph.
 Functional decomposition
 ------------------------
 
-TokenNetworksRegistry Contract
+TokenNetworkRegistry Contract
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Attributes:
 
 - ``address public secret_registry_address``
 - ``uint256 public chain_id``
+- ``uint256 public settlement_timeout_min``
+- ``uint256 public settlement_timeout_max``
 
 **Register a token**
 
@@ -73,6 +75,8 @@ Deploy a new ``TokenNetwork`` contract and add its address in the registry.
 
 - ``token_address``: address of the Token contract.
 - ``token_network_address``: address of the newly deployed ``TokenNetwork`` contract.
+- ``settlement_timeout_min``: Minimum settlement timeout to be used in every ``TokenNetwork``
+- ``settlement_timeout_max``: Maximum settlement timeout to be used in every ``TokenNetwork``
 
 .. Note::
     It also provides the ``SecretRegistry`` contract address to the ``TokenNetwork`` constructor.
@@ -84,13 +88,80 @@ Provides the interface to interact with payment channels. The channels can only 
 
 .. _channel-identifier:
 
-:term:`Channel Identifier` is currently defined as ``keccak256(address participant1, address participant2)``, where the two participant addresses are in lexicographic order.
+:term:`Channel Identifier` is currently defined as ``uint256``, a global monotonically increasing counter of all the channels inside a ``TokenNetwork``.
 
-Attributes:
+.. Note::
+    A ``channel_identifier`` value of ``0`` is not a valid value for an active channel. The counter starts at ``1``.
+
+**Attributes**
 
 - ``Token public token``
 - ``SecretRegistry public secret_registry;``
 - ``uint256 public chain_id``
+
+**Getters**
+
+
+We currently limit the number of channels between two participants to one. Therefore, a pair of addresses can have at most one ``channel_identifier``. The ``channel_identifier`` will be ``0`` if the channel does not exist.
+
+::
+
+    function getChannelIdentifier(address participant, address partner)
+        view
+        public
+        returns (uint256 channel_identifier)
+
+::
+
+    function getChannelInfo(
+        uint256 channel_identifier,
+        address participant1,
+        address participant2
+    )
+        view
+        external
+        returns (uint256 settle_block_number, ChannelState state)
+
+- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
+- ``participant1``: Ethereum address of a channel participant.
+- ``participant2``: Ethereum address of the other channel participant.
+- ``state``: Channel state. It can be ``NonExistent`` - ``0``, ``Opened`` - ``1``, ``Closed`` - ``2``, ``Settled`` - ``3``, ``Removed`` - ``4``.
+
+.. Note::
+    Channel state ``Settled`` means the channel was settled and channel data removed. However, there is still data remaining in the contract for calling ``unlock`` - for at least one participant.
+
+    Channel state ``Removed`` means that no channel data and no ``unlock`` data remain in the contract.
+
+::
+
+    function getChannelParticipantInfo(
+            uint256 channel_identifier,
+            address participant,
+            address partner
+    )
+        view
+        external
+        returns (
+            uint256 deposit,
+            uint256 withdrawn_amount,
+            bool is_the_closer,
+            bytes32 balance_hash,
+            uint256 nonce,
+            bytes32 locksroot,
+            uint256 locked_amount
+        )
+
+- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
+- ``participant``: Ethereum address of a channel participant.
+- ``partner``: Ethereum address of the other channel participant.
+- ``deposit``: Can be ``>=0`` after the channel has been opened. Must be ``0`` when the channel is in ``Settled`` or ``Removed`` state.
+- ``withdrawn_amount``: Can be ``>=0`` after the channel has been opened. Must be ``0`` when the channel is in ``Settled`` or ``Removed`` state.
+- ``is_the_closer``: Can be ``true`` if the channel is in ``Closed`` state and if ``participant`` closed the channel. Must be ``false`` otherwise.
+- ``balance_hash``: Can be set when the channel is in ``Closed`` state. Must be ``0`` otherwise.
+- ``nonce``: Can be set when the channel is in a ``Closed`` state. Must be ``0`` otherwise.
+- ``locksroot``: Can be set when the channel is in a ``Settled`` state. Must be ``0`` otherwise.
+- ``locked_amount``: Can be set when the channel is in a ``Settled`` state. Must be ``0`` otherwise.
+
 
 **Open a channel**
 
@@ -98,21 +169,21 @@ Opens a channel between ``participant1`` and ``participant2`` and sets the chall
 
 ::
 
-    function openChannel(address participant1, address participant2, uint settle_timeout) public returns (uint256 channel_identifier)
+    function openChannel(address participant1, address participant2, uint256 settle_timeout) public returns (uint256 channel_identifier)
 
 ::
 
     event ChannelOpened(
-        uint channel_identifier,
-        address participant1,
-        address participant2,
-        uint settle_timeout
+        uint256 indexed channel_identifier,
+        address indexed participant1,
+        address indexed participant2,
+        uint256 settle_timeout
     );
 
+- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``participant1``: Ethereum address of a channel participant.
 - ``participant2``: Ethereum address of the other channel participant.
 - ``settle_timeout``: Number of blocks that need to be mined between a call to ``closeChannel`` and ``settleChannel``.
-- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 
 **Fund a channel**
 
@@ -120,7 +191,8 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 
 ::
 
-    function setDeposit(
+    function setTotalDeposit(
+        uint256 channel_identifier,
         address participant,
         uint256 total_deposit,
         address partner
@@ -129,7 +201,11 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 
 ::
 
-    event ChannelNewDeposit(uint channel_identifier, address participant, uint deposit);
+    event ChannelNewDeposit(
+        uint256 indexed channel_identifier,
+        address indexed participant,
+        uint256 total_deposit
+    );
 
 - ``participant``: Ethereum address of a channel participant whose deposit will be increased.
 - ``total_deposit``: Total amount of tokens that the ``participant`` will have as ``deposit`` in the channel.
@@ -148,7 +224,8 @@ Allows a channel participant to withdraw tokens from a channel without closing i
 
 ::
 
-    function withdraw(
+    function setTotalWithdraw(
+        uint256 channel_identifier,
         address participant,
         uint256 total_withdraw,
         address partner,
@@ -159,8 +236,13 @@ Allows a channel participant to withdraw tokens from a channel without closing i
 
 ::
 
-    event ChannelWithdraw(bytes32 channel_identifier, address participant, uint256 withdrawn_amount);
+    event ChannelWithdraw(
+        uint256 indexed channel_identifier,
+        address indexed participant,
+        uint256 total_withdraw
+    );
 
+- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``participant``: Ethereum address of a channel participant who will receive the tokens withdrawn from the channel.
 - ``total_withdraw``: Total amount of tokens that are marked as withdrawn from the channel during the channel lifecycle.
 - ``partner``: Channel partner address.
@@ -174,6 +256,7 @@ Allows a channel participant to close the channel. The channel cannot be settled
 ::
 
     function closeChannel(
+        uint256 channel_identifier,
         address partner,
         bytes32 balance_hash,
         uint256 nonce,
@@ -184,8 +267,9 @@ Allows a channel participant to close the channel. The channel cannot be settled
 
 ::
 
-    event ChannelClosed(uint channel_identifier, address closing_participant);
+    event ChannelClosed(uint256 indexed channel_identifier, address indexed closing_participant);
 
+- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``partner``: Channel partner of the participant who calls the function.
 - ``balance_hash``: Hash of the balance data ``keccak256(transferred_amount, locked_amount, locksroot)``
 - ``nonce``: Strictly monotonic value used to order transfers.
@@ -194,7 +278,6 @@ Allows a channel participant to close the channel. The channel cannot be settled
 - ``locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers) contained in the merkle tree.
 - ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the partner.
 - ``signature``: Elliptic Curve 256k1 signature of the channel partner on the :term:`balance proof` data.
-- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``closing_participant``: Ethereum address of the channel participant who calls this contract function.
 
 .. Note::
@@ -209,6 +292,7 @@ Called after a channel has been closed. Can be called by any Ethereum address an
 ::
 
     function updateNonClosingBalanceProof(
+        uint256 channel_identifier,
         address closing_participant,
         address non_closing_participant,
         bytes32 balance_hash,
@@ -222,10 +306,12 @@ Called after a channel has been closed. Can be called by any Ethereum address an
 ::
 
     event NonClosingBalanceProofUpdated(
-        uint256 channel_identifier,
-        address closing_participant
+        uint256 indexed channel_identifier,
+        address indexed closing_participant,
+        uint256 nonce
     );
 
+- ``channel_identifier``: Channel identifier assigned by the current contract.
 - ``closing_participant``: Ethereum address of the channel participant who closed the channel.
 - ``non_closing_participant``: Ethereum address of the channel participant who is updating the balance proof data.
 - ``balance_hash``: Hash of the balance data
@@ -233,7 +319,6 @@ Called after a channel has been closed. Can be called by any Ethereum address an
 - ``additional_hash``: Computed from the message. Used for message authentication.
 - ``closing_signature``: Elliptic Curve 256k1 signature of the closing participant on the :term:`balance proof` data.
 - ``non_closing_signature``: Elliptic Curve 256k1 signature of the non-closing participant on the :term:`balance proof` data.
-- ``channel_identifier``: Channel identifier assigned by the current contract.
 - ``closing_participant``: Ethereum address of the participant who closed the channel.
 
 .. Note::
@@ -246,6 +331,7 @@ Settles the channel by transferring the amount of tokens each participant is owe
 ::
 
     function settleChannel(
+        uint256 channel_identifier,
         address participant1,
         uint256 participant1_transferred_amount,
         uint256 participant1_locked_amount,
@@ -259,8 +345,13 @@ Settles the channel by transferring the amount of tokens each participant is owe
 
 ::
 
-    event ChannelSettled(uint256 channel_identifier, uint256 participant1_amount, uint256 participant2_amount);
+    event ChannelSettled(
+        uint256 indexed channel_identifier,
+        uint256 participant1_amount,
+        uint256 participant2_amount
+    );
 
+- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``participant1``: Ethereum address of one of the channel participants.
 - ``participant1_transferred_amount``: The monotonically increasing counter of the amount of tokens sent by ``participant1`` to ``participant2``.
 - ``participant1_locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers sent by ``participant1`` to ``participant2``) contained in the merkle tree.
@@ -269,7 +360,6 @@ Settles the channel by transferring the amount of tokens each participant is owe
 - ``participant2_transferred_amount``: The monotonically increasing counter of the amount of tokens sent by ``participant2`` to ``participant1``.
 - ``participant2_locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers sent by ``participant2`` to ``participant1``) contained in the merkle tree.
 - ``participant2_locksroot``: Root of the merkle tree of all pending lock lockhashes (pending transfers sent by ``participant2`` to ``participant1``).
-- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 
 .. Note::
     Can be called by anyone after a channel has been closed and the challenge period is over.
@@ -283,6 +373,7 @@ Allows the participants to cooperate and provide both of their balances and sign
 ::
 
     function cooperativeSettle(
+        uint256 channel_identifier,
         address participant1_address,
         uint256 participant1_balance,
         address participant2_address,
@@ -292,6 +383,7 @@ Allows the participants to cooperate and provide both of their balances and sign
     )
         public
 
+- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract
 - ``participant1_address``: Ethereum address of one of the channel participants.
 - ``participant1_balance``: Channel balance of ``participant1_address``.
 - ``participant2_address``: Ethereum address of the other channel participant.
@@ -312,6 +404,7 @@ Unlocks all pending transfers by providing the entire merkle tree of pending tra
 ::
 
     function unlock(
+        uint256 channel_identifier,
         address participant,
         address partner,
         bytes merkle_tree_leaves
@@ -320,15 +413,22 @@ Unlocks all pending transfers by providing the entire merkle tree of pending tra
 
 ::
 
-    event ChannelUnlocked(uint256 channel_identifier, address participant, uint256 unlocked_amount, uint256 returned_tokens);
+    event ChannelUnlocked(
+        uint256 indexed channel_identifier,
+        address indexed participant,
+        address indexed partner,
+        bytes32 locksroot,
+        uint256 unlocked_amount,
+        uint256 returned_tokens
+    );
 
+- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``participant``: Ethereum address of the channel participant who will receive the unlocked tokens that correspond to the pending transfers that have a revealed secret.
 - ``partner``: Ethereum address of the channel participant that pays the amount of tokens that correspond to the pending transfers that have a revealed secret. This address will receive the rest of the tokens that correspond to the pending transfers that have not finalized and do not have a revelead secret.
 - ``merkle_tree_leaves``: The data for computing the entire merkle tree of pending transfers. It contains tightly packed data for each transfer, consisting of ``expiration_block``, ``locked_amount``, ``secrethash``.
 - ``expiration_block``: The absolute block number at which the lock expires.
 - ``locked_amount``: The number of tokens being transferred from ``partner`` to ``participant`` in a pending transfer.
 - ``secrethash``: A hashed secret, ``sha3_keccack(secret)``.
-- ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``unlocked_amount``: The total amount of unlocked tokens that the ``partner`` owes to the channel ``participant``.
 - ``returned_tokens``: The total amount of unlocked tokens that return to the ``partner`` because the secret was not revealed, therefore the mediating transfer did not occur.
 
@@ -346,6 +446,8 @@ In collaboration with a monitoring service, it acts as a security measure, to al
 ::
 
     function registerSecret(bytes32 secret) public returns (bool)
+
+    function registerSecretBatch(bytes32[] secrets) public returns (bool)
 
 ::
 
