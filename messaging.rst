@@ -110,8 +110,15 @@ Cancellable and expirable :term:`transfer`. Sent by a node when a transfer is be
 Invariants
 ^^^^^^^^^^
 
-- The :term:`balance proof` locksroot must be equal to the previous valid merkle tree with the lock provided in the messaged added into it.
-- The transfer is valid only if the `locked_amount` is smaller than the sender's :term:`capacity`.
+- Only valid if all the following hold:
+    - There is a channel which matches the given :term:`chain_id`, :term:`token_network`, and :term:`channel_identifier`.
+    - The corresponding channel is in the open state.
+    - The :term:`nonce` is increased by one in respect to the previous :term:`balance proof`
+    - The :term:`locksroot` must change, the new value must be equal to the root of a new tree, which has all the previous locks plus the lock provided in the message.
+    - The :term:`locked_amount` must increase, the new value is equal to the old value plus the lock's amount.
+    - The lock's amount must be smaller then the participant's :term:`capacity`.
+    - The lock expiration must be greater than the current block number. 
+    - The :term:`transferred amount` must not change.
 
 Fields
 ^^^^^^
