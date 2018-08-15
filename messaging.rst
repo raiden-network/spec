@@ -9,8 +9,6 @@ This is the specification document for the messages used in the Raiden protocol.
 Data Structures
 ===============
 
-.. _balance-proof-message:
-
 Balance Proof
 -------------
 
@@ -24,109 +22,30 @@ The signature must be valid and is defined as:
 Fields
 ^^^^^^
 
-+------------------------+------------+--------------------------------------------------------------------------------+
-| Field Name             | Field Type |  Description                                                                   |
-+========================+============+================================================================================+
-|  balance_hash          | bytes32    | Balance data hash                                                              |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  nonce                 | uint64     | Strictly monotonic value used to order transfers. The nonce starts at 1        |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  additional_hash       | bytes32    | Hash of additional data used on the application layer, e.g.: payment metadata  |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract                            |
-+------------------------+------------+--------------------------------------------------------------------------------+
-| token_network_address  | address    | Address of the TokenNetwork contract                                           |
-+------------------------+------------+--------------------------------------------------------------------------------+
-| chain_id               | uint256    | Chain identifier as defined in EIP155                                          |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  signature             | bytes      | Elliptic Curve 256k1 signature on the above data                               |
-+------------------------+------------+--------------------------------------------------------------------------------+
++--------------------------+------------+--------------------------------------------------------------------------------+
+| Field Name               | Field Type |  Description                                                                   |
++==========================+============+================================================================================+
+|  nonce                   | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  transferred_amount      | uint256    | Total transferred amount in the history of the channel (monotonic value)       |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  locked_amount           | uint256    | Current locked amount                                                          |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  locksroot               | bytes32    | Root of the merkle tree of lock hashes (see below)                             |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| token_network_identifier | address    | Address of the TokenNetwork contract                                           |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  channel_identifier      | uint256    | Channel identifier inside the TokenNetwork contract                            |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  message_hash            | bytes32    | Hash of the message                                                            |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  signature               | bytes      | Elliptic Curve 256k1 signature on the above data                               |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  sender                  | address    | Sender of the message
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  chain_id                | uint256    | Chain identifier as defined in EIP155                                          |
++--------------------------+------------+--------------------------------------------------------------------------------+
 
-Balance Data Hash
-^^^^^^^^^^^^^^^^^
-
-``balance_hash`` = ``keccak256(transferred_amount || locked_amount || locksroot)``
-
-+------------------------+------------+---------------------------------------------------------------------------------------+
-| Field Name             | Field Type |  Description                                                                          |
-+========================+============+=======================================================================================+
-|  transferred_amount    | uint256    | Monotonically increasing amount of tokens transferred by a channel participant        |
-+------------------------+------------+---------------------------------------------------------------------------------------+
-|  locked_amount         | uint256    | Total amount of tokens locked in pending transfers                                    |
-+------------------------+------------+---------------------------------------------------------------------------------------+
-|  locksroot             | bytes32    | Root of merkle tree of all pending lock lockhashes                                    |
-+------------------------+------------+---------------------------------------------------------------------------------------+
-
-.. _withdraw-proof-message:
-
-Withdraw Proof
---------------
-
-Data required by the smart contracts to allow a user to withdraw funds from a channel without closing it.
-Signature must be valid and is defined as:
-
-::
-
-    ecdsa_recoverable(privkey, sha3_keccak(participant_address || total_withdraw || channel_identifier || token_network_address || chain_id)
-
-Invariants
-^^^^^^^^^^
-
-- ``total_withdraw`` is strictly monotonically increasing. This is required for protection against replay attacks with old withdraw proofs.
-
-Fields
-^^^^^^
-
-+------------------------+------------+--------------------------------------------------------------------------------+
-| Field Name             | Field Type |  Description                                                                   |
-+========================+============+================================================================================+
-|  participant_address   | address    | Channel participant, who withdraws the tokens                                  |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  total_withdraw        | uint256    | Total amount of tokens that participant_address has withdrawn from the channel |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract                            |
-+------------------------+------------+--------------------------------------------------------------------------------+
-| token_network_address  | address    | Address of the TokenNetwork contract                                           |
-+------------------------+------------+--------------------------------------------------------------------------------+
-| chain_id               | uint256    | Chain identifier as defined in EIP155                                          |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  signature             | bytes      | Elliptic Curve 256k1 signature on the above data                               |
-+------------------------+------------+--------------------------------------------------------------------------------+
-
-.. _cooperative-settle-proof-message:
-
-Cooperative Settle Proof
-------------------------
-
-Data required by the smart contracts to allow the two channel participants to close and settle the channel instantly, in one transaction.
-Signature must be valid and is defined as:
-
-::
-
-    ecdsa_recoverable(privkey, sha3_keccak(participant1_address || participant1_balance || participant2_address || participant2_balance || channel_identifier || token_network_address || chain_id)
-
-Fields
-^^^^^^
-
-+------------------------+------------+--------------------------------------------------------------------------------+
-| Field Name             | Field Type |  Description                                                                   |
-+========================+============+================================================================================+
-|  participant1_address  | address    | One of the channel participants                                                |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  participant1_balance  | uint256    | Amount of tokens that participant1_address will receive after settling         |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  participant2_address  | address    | The other channel participant                                                  |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  participant2_balance  | uint256    | Amount of tokens that participant2_address will receive after settling         |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract                            |
-+------------------------+------------+--------------------------------------------------------------------------------+
-| token_network_address  | address    | Address of the TokenNetwork contract                                           |
-+------------------------+------------+--------------------------------------------------------------------------------+
-| chain_id               | uint256    | Chain identifier as defined in EIP155                                          |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  signature             | bytes      | Elliptic Curve 256k1 signature on the above data                               |
-+------------------------+------------+--------------------------------------------------------------------------------+
 
 Merkle Tree
 -----------
@@ -186,12 +105,13 @@ Mediated Transfer
 
 Cancellable and expirable :term:`transfer`. Sent by a node when a transfer is being initiated, this message adds a new lock to the corresponding merkle tree of the sending participant node.
 
+.. Note:: Currently (14/08/18, commit 4f68afad99275cf91e084e1af86da17414ab189b), the ``LockedTransfer`` class is used for this message.
 
 Invariants
 ^^^^^^^^^^
 
 - The :term:`balance proof` locksroot must be equal to the previous valid merkle tree with the lock provided in the messaged added into it.
-- The transfer is valid only if the lock amount is smaller than the sender's :term:`capacity`.
+- The transfer is valid only if the `locked_amount` is smaller than the sender's :term:`capacity`.
 
 Fields
 ^^^^^^
@@ -275,24 +195,6 @@ Fields
 |  signature           | bytes         | Elliptic Curve 256k1 signature                             |
 +----------------------+---------------+------------------------------------------------------------+
 
-RemoveExpiredLock
------------------
-
-Removes one lock that has expired. Used to trim the merkle tree and recover the locked capacity. This message is only valid if the corresponding lock expiration is lower than the latest block number for the corresponding blockchain.
-
-Fields
-^^^^^^
-
-+----------------------+---------------+------------------------------------------------------------+
-| Field Name           | Field Type    |  Description                                               |
-+======================+===============+============================================================+
-|  secrethash          | bytes32       | The secrethash to remove                                   |
-+----------------------+---------------+------------------------------------------------------------+
-|  balance_proof       | BalanceProof  | The updated balance proof                                  |
-+----------------------+---------------+------------------------------------------------------------+
-|  signature           | bytes         | Elliptic Curve 256k1 signature                             |
-+----------------------+---------------+------------------------------------------------------------+
-
 
 Specification
 =============
@@ -333,6 +235,7 @@ A succesfull direct transfer involves only 2 messages. The direct transfer messa
 
 Mediated Transfer
 ^^^^^^^^^^^^^^^^^
+
 A :term:`Mediated Transfer` is a hash-time-locked transfer. Currently raiden supports only one type of lock. The lock has an amount that is being transferred, a :term:`secrethash` used to verify the secret that unlocks it, and a :term:`lock expiration` to determine its validity.
 
 Mediated transfers have an :term:`initiator` and a :term:`target` and a number of hops in between. The number of hops can also be zero as these transfers can also be sent to a direct partner. Assuming ``N`` number of hops a mediated transfer will require ``6N + 8`` messages to complete. These are:
