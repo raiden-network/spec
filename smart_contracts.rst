@@ -63,7 +63,7 @@ Fields
 +========================+============+================================================================================+
 |  balance_hash          | bytes32    | Balance data hash                                                              |
 +------------------------+------------+--------------------------------------------------------------------------------+
-|  nonce                 | uint64     | Strictly monotonic value used to order transfers. The nonce starts at 1        |
+|  nonce                 | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
 +------------------------+------------+--------------------------------------------------------------------------------+
 |  additional_hash       | bytes32    | Hash of additional data used on the application layer, e.g.: payment metadata  |
 +------------------------+------------+--------------------------------------------------------------------------------+
