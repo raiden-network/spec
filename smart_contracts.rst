@@ -694,7 +694,7 @@ Must be enforced by the Raiden Client:
 .. Note::
     Any two consecutive balance proofs for ``P1``, named ``BP1k`` and ``BP1t`` were `k < t`,  must respect the following constraints:
 
-    1. A :term:`Direct Transfer` or a :term:`Mediated Transfer` with ``value`` tokens was finalized, therefore ``T1t == T1k + value`` and ``L1t == L1k``.
+    1. A :term:`Direct Transfer` or a :term:`Locked Transfer` with ``value`` tokens was finalized, therefore ``T1t == T1k + value`` and ``L1t == L1k``.
     2. A :term:`HTL` with ```value`` was sent, but not yet finalized, therefore ``T1t == T1k`` and ``L1t == L1k + value``.
     3. A :term:`HTL Unlock` for a previous ``value`` was finalized, therefore ``T1t == T1k + value`` and ``L1t == L1k - value``.
     4. An :term:`lock expiration` message for a previous ``value`` was done, therefore ``T1t == T1k`` and ``L1t == L1k - value``.

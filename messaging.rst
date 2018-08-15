@@ -50,7 +50,7 @@ Fields
 Merkle Tree
 -----------
 
-A binary tree composed of the hash of the locks. The root of the tree is the value used in the :ref:`balance proofs <balance-proof-message>`. The tree is changed by the ``MediatedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types.
+A binary tree composed of the hash of the locks. The root of the tree is the value used in the :ref:`balance proofs <balance-proof-message>`. The tree is changed by the ``LockedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types.
 
 HashTimeLock
 ------------
@@ -100,7 +100,7 @@ Fields
 |  balance_proof       | BalanceProof  | Balance proof for this transfer                            |
 +----------------------+---------------+------------------------------------------------------------+
 
-Mediated Transfer
+Locked Transfer
 -----------------
 
 Cancellable and expirable :term:`transfer`. Sent by a node when a transfer is being initiated, this message adds a new lock to the corresponding merkle tree of the sending participant node.
@@ -126,7 +126,7 @@ Fields
 +----------------------+---------------+------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                               |
 +======================+===============+============================================================+
-|  lock                | HashTimeLock  | The lock for this mediated transfer                        |
+|  lock                | HashTimeLock  | The lock for this locked transfer                          |
 +----------------------+---------------+------------------------------------------------------------+
 |  balance_proof       | BalanceProof  | Balance proof for this transfer                            |
 +----------------------+---------------+------------------------------------------------------------+
@@ -139,7 +139,7 @@ Fields
 Secret Request
 --------------
 
-Message used to request the :term:`secret` that unlocks a lock. Sent by the payment :term:`target` to the :term:`initiator` once a :term:`mediated transfer` is received.
+Message used to request the :term:`secret` that unlocks a lock. Sent by the payment :term:`target` to the :term:`initiator` once a :term:`locked transfer` is received.
 
 Invariants
 ^^^^^^^^^^
@@ -211,11 +211,11 @@ The encoding used by the transport layer is independent of this specification, a
 Transfers
 ---------
 
-The protocol supports two types of transfers, direct and mediated. A :term:`Direct transfer` is non cancellable and unexpirable, while a :term:`mediated transfer` may be cancelled and can expire.
+The protocol supports two types of transfers, direct and mediated. A :term:`Direct transfer` is non cancellable and unexpirable, while a :term:`Mediated transfer` may be cancelled and can expire.
 
 A mediated transfer is done in two stages, possibly on a series of channels:
-- Reserve token :term:`capacity` for a given payment
-- Use the reserved token amount to complete payments
+- Reserve token :term:`capacity` for a given payment, using a locked transfer message.
+- Use the reserved token amount to complete payments, using the unlock message.
 
 Message Flow
 ------------
