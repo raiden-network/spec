@@ -105,8 +105,6 @@ Locked Transfer
 
 Cancellable and expirable :term:`transfer`. Sent by a node when a transfer is being initiated, this message adds a new lock to the corresponding merkle tree of the sending participant node.
 
-.. Note:: Currently (14/08/18, commit 4f68afad99275cf91e084e1af86da17414ab189b), the ``LockedTransfer`` class is used for this message.
-
 Invariants
 ^^^^^^^^^^
 
