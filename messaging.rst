@@ -9,6 +9,44 @@ This is the specification document for the messages used in the Raiden protocol.
 Data Structures
 ===============
 
+Balance Proof
+-------------
+
+Data required by the smart contracts to update the payment channel end of the participant that signed the balance proof.
+The signature must be valid and is defined as:
+
+::
+
+    ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id)
+
+Fields
+^^^^^^
+
++--------------------------+------------+--------------------------------------------------------------------------------+
+| Field Name               | Field Type |  Description                                                                   |
++==========================+============+================================================================================+
+|  nonce                   | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  transferred_amount      | uint256    | Total transferred amount in the history of the channel (monotonic value)       |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  locked_amount           | uint256    | Current locked amount                                                          |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  locksroot               | bytes32    | Root of the merkle tree of lock hashes (see below)                             |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| token_network_identifier | address    | Address of the TokenNetwork contract                                           |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  channel_identifier      | uint256    | Channel identifier inside the TokenNetwork contract                            |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  message_hash            | bytes32    | Hash of the message                                                            |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  signature               | bytes      | Elliptic Curve 256k1 signature on the above data                               |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  sender                  | address    | Sender of the message
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  chain_id                | uint256    | Chain identifier as defined in EIP155                                          |
++--------------------------+------------+--------------------------------------------------------------------------------+
+
+
 Merkle Tree
 -----------
 
@@ -67,12 +105,13 @@ Mediated Transfer
 
 Cancellable and expirable :term:`transfer`. Sent by a node when a transfer is being initiated, this message adds a new lock to the corresponding merkle tree of the sending participant node.
 
+.. Note:: Currently (14/08/18, commit 4f68afad99275cf91e084e1af86da17414ab189b), the ``LockedTransfer`` class is used for this message.
 
 Invariants
 ^^^^^^^^^^
 
 - The :term:`balance proof` locksroot must be equal to the previous valid merkle tree with the lock provided in the messaged added into it.
-- The transfer is valid only if the lock amount is smaller than the sender's :term:`capacity`.
+- The transfer is valid only if the `locked_amount` is smaller than the sender's :term:`capacity`.
 
 Fields
 ^^^^^^
@@ -156,24 +195,6 @@ Fields
 |  signature           | bytes         | Elliptic Curve 256k1 signature                             |
 +----------------------+---------------+------------------------------------------------------------+
 
-RemoveExpiredLock
------------------
-
-Removes one lock that has expired. Used to trim the merkle tree and recover the locked capacity. This message is only valid if the corresponding lock expiration is lower than the latest block number for the corresponding blockchain.
-
-Fields
-^^^^^^
-
-+----------------------+---------------+------------------------------------------------------------+
-| Field Name           | Field Type    |  Description                                               |
-+======================+===============+============================================================+
-|  secrethash          | bytes32       | The secrethash to remove                                   |
-+----------------------+---------------+------------------------------------------------------------+
-|  balance_proof       | BalanceProof  | The updated balance proof                                  |
-+----------------------+---------------+------------------------------------------------------------+
-|  signature           | bytes         | Elliptic Curve 256k1 signature                             |
-+----------------------+---------------+------------------------------------------------------------+
-
 
 Specification
 =============
@@ -214,6 +235,7 @@ A succesfull direct transfer involves only 2 messages. The direct transfer messa
 
 Mediated Transfer
 ^^^^^^^^^^^^^^^^^
+
 A :term:`Mediated Transfer` is a hash-time-locked transfer. Currently raiden supports only one type of lock. The lock has an amount that is being transferred, a :term:`secrethash` used to verify the secret that unlocks it, and a :term:`lock expiration` to determine its validity.
 
 Mediated transfers have an :term:`initiator` and a :term:`target` and a number of hops in between. The number of hops can also be zero as these transfers can also be sent to a direct partner. Assuming ``N`` number of hops a mediated transfer will require ``6N + 8`` messages to complete. These are:
