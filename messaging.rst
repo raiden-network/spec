@@ -170,7 +170,13 @@ A non cancellable, non expirable payment.
 Invariants
 ^^^^^^^^^^
 
-- Only valid if the :term:`transferred amount` is larger than the previous value and it increased by an amount smaller than the participant's current :term:`capacity`.
+- Only valid if all of the following hold:
+  - There is a channel which matches the given :term:`chain_id`, :term:`token_network`, and :term:`channel_identifier`.
+  - The corresponding channel is in the open state.
+  - The :term:`transferred amount` is larger than the previous value and it increased by an amount smaller or equal to the participant's current :term:`capacity`.
+  - The :term:`nonce` is increased by one in respect to the previous :term:`balance proof`
+  - The :term:`locksroot` didn't change
+  - The :term:`locked_amount` didn't change
 
 Fields
 ^^^^^^
