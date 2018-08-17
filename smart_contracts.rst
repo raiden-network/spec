@@ -668,11 +668,11 @@ Definitions
 
 All the above definitions are also valid for ``P2``. Example: ``D2``, ``T2`` etc.
 
-Value constraints:
+Value constraints
 ------------------
 
-Must be enforced by the TokenNetwork smart contract:
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Must be enforced by the TokenNetwork smart contract
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ::
 
@@ -680,8 +680,8 @@ Must be enforced by the TokenNetwork smart contract:
     (2SC) Wk <= Wt, k < t
     (3SC) TAD = D1 + D2 - W1 - W2 ; TAD >= 0
 
-Must be enforced by the Raiden Client:
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Must be enforced by the Raiden Client
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ::
 
@@ -694,14 +694,14 @@ Must be enforced by the Raiden Client:
 .. Note::
     Any two consecutive balance proofs for ``P1``, named ``BP1k`` and ``BP1t`` were `k < t`,  must respect the following constraints:
 
-    1. A :term:`Direct Transfer` or a :term:`Locked Transfer` with ``value`` tokens was finalized, therefore ``T1t == T1k + value`` and ``L1t == L1k``.
-    2. A :term:`HTL` with ```value`` was sent, but not yet finalized, therefore ``T1t == T1k`` and ``L1t == L1k + value``.
+    1. A :term:`Direct Transfer` or a succesfull :term:`HTL Transfer` with ``value`` tokens was finalized, therefore ``T1t == T1k + value`` and ``L1t == L1k``.
+    2. A :ref:`locked transfer message <locked-transfer-message>` with ``value`` was sent, part of a :term:`HTL Transfer`, therefore ``T1t == T1k`` and ``L1t == L1k + value``.
     3. A :term:`HTL Unlock` for a previous ``value`` was finalized, therefore ``T1t == T1k + value`` and ``L1t == L1k - value``.
-    4. An :term:`lock expiration` message for a previous ``value`` was done, therefore ``T1t == T1k`` and ``L1t == L1k - value``.
+    4. A :term:`lock expiration` message for a previous ``value`` was done, therefore ``T1t == T1k`` and ``L1t == L1k - value``.
 
 
-Settlement algorithm:
----------------------
+Settlement algorithm
+--------------------
 
 The following must be true if the two participants use their ``last valid BP``:
 

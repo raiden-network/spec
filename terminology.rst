@@ -67,6 +67,9 @@ Raiden Terminology
    lockhash
        The hash of a lock.  ``sha3_keccack(lock)``
 
+   locked amount
+       Total amount of tokens locked in all currently pending :term:`HTL` transfers sent by a channel participant. This amount corresponds to the :term:`locksroot` of the HTL locks.
+
    secrethash
        The hash of a :term:`secret`.  ``sha3_keccack(secret)``
 
@@ -81,6 +84,12 @@ Raiden Terminology
 
    cooperative settle proof
        Signed data required by the :term:`Payment Channel` to allow :term:`Participants` to close and settle a :term:`Payment Channel` without undergoing through the :term:`Settlement Window`. See the :ref:`message definition <cooperative-settle-proof-message>`.
+
+   nonce
+       Strictly monotonic value used to order off-chain transfers. It starts at ``1``. It is a :term:`balance proof` component.
+
+   chain id
+       Chain identifier as defined in EIP155.
 
    Message
        Any message sent from one Raiden Node to the other.
