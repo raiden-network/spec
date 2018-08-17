@@ -288,3 +288,9 @@ In case a Raiden node goes offline or does not send the final balance proof to i
 .. image:: diagrams/RaidenClient_mediated_transfer_secret_reveal.png
     :alt: Mediated Transfer Bad Behaviour
     :width: 900px
+
+**Limit to number of simultaneously pending transfers**
+
+The number of simultaneously pending transfers per channel is limited. The client will not initiate, mediate or accept a further pending transfer if the limit is reached. This is to avoid the risk of not being able to unlock the transfers, as the gas cost for this operation grows with the size of the Merkle tree and thus the number of pending transfers.
+
+The limit is currently set to 160. It is a rounded value that ensures the gas cost of unlocking will be less than 40% of Ethereum's traditional pi-million (3141592) block gas limit.
