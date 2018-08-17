@@ -50,7 +50,7 @@ Fields
 Merkle Tree
 -----------
 
-A binary tree composed of the hash of the locks. The root of the tree is the value used in the :ref:`balance proofs <balance-proof-message>`. The tree is changed by the ``MediatedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types.
+A binary tree composed of the hash of the locks. The root of the tree is the value used in the :ref:`balance proofs <balance-proof-message>`. The tree is changed by the ``LockedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types.
 
 HashTimeLock
 ------------
@@ -106,18 +106,23 @@ Fields
 |  balance_proof       | BalanceProof  | Balance proof for this transfer                            |
 +----------------------+---------------+------------------------------------------------------------+
 
-Mediated Transfer
+Locked Transfer
 -----------------
 
 Cancellable and expirable :term:`transfer`. Sent by a node when a transfer is being initiated, this message adds a new lock to the corresponding merkle tree of the sending participant node.
 
-.. Note:: Currently (14/08/18, commit 4f68afad99275cf91e084e1af86da17414ab189b), the ``LockedTransfer`` class is used for this message.
-
 Invariants
 ^^^^^^^^^^
 
-- The :term:`balance proof` locksroot must be equal to the previous valid merkle tree with the lock provided in the messaged added into it.
-- The transfer is valid only if the `locked_amount` is smaller than the sender's :term:`capacity`.
+- Only valid if all the following hold:
+    - There is a channel which matches the given :term:`chain_id`, :term:`token_network`, and :term:`channel_identifier`.
+    - The corresponding channel is in the open state.
+    - The :term:`nonce` is increased by one in respect to the previous :term:`balance proof`
+    - The :term:`locksroot` must change, the new value must be equal to the root of a new tree, which has all the previous locks plus the lock provided in the message.
+    - The :term:`locked_amount` must increase, the new value is equal to the old value plus the lock's amount.
+    - The lock's amount must be smaller then the participant's :term:`capacity`.
+    - The lock expiration must be greater than the current block number. 
+    - The :term:`transferred amount` must not change.
 
 Fields
 ^^^^^^
@@ -125,7 +130,7 @@ Fields
 +----------------------+---------------+------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                               |
 +======================+===============+============================================================+
-|  lock                | HashTimeLock  | The lock for this mediated transfer                        |
+|  lock                | HashTimeLock  | The lock for this locked transfer                          |
 +----------------------+---------------+------------------------------------------------------------+
 |  balance_proof       | BalanceProof  | Balance proof for this transfer                            |
 +----------------------+---------------+------------------------------------------------------------+
@@ -138,7 +143,7 @@ Fields
 Secret Request
 --------------
 
-Message used to request the :term:`secret` that unlocks a lock. Sent by the payment :term:`target` to the :term:`initiator` once a :term:`mediated transfer` is received.
+Message used to request the :term:`secret` that unlocks a lock. Sent by the payment :term:`target` to the :term:`initiator` once a :term:`locked transfer` is received.
 
 Invariants
 ^^^^^^^^^^
@@ -210,11 +215,11 @@ The encoding used by the transport layer is independent of this specification, a
 Transfers
 ---------
 
-The protocol supports two types of transfers, direct and mediated. A :term:`Direct transfer` is non cancellable and unexpirable, while a :term:`mediated transfer` may be cancelled and can expire.
+The protocol supports two types of transfers, direct and mediated. A :term:`Direct transfer` is non cancellable and unexpirable, while a :term:`Mediated transfer` may be cancelled and can expire.
 
 A mediated transfer is done in two stages, possibly on a series of channels:
-- Reserve token :term:`capacity` for a given payment
-- Use the reserved token amount to complete payments
+- Reserve token :term:`capacity` for a given payment, using a locked transfer message.
+- Use the reserved token amount to complete payments, using the unlock message.
 
 Message Flow
 ------------

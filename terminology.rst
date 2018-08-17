@@ -101,10 +101,10 @@ Raiden Terminology
        The node that is receiving a Message.
 
    Inbound Transfer
-       A :term:`mediated transfer` received by a node. The node may be a :term:`Mediator` in the path or the :term:`Target`.
+       A :term:`locked transfer` received by a node. The node may be a :term:`Mediator` in the path or the :term:`Target`.
 
    Outbound Transfer
-       A :term:`mediated transfer` sent by a node. The node may be a :term:`Mediator` in the path or the :term:`Initiator`.
+       A :term:`locked transfer` sent by a node. The node may be a :term:`Mediator` in the path or the :term:`Initiator`.
 
    Monitoring Service
    MS
