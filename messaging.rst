@@ -41,7 +41,7 @@ Fields
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  signature               | bytes      | Elliptic Curve 256k1 signature on the above data                               |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-|  sender                  | address    | Sender of the message
+|  sender                  | address    | Sender of the message                                                          |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  chain_id                | uint256    | Chain identifier as defined in EIP155                                          |
 +--------------------------+------------+--------------------------------------------------------------------------------+
@@ -81,6 +81,8 @@ Fields
 Messages
 ========
 
+.. _direct-transfer-message:
+
 Direct Transfer
 ---------------
 
@@ -89,13 +91,14 @@ A non cancellable, non expirable payment.
 Invariants
 ^^^^^^^^^^
 
-- Only valid if all of the following hold:
-  - There is a channel which matches the given :term:`chain_id`, :term:`token_network`, and :term:`channel_identifier`.
-  - The corresponding channel is in the open state.
-  - The :term:`transferred amount` is larger than the previous value and it increased by an amount smaller or equal to the participant's current :term:`capacity`.
-  - The :term:`nonce` is increased by one in respect to the previous :term:`balance proof`
-  - The :term:`locksroot` didn't change
-  - The :term:`locked_amount` didn't change
+Only valid if all the following hold:
+
+- There is a channel which matches the given :term:`chain id`, :term:`token network` address, and :term:`channel identifier`.
+- The corresponding channel is in the open state.
+- The :term:`transferred amount` is larger than the previous value and it increased by an amount smaller or equal to the participant's current :term:`capacity`.
+- The :term:`nonce` is increased by ``1`` in respect to the previous :term:`balance proof`
+- The :term:`locksroot` didn't change
+- The :term:`locked amount` didn't change
 
 Fields
 ^^^^^^
@@ -106,6 +109,8 @@ Fields
 |  balance_proof       | BalanceProof  | Balance proof for this transfer                            |
 +----------------------+---------------+------------------------------------------------------------+
 
+.. _locked-transfer-message:
+
 Locked Transfer
 -----------------
 
@@ -114,15 +119,16 @@ Cancellable and expirable :term:`transfer`. Sent by a node when a transfer is be
 Invariants
 ^^^^^^^^^^
 
-- Only valid if all the following hold:
-    - There is a channel which matches the given :term:`chain_id`, :term:`token_network`, and :term:`channel_identifier`.
-    - The corresponding channel is in the open state.
-    - The :term:`nonce` is increased by one in respect to the previous :term:`balance proof`
-    - The :term:`locksroot` must change, the new value must be equal to the root of a new tree, which has all the previous locks plus the lock provided in the message.
-    - The :term:`locked_amount` must increase, the new value is equal to the old value plus the lock's amount.
-    - The lock's amount must be smaller then the participant's :term:`capacity`.
-    - The lock expiration must be greater than the current block number. 
-    - The :term:`transferred amount` must not change.
+Only valid if all the following hold:
+
+- There is a channel which matches the given :term:`chain id`, :term:`token network` address, and :term:`channel identifier`.
+- The corresponding channel is in the open state.
+- The :term:`nonce` is increased by ``1`` in respect to the previous :term:`balance proof`
+- The :term:`locksroot` must change, the new value must be equal to the root of a new tree, which has all the previous locks plus the lock provided in the message.
+- The :term:`locked amount` must increase, the new value is equal to the old value plus the lock's amount.
+- The lock's amount must be smaller then the participant's :term:`capacity`.
+- The lock expiration must be greater than the current block number.
+- The :term:`transferred amount` must not change.
 
 Fields
 ^^^^^^
@@ -139,11 +145,12 @@ Fields
 |  target              | address       | Final target for this transfer                             |
 +----------------------+---------------+------------------------------------------------------------+
 
+.. _secret-request-message:
 
 Secret Request
 --------------
 
-Message used to request the :term:`secret` that unlocks a lock. Sent by the payment :term:`target` to the :term:`initiator` once a :term:`locked transfer` is received.
+Message used to request the :term:`secret` that unlocks a lock. Sent by the payment :term:`target` to the :term:`initiator` once a :ref:`locked transfer <locked-transfer-message>` is received.
 
 Invariants
 ^^^^^^^^^^
@@ -163,6 +170,8 @@ Fields
 |  signature           | bytes         | Elliptic Curve 256k1 signature                             |
 +----------------------+---------------+------------------------------------------------------------+
 
+.. _secret-reveal-message:
+
 Secret Reveal
 -------------
 
@@ -179,6 +188,8 @@ Fields
 |  signature           | bytes         | Elliptic Curve 256k1 signature                             |
 +----------------------+---------------+------------------------------------------------------------+
 
+.. _unlock-message:
+
 Unlock
 ------
 
@@ -190,7 +201,7 @@ Invariants
 ^^^^^^^^^^
 
 - The :term:`balance proof` merkle tree must have the corresponding lock removed (and only this lock).
-- This message is only sent after the corresponding partner has sent a RevealSecret message.
+- This message is only sent after the corresponding partner has sent a :ref:`Secret Reveal message <secret-reveal-message>`.
 
 
 Fields
@@ -218,8 +229,8 @@ Transfers
 The protocol supports two types of transfers, direct and mediated. A :term:`Direct transfer` is non cancellable and unexpirable, while a :term:`Mediated transfer` may be cancelled and can expire.
 
 A mediated transfer is done in two stages, possibly on a series of channels:
-- Reserve token :term:`capacity` for a given payment, using a locked transfer message.
-- Use the reserved token amount to complete payments, using the unlock message.
+- Reserve token :term:`capacity` for a given payment, using a :ref:`locked transfer message <locked-transfer-message>`.
+- Use the reserved token amount to complete payments, using the :ref:`unlock message <unlock-message>`
 
 Message Flow
 ------------
