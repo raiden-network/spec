@@ -2,7 +2,7 @@ Raiden Network Specification
 =================================
 
 
-This is a tentative specification for the `Raiden Network <http://raiden.nework/>`_. It's under development and will be further refined in subsequent iterations.
+This is a tentative specification for the `Raiden Network <http://raiden.network/>`_. It's under development and will be further refined in subsequent iterations.
 
 .. toctree::
    :maxdepth: 2
