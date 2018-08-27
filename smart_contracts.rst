@@ -96,8 +96,9 @@ Balance Data Hash
 Withdraw Proof
 --------------
 
-Data required by the smart contracts to allow a user to withdraw funds from a channel without closing it.
-Signature must be valid and is defined as:
+Data required by the smart contracts to allow a user to withdraw funds from a channel without closing it. It contains the withdraw message data and signatures from both participants on the withdraw message.
+
+Signatures must be valid and is defined as:
 
 ::
 
@@ -124,7 +125,9 @@ Fields
 +------------------------+------------+--------------------------------------------------------------------------------+
 | chain_id               | uint256    | Chain identifier as defined in EIP155                                          |
 +------------------------+------------+--------------------------------------------------------------------------------+
-|  signature             | bytes      | Elliptic Curve 256k1 signature on the above data                               |
+|  participant_signature | bytes      | Elliptic Curve 256k1 signature of the participant on the above data            |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  partner_signature     | bytes      | Elliptic Curve 256k1 signature of the partner on the above data                |
 +------------------------+------------+--------------------------------------------------------------------------------+
 
 .. _cooperative-settle-proof-message:
@@ -132,8 +135,8 @@ Fields
 Cooperative Settle Proof
 ------------------------
 
-Data required by the smart contracts to allow the two channel participants to close and settle the channel instantly, in one transaction.
-Signature must be valid and is defined as:
+Data required by the smart contracts to allow the two channel participants to close and settle the channel instantly, in one transaction. It contains the cooperative settle message data and signatures from both participants on the cooperative settle message.
+Signatures must be valid and is defined as:
 
 ::
 
@@ -159,7 +162,9 @@ Fields
 +------------------------+------------+--------------------------------------------------------------------------------+
 | chain_id               | uint256    | Chain identifier as defined in EIP155                                          |
 +------------------------+------------+--------------------------------------------------------------------------------+
-|  signature             | bytes      | Elliptic Curve 256k1 signature on the above data                               |
+|  participant1_signature| bytes      | Elliptic Curve 256k1 signature of participant1 on the above data               |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  participant2_signature| bytes      | Elliptic Curve 256k1 signature of participant2 on the above data               |
 +------------------------+------------+--------------------------------------------------------------------------------+
 
 Project Specification
