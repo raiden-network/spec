@@ -13,10 +13,19 @@ General Requirements
 Secure
 ------
 
-- A participant may never receive more tokens than it was paid
-- The participants don’t need to be anonymous
-- The amount transferred don’t need to be unknown
-- The channel balances don’t need to be unknown
+- A ``participant`` ``MUST NOT`` be able to steal funds. Therefore, a participant ``MUST NOT`` receive more tokens than he is entitled to, after calculating his final balance, unless this is due to his ``partner``'s attempt to cheat.
+- A participant ``MUST`` be able to eventually retrieve his tokens from the channel, regardless of his partner's availability in the network.
+- The ``sum of the final balances`` of the two channel participants, after the channel lifecycle has ended, ``MUST NOT`` be greater than the entire channel deposit available at settlement time.
+- The signed messages ``MUST`` be non malleable.
+- A participant ``MUST NOT`` be able to change the state of a channel by using a signed message from an old and settled channel with the same ``partner`` or from another channel.
+
+Privacy
+-------
+
+- A participant payment pattern in time ``MUST NOT`` be public on-chain (smart contracts only know about the final balance proofs, not all the intermediary ones).
+- Participant addresses can be public.
+- The final transferred amounts of the two participants can be public.
+- The channel deposit can be public.
 
 Fast
 ----
@@ -33,12 +42,9 @@ Project Requirements
 
 - The system must work with the most popular token standards (e.g. ERC20).
 - There must not be a way for a single party to hold other user’s tokens hostage, therefore the system must hold in escrow any tokens that are deposited in a channel.
-- There must be no way for a party to steal funds.
-- The proof must be non malleable.
 - Losing funds as a penalty is not considered stealing, but must be clearly documented.
 - The system must support smart locks.
-- Determine if and how different versions of the smart contracts should interoperate.
-- Determine if and how channels should be upgraded.
+
 
 Data structures
 ===============
@@ -318,6 +324,13 @@ Opens a channel between ``participant1`` and ``participant2`` and sets the chall
 - ``participant2``: Ethereum address of the other channel participant.
 - ``settle_timeout``: Number of blocks that need to be mined between a call to ``closeChannel`` and ``settleChannel``.
 
+.. Note::
+    Anyone can open a channel between ``participant1`` and ``participant2``.
+
+    A participant or delegate ``MUST`` be able to ``open`` a channel with another participant if one does not exist.
+
+    A participant ``MUST`` be able to ``reopen`` a channel with another participant if there were previous channels opened between them and then settled.
+
 .. _deposit-channel:
 
 **Fund a channel**
@@ -353,6 +366,8 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 
     This function is idempotent. The UI and internal smart contract logic has to make sure that the amount of tokens actually transferred is the difference between ``total_deposit`` and the ``deposit`` at transaction time.
 
+    A participant or a delegate ``MUST`` be able to deposit more tokens into a channel, regardless of his partner's availability.
+
 .. _withdraw-channel:
 
 **Withdraw tokens from a channel**
@@ -383,6 +398,11 @@ Allows a channel participant to withdraw tokens from a channel without closing i
 - ``total_withdraw``: Total amount of tokens that are marked as withdrawn from the channel during the channel lifecycle.
 - ``participant_signature``: Elliptic Curve 256k1 signature of the channel ``participant`` on the :term:`withdraw proof` data.
 - ``partner_signature``: Elliptic Curve 256k1 signature of the channel ``partner`` on the :term:`withdraw proof` data.
+
+.. Note::
+    A ``participant`` ``MUST NOT`` be able to withdraw tokens from the channel without his ``partner``'s signature.
+    A ``participant`` ``MUST NOT`` be able to withdraw more tokens than his available balance ``AB``, as defined in the :ref:`settlement algorithm <settlement-algorithm>`.
+    A ``participant`` ``MUST NOT`` be able to withdraw more tokens than the available channel deposit ``TAD``, as defined in the :ref:`settlement algorithm <settlement-algorithm>`.
 
 .. _close-channel:
 
@@ -420,7 +440,11 @@ Allows a channel participant to close the channel. The channel cannot be settled
 .. Note::
     Only a participant may close the channel.
 
-    Only a valid signed :term:`balance proof` from the channel partner (the other channel participant) must be accepted. This :term:`balance proof` sets the amount of tokens owed to the participant by the channel partner.
+    A participant ``MUST`` be able to set his partner's balance proof on-chain, in order to be used in the settlement algorithm.
+
+    Only a valid signed :term:`balance proof` from the channel ``partner`` ``MUST`` be accepted. This :term:`balance proof` sets the amount of tokens owed to the ``participant`` by the channel ``partner``.
+
+    A ``participant`` ``MUST`` be able to close a channel regardless of his ``partner``'s availability (online/offline status).
 
 .. _update-channel:
 
@@ -463,11 +487,19 @@ Called after a channel has been closed. Can be called by any Ethereum address an
 .. Note::
     Can be called by any Ethereum address due to the requirement of providing signatures from both channel participants.
 
+    The ``participant`` who did not close the channel ``MUST`` be able to send to the :term:`Token Network` contract his ``partner``'s :term:`balance proof`, in order to retrieve his tokens.
+
+    Only a valid signed :term:`balance proof` from the channel's ``closing participant`` (the other channel participant) ``MUST`` be accepted. This :term:`balance proof` sets the amount of tokens owed to the ``non-closing participant`` by the ``closing participant``.
+
+    Only a valid signed balance proof update message  ``MUST`` be accepted. This message is a confirmation from the ``non-closing participant`` that the contained :term:`balance proof` can be set on his behalf.
+
 .. _settle-channel:
 
 **Settle channel**
 
 Settles the channel by transferring the amount of tokens each participant is owed. We need to provide the entire balance state because we only store the balance data hash when closing the channel and updating the non-closing participant balance.
+
+The settlement algorithm is presented in more detail :ref:`here <settlement-algorithm>`.
 
 ::
 
@@ -537,7 +569,9 @@ Allows the participants to cooperate and provide both of their balances and sign
 .. Note::
     Emits the ChannelSettled event.
 
-    Can be called by a third party as long as both participants provide their signatures.
+    A ``participant`` ``MUST NOT`` be able to cooperatively settle a channel without his ``partner``'s signature on the agreed upon balances.
+
+    Can be called by a third party because both signatures are required.
 
 .. _unlock-channel:
 
@@ -642,6 +676,8 @@ Unlocking Pending Transfers
     :alt: Channel Unlock Pending Transfers
     :width: 500px
 
+
+.. _settlement-algorithm:
 
 Protocol Value Constraints
 ==========================
