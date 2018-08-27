@@ -360,7 +360,6 @@ Allows a channel participant to withdraw tokens from a channel without closing i
         uint256 channel_identifier,
         address participant,
         uint256 total_withdraw,
-        address partner,
         bytes participant_signature,
         bytes partner_signature
     )
@@ -377,7 +376,6 @@ Allows a channel participant to withdraw tokens from a channel without closing i
 - ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``participant``: Ethereum address of a channel participant who will receive the tokens withdrawn from the channel.
 - ``total_withdraw``: Total amount of tokens that are marked as withdrawn from the channel during the channel lifecycle.
-- ``partner``: Channel partner address.
 - ``participant_signature``: Elliptic Curve 256k1 signature of the channel ``participant`` on the :term:`withdraw proof` data.
 - ``partner_signature``: Elliptic Curve 256k1 signature of the channel ``partner`` on the :term:`withdraw proof` data.
 
