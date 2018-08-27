@@ -19,7 +19,7 @@ Proposed Solution: Federation of Matrix Homeservers
 ===================================================
 https://matrix.org/docs/guides/faq.html
 
-Matrix is a federated open source store+forward messaging system, which supports group communication (multicast) via chat rooms. Direct messages are modeled as 2 participants in one chat room with appropriate permissions. Homeservers can be extended with custom logic (application services) e.g. to enforce certain rules (or message formats) in a room.  It provides JS and python bindings, communication is via HTTP long polling. Although these additional server logic may be implemented to enforce some of the rules below, this enforcement must not be a requirement for a server to join the servers federation. Therefore, any standard Matrix server should work on the network.
+Matrix is a federated open source store+forward messaging system, which supports group communication (multicast) via chat rooms. Direct messages are modeled as 2 participants in one chat room with appropriate permissions. Homeservers can be extended with custom logic (application services) e.g. to enforce certain rules (or message formats) in a room.  It provides JS and python bindings and communication is done via HTTP long polling. Although additional server logic may be implemented to enforce some of the rules below, this enforcement must not be a requirement for a server to join the servers federation. Therefore, any standard Matrix server should work on the network.
 
 Use in Raiden
 =============
@@ -27,17 +27,17 @@ Use in Raiden
 Identity
 --------
 
-The identity verification MUST not be tied to Matrix identities. Even though Matrix provides identity server, it is a possible central point of failure. All state-changing messages passed between participants MUST be signed using privkey of the ethereum account, using Matrix only as a transport layer.
+The identity verification MUST not be tied to Matrix identities. Even though Matrix provides an identity server, it is a possible central point of failure. All state-changing messages passed between participants MUST be signed using the private key of the ethereum account, using Matrix only as a transport layer.
 
 The messages MUST be validated using ecrecover by receiving parties.
 
-The conventions below provides the means for the discovery process, and affects only the transport layer (thus not tying the whole stack to Matrix). It's enforced by the clients, and not a requirement enforced by the server.
+The conventions below provide the means for the discovery process, and affect only the transport layer (thus not tying the whole stack to Matrix). It's enforced by the clients, and is not a requirement enforced by the server.
 
-The matrix's ``userId`` (defined at registration time, in the form ``@<userId>:<homeserver_uri>``) is required to be ``@``, followed by the lowercased ethereum address of the node, possibly followed by a 4-bytes hex-encoded random suffix, separated from the address by a dot, and continuing with the domain/server uri, separated from the username by a colon.
+Matrix's ``userId`` (defined at registration time, in the form ``@<userId>:<homeserver_uri>``) is required to be an ``@``, followed by the lowercased ethereum address of the node, possibly followed by a 4-bytes hex-encoded random suffix, separated from the address by a dot, and continuing with the domain/server uri, separated from the username by a colon.
 
-This random suffix to the username serves to avoid a client being unable to register/join the network due to someone already having taken the canonical address on an open-registration server. It may be pseudo-randomly/deterministically generated from a secret known only by the account (e.g. a python's ``Random()`` generator initialized with secret derived from the user's privatekey). The same can be applied to the password generation, possibly including the server's URI on the generation process to avoid password-reuse. These conventions about how to determine the suffix and password can't be enforced by other clients, but may be useful to allow retrieval of credentials upon state-loss.
+This random suffix to the username serves to avoid a client being unable to register/join the network due to someone already having taken the canonical address on an open-registration server. It may be pseudo-randomly/deterministically generated from a secret known only by the account (e.g. a python's ``Random()`` generator initialized with a secret derived from the user's privatekey). The same can be applied to the password generation, possibly including the server's URI on the generation process to avoid password-reuse. These conventions about how to determine the suffix and password can't be enforced by other clients, but may be useful to allow retrieval of credentials upon state-loss.
 
-As anyone can register any ``userId`` on any server, to avoid the need to process every invalid message, it's required that ``displayName`` (an attribute for every matrix-user) to be the signature of the full ``userId`` with the same ethereum key. This is just an additional layer of protection, as the state-changing messages have their signatures validated up in the stack.
+As anyone can register any ``userId`` on any server, to avoid the need to process every invalid message, it's required that ``displayName`` (an attribute for every matrix-user) is the signature of the full ``userId`` with the same ethereum key. This is just an additional layer of protection, as the state-changing messages have their signatures validated further up in the stack.
 
 Example:
 
@@ -51,7 +51,7 @@ Example:
     username = web3.eth.defaultAccount + "." + hex(suffix)  # 0-left-padded
     # 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.deadbeef
     password = web3.eth.sign(server_uri)
-    matrix.register_with_password(username, passworx)
+    matrix.register_with_password(username, password)
     userid = "@" + username + ":" + server_uri
     matrix.get_user(userid).set_display_name(web3.eth.sign(userid))
 
@@ -59,14 +59,14 @@ Example:
 Discovery
 ---------
 
-In the above system, clients can search matrix server for any “seen” user whose ``displayName`` or ``userId`` contains the ethereum address (through server-side user directory search). The server is triggered to know about users in the network by sharing a "global" presence room. Candidates for being the actual user should only be considered after validating their ``displayName`` as being the signed ``userId``. Most of the time though trust should not be required, and all possible candidates may be contacted/invited (for a channel room, for example), as the actual interactions (messages) will always be validated up the stack, but it may provide privacy from prying eyes when using private p2p rooms (invite-only, encrypted rooms with 2 participants).
-This global presence rooms shouldn't be listened for messages nor written to, to avoid spam. They should have the name in the format ``raiden_<network_name_or_id>_discovery`` (e.g. ``raiden_ropsten_discovery``), and be in a hardcoded homeserver (which isn't a single point of failure because it's federated between all servers in the network, but must have an owner server to be found by other clients/servers).
+In the above system, clients can search the matrix server for any “seen” user whose ``displayName`` or ``userId`` contains the ethereum address (through server-side user directory search). The server is made to know about users in the network by sharing a "global" presence room. Candidates for being the actual user should only be considered after validating their ``displayName`` as being the signed ``userId``. Most of the time though trust should not be required and all possible candidates may be contacted/invited (for a channel room, for example), as the actual interactions (messages) will always be validated up the stack. Privacy can be provided by using private p2p rooms (invite-only, encrypted rooms with 2 participants).
+The global presence rooms shouldn't be listened for messages nor written to in order to avoid spam. They should have the name in the format ``raiden_<network_name_or_id>_discovery`` (e.g. ``raiden_ropsten_discovery``), and be in a hardcoded homeserver. Such a server isn't a single point of failure because it's federated between all the servers in the network but it must have an owner server to be found by other clients/servers.
 
 
 Presence
 --------
 
-Matrix allows to check for the presence of a user. Clients should listen for changes in presence status of users of interest (e.g. peers), and update user status if so, which will make Raiden node avoid trying to use this user e.g. for mediating transfers.
+Matrix allows to check for the presence of a user. Clients should listen for changes in presence status of users of interest (e.g. peers), and update user status if required (e.g. gone offline), which will allow the Raiden node to avoid trying to use this user e.g. for mediating transfers.
 
 Sending transfer messages to other nodes
 ----------------------------------------
@@ -89,7 +89,7 @@ Chat Rooms
 
 Peer discovery room
 '''''''''''''''''''
-One per network. Participants can discover peers willing to open more channels. It may be implemented in the future as one presence/peer discovery room per token network, but it'd complicate the room-ownership/creation/server problem (rooms need to belong to a server. Whose server? Who created it? Who have admin rights on it?).
+One per network. Participants can discover peers willing to open more channels. It may be implemented in the future as one presence/peer discovery room per token network, but it'd complicate the room-ownership/creation/server problem (rooms need to belong to a server. Whose server? Who created it? Who has admin rights for it?).
 
 Monitoring Service Updater Room
 '''''''''''''''''''''''''''''''
