@@ -86,7 +86,7 @@ Raiden Terminology
        Signed data required by the :term:`Payment Channel` to allow :term:`Participants` to close and settle a :term:`Payment Channel` without undergoing through the :term:`Settlement Window`. See the :ref:`message definition <cooperative-settle-proof-message>`.
 
    nonce
-       Strictly monotonic value used to order off-chain transfers. It starts at ``1``. It is a :term:`balance proof` component.
+       Strictly monotonic value used to order off-chain transfers. It starts at ``1``. It is a :term:`balance proof` component. The ``nonce`` differentiates between older the newer balance proofs that can be sent by a delegate to the :term:`Token Network` contract and updated through :ref:`updateNonClosingBalanceProof <update-channel>`.
 
    chain id
        Chain identifier as defined in EIP155.
@@ -137,7 +137,7 @@ Raiden Terminology
        Amount of token locked in the contract.
 
    Transferred amount
-       Monotonically increasing amount of token transferred from one node to another.
+       Monotonically increasing amount of tokens transferred from one Raiden node to another. It represents all the finalized transfers. For the pending transfers, check :term:`locked amount`.
 
    Net Balance
        Net of balance in a contract. May be negative or positive. Negative for ``A(B)`` if ``A(B)`` received more tokens than it spent. For example ``net_balance(A) = transferred_amount(A) - transferred_amount(B)``
