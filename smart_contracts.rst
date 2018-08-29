@@ -96,8 +96,9 @@ Balance Data Hash
 Withdraw Proof
 --------------
 
-Data required by the smart contracts to allow a user to withdraw funds from a channel without closing it.
-Signature must be valid and is defined as:
+Data required by the smart contracts to allow a user to withdraw funds from a channel without closing it. It contains the withdraw message data and signatures from both participants on the withdraw message.
+
+Signatures must be valid and is defined as:
 
 ::
 
@@ -124,7 +125,9 @@ Fields
 +------------------------+------------+--------------------------------------------------------------------------------+
 | chain_id               | uint256    | Chain identifier as defined in EIP155                                          |
 +------------------------+------------+--------------------------------------------------------------------------------+
-|  signature             | bytes      | Elliptic Curve 256k1 signature on the above data                               |
+|  participant_signature | bytes      | Elliptic Curve 256k1 signature of the participant on the above data            |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  partner_signature     | bytes      | Elliptic Curve 256k1 signature of the partner on the above data                |
 +------------------------+------------+--------------------------------------------------------------------------------+
 
 .. _cooperative-settle-proof-message:
@@ -132,8 +135,8 @@ Fields
 Cooperative Settle Proof
 ------------------------
 
-Data required by the smart contracts to allow the two channel participants to close and settle the channel instantly, in one transaction.
-Signature must be valid and is defined as:
+Data required by the smart contracts to allow the two channel participants to close and settle the channel instantly, in one transaction. It contains the cooperative settle message data and signatures from both participants on the cooperative settle message.
+Signatures must be valid and is defined as:
 
 ::
 
@@ -159,7 +162,9 @@ Fields
 +------------------------+------------+--------------------------------------------------------------------------------+
 | chain_id               | uint256    | Chain identifier as defined in EIP155                                          |
 +------------------------+------------+--------------------------------------------------------------------------------+
-|  signature             | bytes      | Elliptic Curve 256k1 signature on the above data                               |
+|  participant1_signature| bytes      | Elliptic Curve 256k1 signature of participant1 on the above data               |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  participant2_signature| bytes      | Elliptic Curve 256k1 signature of participant2 on the above data               |
 +------------------------+------------+--------------------------------------------------------------------------------+
 
 Project Specification
@@ -360,7 +365,6 @@ Allows a channel participant to withdraw tokens from a channel without closing i
         uint256 channel_identifier,
         address participant,
         uint256 total_withdraw,
-        address partner,
         bytes participant_signature,
         bytes partner_signature
     )
@@ -377,7 +381,6 @@ Allows a channel participant to withdraw tokens from a channel without closing i
 - ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``participant``: Ethereum address of a channel participant who will receive the tokens withdrawn from the channel.
 - ``total_withdraw``: Total amount of tokens that are marked as withdrawn from the channel during the channel lifecycle.
-- ``partner``: Channel partner address.
 - ``participant_signature``: Elliptic Curve 256k1 signature of the channel ``participant`` on the :term:`withdraw proof` data.
 - ``partner_signature``: Elliptic Curve 256k1 signature of the channel ``partner`` on the :term:`withdraw proof` data.
 
