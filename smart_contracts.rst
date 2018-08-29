@@ -499,7 +499,9 @@ Called after a channel has been closed. Can be called by any Ethereum address an
 
 Settles the channel by transferring the amount of tokens each participant is owed. We need to provide the entire balance state because we only store the balance data hash when closing the channel and updating the non-closing participant balance.
 
-The settlement algorithm is presented in more detail :ref:`here <settlement-algorithm>`.
+.. Note::
+    For an explanation of how the settlement values are computed, please check :ref:`Protocol Values and Settlement Algorithm Analysis <settlement-algorithm>`
+
 
 ::
 
@@ -537,7 +539,9 @@ The settlement algorithm is presented in more detail :ref:`here <settlement-algo
 .. Note::
     Can be called by anyone after a channel has been closed and the challenge period is over.
 
-    We currently enforce an ordering of the participant data based on the following rule: ``participant2_transferred_amount + participant2_locked_amount >= participant1_transferred_amount + participant1_locked_amount``. This is an artificial rule to help the settlement algorithm handle overflows and underflows easier, without failing the transaction.
+    We expect the ``cooperativeSettle`` function to be used as the go-to way to end a channel's life. However, this would require both Raiden nodes to be online at the same time. For cases where a Raiden node is not online, the uncooperative settle will be used (``closeChannel`` -> ``updateNonClosingBalanceProof`` -> ``settleChannel`` -> ``unlock``). This is why the ``settleChannel`` transaction ``MUST`` never fail from internal errors - tokens ``MUST`` not remain locked inside the contract without a way of retrieving them. ``settleChannel`` can only receive balance proof values that correspond to the stored ``balance_hash``. Therefore, any overflows or underflows (or other potential causes of failure ) ``MUST`` be handled graciously.
+
+    We currently enforce an ordering of the participant data based on the following rule: ``participant2_transferred_amount + participant2_locked_amount >= participant1_transferred_amount + participant1_locked_amount``. This is an artificial rule to help the settlement algorithm handle overflows and underflows easier, without failing the transaction. Therefore, calling ``settleChannel`` with wrong input arguments order must be the only case when the transaction can fail.
 
 .. _cooperative-settle-channel:
 
@@ -679,11 +683,8 @@ Unlocking Pending Transfers
 
 .. _settlement-algorithm:
 
-Protocol Value Constraints
-==========================
-
-These are constraints imposed on the values used in the signed messages: :ref:`balance proof <balance-proof-message>`,
-:ref:`withdraw proof <withdraw-proof-message>`, :ref:`cooperative settle proof <cooperative-settle-proof-message>`.
+Protocol Values and Settlement Algorithm Analysis
+=================================================
 
 Definitions
 -----------
@@ -700,52 +701,204 @@ Definitions
 - ``L1``: Locked tokens in pending transfers sent by ``P1`` to ``P2``, that have not finalized yet or have expired. Corresponds to a :term:`locksroot` provided to the smart contract in :ref:`settleChannel <settle-channel>`. ``L1 = Lc1 + Lu1``
 - ``Lc1``: Locked amount that will be transferred to ``P2`` if :ref:`unlock <unlock-channel>` is called with ``P1``'s pending transfers. This only happens if the :term:`secret` s of the pending :term:`Hash Time Locked Transfer` s have been registered with :ref:`registerSecret <register-secret>`
 - ``Lu1``: Locked amount that will return to ``P1`` because the :term:`secret` s were not registered on-chain
-- ``TAD``: Total available deposit
+- ``TAD``: Total available channel deposit at a moment in time: ``D1 + D2 - W1 - W2, TAD >= 0``
 - ``B1``: Total, final amount that must be received by ``P1`` after channel is settled and no unlocks are left to be done.
 - ``AB1``: available balance for P1: :term:`Capacity`. Determines if ``P1`` can make additional transfers to ``P2`` or not.
 - ``D1k`` = ``D1`` at ``time = k``; same for all of the above.
 
 All the above definitions are also valid for ``P2``. Example: ``D2``, ``T2`` etc.
 
-Value constraints
-------------------
 
-Must be enforced by the TokenNetwork smart contract
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Protocol Values Constraints
+---------------------------
 
-::
-
-    (1SC) Dk <= Dt, k < t
-    (2SC) Wk <= Wt, k < t
-    (3SC) TAD = D1 + D2 - W1 - W2 ; TAD >= 0
-
-Must be enforced by the Raiden Client
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- ``TN`` = enforced by the TokenNetwork contract
+- ``R`` = enforced by the Raiden client
 
 ::
 
-    (1R) Tk <= Tt, k < t
-    (2R) AB1 = D1 - W1 + T2 - T1 - L1; AB1 >= 0
-    (3R) W1 <= D1 + T2 - T1 - L1
-    (4R) T1 + L1 < 2^256 ; T2 + L2 < 2^256
-    (5R) Tk + Lck <= Tt + Lct, k < t
+    (1 TN) Dk <= Dt, time k < time t
+    (2 TN) Wk <= Wt, time k < time t
+    (3 R) Tk <= Tt, time k < time t
+
+Channel deposits, channel withdraws, off-chain transferred amounts are all monotonically increasing in time. The ``TokenNetwork`` contract must enforce this for deposits and withdraws. The Raiden client must enforce this for the off-chain transferred amounts, contained in the balance proofs.
+
+::
+
+    (4 R) Tk + Lck <= Tt + Lct, time k < time t
+
+The sum of each transferred amount and the claimable amounts from the pending transfers ``MUST`` also be monotonically increasing over time. The claimable amounts ``Lc`` correspond to pending locked transfers that have a secret revealed on-chain.
+
+- at ``time=t`` we will always have more secrets revealed on-chain than at ``time=k``, where ``k < t``
+- even if the protocol implements off-chain unlocking of claimable pending transfers, in order to reduce the size of the merkle tree of pending transfers, the off-chain unlocked amount will be added to ``T`` and subtracted from ``Lc``, maintaining monotonicity of ``T + Lc``.
 
 .. Note::
-    Any two consecutive balance proofs for ``P1``, named ``BP1k`` and ``BP1t`` were `k < t`,  must respect the following constraints:
+    Any two consecutive balance proofs for ``P1``, named ``BP1k`` and ``BP1t`` were ``time k < time t``,  must respect the following constraints:
 
     1. A :term:`Direct Transfer` or a succesfull :term:`HTL Transfer` with ``value`` tokens was finalized, therefore ``T1t == T1k + value`` and ``L1t == L1k``.
     2. A :ref:`locked transfer message <locked-transfer-message>` with ``value`` was sent, part of a :term:`HTL Transfer`, therefore ``T1t == T1k`` and ``L1t == L1k + value``.
     3. A :term:`HTL Unlock` for a previous ``value`` was finalized, therefore ``T1t == T1k + value`` and ``L1t == L1k - value``.
     4. A :term:`lock expiration` message for a previous ``value`` was done, therefore ``T1t == T1k`` and ``L1t == L1k - value``.
 
+::
 
-Settlement algorithm
---------------------
+    (5 R) AB1 = D1 - W1 + T2 - T1 - L1; AB1 >= 0, AB1 <= TAD
 
-The following must be true if the two participants use their ``last valid BP``:
+The Raiden client ``MUST`` not allow a participant to transfer more tokens than he has available.
+
+This means that for ``P1``:
+
+- we need to calculate the netted transferred amounts for him: ``T2 - T1``
+- subtract any tokens that he has locked in pending transfers to ``P2``: ``-L1``
+- do not take into consideration the pending transfers from ``P2``: ``L2``, because the token distribution will only be known at ``unlock`` time.
+
+Also, the amount that a participant can receive cannot be bigger than the total channel available deposit ``(9)``. Therefore, the available balance of a participant at any point in time cannot be bigger than the total available deposit of the channel ``ABI1 <= TAD``.
 
 ::
 
-    (1) B1 = D1 - W1 + T2 - T1 + Lc2 - Lc1
-    (2) B2 = D2 - W2 + T1 - T2 + Lc1 - Lc2
-    (3) B1 + B2 = TAD
+    (6 R) W1 <= D1 + T2 - T1 - L1
+
+``(6 R)`` is deduced from ``(5 R)``. It is needed by the Raiden client in order to not allow a participant to :ref:`withdraw <withdraw-channel>` more tokens from the on-chain channel deposit than he is entitled to.
+
+
+Settlement Algorithm - Protocol
+-------------------------------
+
+The scope is to correctly calculate the final balance of the participants when the channel lifecycle has ended (after :ref:`settlement <settle-channel>` and :ref:`unlock <unlock-channel>`). These calculations will be done off-chain for the :ref:`cooperative settle <cooperative-settle-channel>`.
+
+The following must be true if both participants use a ``last valid BP`` for each other:
+
+::
+
+    (7) B1 = D1 - W1 + T2 - T1 + Lc2 - Lc1, B1 >= 0
+    (8) B2 = D2 - W2 + T1 - T2 + Lc1 - Lc2, B2 >= 0
+    (9) B1 + B2 = TAD, where TAD = D1 + D2 - W1 - W2, TAD >= 0
+
+For each participant, we must calculate the netted transferred amounts and then the token amounts from pending transfers. Note that the pending transfer distribution can only be known at the time of calling :ref:`unlock <unlock-channel>`.
+
+The above is easy to calculate off-chain for the ``cooperativeSettle`` transaction, because the Raiden node has all the needed information.
+
+Uncooperative Settlement Algorithm - Protocol
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For the uncooperative settle protocol, there are also some additional contraints:
+- ``settleChannel`` must never fail (see :ref:`settleChannel noted <settle-channel>`)
+- ``settleChannel`` must calculate correctly the amount of tokens transferred to the participants at settlement time and the amount of tokens remaining in the contract for a later ``unlock``, even if the ``TokenNetwork`` smart contract has no way of knowing the pending transfers distribution at this time (``Lc1, Lu1, Lc2, Lu2``)
+- the ``settleChannel`` transaction ``MUST`` be able to handle ``valid old`` balance proofs in a way that participants cannot be cheatead if their partner uses such a balance proof.
+- ``settleChannel`` ``MUST`` be able to handle ``invalid`` balance proofs (not constructed by an official Raiden client). However, the smart contract has no way to ensure correctness of the final balances.
+
+For the ideal case (both balance proofs are `valid last`), we could compute the netted transferred amount balances and distribute them within the ``settleChannel`` transaction, leaving all the pending transfer amounts inside the contract:
+
+- ``S1``: amount received by ``P1`` when calling ``settleChannel``
+- ``SL1``: pending transfer locked amount, corresponding to ``L1`` that will remain locked in the TokenNetwork contract when calling ``settleChannel``, to be unlocked later.
+
+::
+
+    S1 = D1 - W1 + T2 - T1
+    S2 = D2 - W2 + T1 - T2
+
+    SL1 = L1
+    SL2 = L2
+
+Because the ``TokenNetwork`` contract can receive old balance proofs from participants, the balance proof values might not respect ``B1 + B2 = TAD``. The ``TokenNetwork`` contract might need to retain ``SL1 != L1`` and ``SL2 != L2``, as will be explained below.
+
+
+Settlement Algorithm - Solidity Implementation
+----------------------------------------------
+
+The problem is that, in Solidity, we need to handle overflows and underflows gracefully, making sure that no tokens are lost in the process.
+
+For example:  ``S1 = D1 - W1 + T2 - T1`` cannot be computed in this order. ``D1 - W1`` can result in an underflow, because ``D1`` can be smaller than ``W1``.
+
+The end results of respecting all these constraints while also ensuring fair balances, are:
+
+- a special Solidity-compatible settlement algorithm
+- a set of additional constraints that ``MUST`` be enforced in the Raiden client.
+
+Solidity Settlement Algorithm
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- ``TLmax1``: the maximum amount that ``P1`` might transfer to ``P2`` (if his pending transfers will all be claimed)
+- ``RmaxP1``: the maximum receivable amount by ``P1`` at settlement time; this concept exists only for handling the overflows and underflows.
+
+::
+
+    TLmax1 = T1 + L1
+    TLmax2 = T2 + L2
+    RmaxP1 = TLmax2 - TLmax1 + D1 - W1
+    RmaxP1 = min(TAD, RmaxP1)
+    SL2 = min(RmaxP1, L2)
+    S1 = RmaxP1 - SL2
+    RmaxP2 = TAD - RmaxP1
+    SL1 = min(RmaxP2, L1)
+    S2 = RmaxP2 - SL1
+
+
+Raiden Client Additional Constraints
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    (10 R) T1 + L1 < 2^256 ; T2 + L2 < 2^256
+
+This ensures that calculating ``RmaxP1`` does not overflow on ``T2 + L2`` and ``T1 + L1``.
+
+
+Solidity Settlement Algorithm - Explained
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. Note::
+    The overflows and underflows do not happen for a ``valid last`` pair of balance proofs. They only happen when at least one balance proof is ``valid old`` or the ``TokenNetwork`` contract receives ``invalid`` balance proofs.
+
+::
+
+    TLmax1 = T1 + L1
+    TLmax2 = T2 + L2
+    RmaxP1 = TLmax2 - TLmax1 + D1 - W1
+
+- ``(10 R)`` solves overflows for ``TLmax1`` and ``TLmax2``
+- ``TLmax2 - TLmax1`` underflow is solved by setting an order on the input arrguments that :ref:`settleChannel <settle-channel>` receives. The order in which ``RmaxP1`` and ``RmaxP2`` is computed does not affect the result of the calculation for valid balance proofs.
+- ``(5 R)`` solves the ``+ D1`` overflow: ``AB1 <= TAD`` --> ``D1 - W1 + T2 - T1 - L1 < TAD`` --> ``T2 + L2 - T1 - L1 + D1 - W1 < TAD - L2`` --> ``T2 + L2 - T1 - L1 + D1 < TAD - L2 + W1`` --> ``T2 + L2 - T1 - L1 + D1 < D1 + D2 - W2 - L2``
+  - ``D1 + D2 < 2^256`` ``MUST`` be enforced by the ``TokenNetwork`` contract
+  - ``D1 + D2 - W2 - L2 <= D1 + D2``
+- ``(6 R)`` solves the ``- W1`` underflow
+
+::
+
+    RmaxP1 = min(TAD, RmaxP1)
+
+We bound ``RmaxP1`` to ``TAD``, to ensure that participants do not receive more tokens than their channel has available.
+
+::
+
+    RmaxP2 = TAD - RmaxP1
+
+- underflow is solved by the above bounding of ``RmaxP1`` to ``TAD``.
+
+::
+
+    SL2 = min(RmaxP1, L2)
+
+We bound ``L2`` to ``RmaxP1`` in case old balance proofs are used.
+There are cases where old balance proofs can have a bigger ``L2`` amount than a later balance proof, if they contain expired locks that have been later removed from the merkle tree of pending transfers or contain claimable locked amounts that have been later claimed on-chain.
+
+::
+
+    S1 = RmaxP1 - SL2
+
+- underflow is solved by the above bounding of ``L2`` to ``RmaxP1``.
+
+::
+
+    SL1 = min(RmaxP2, L1)
+
+We bound ``L2`` to ``RmaxP1`` in case old balance proofs are used.
+
+::
+
+    S2 = RmaxP2 - SL1
+
+- underflow is solved by the above bounding of ``L1`` to ``RmaxP2``.
+
+.. Note::
+    Demonstration that the above Solidity implementation results in fair balances for the participants at the end of the channel lifecycle can be found here: https://github.com/raiden-network/raiden-contracts/issues/188
