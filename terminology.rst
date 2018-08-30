@@ -86,7 +86,7 @@ Raiden Terminology
        Signed data required by the :term:`Payment Channel` to allow :term:`Participants` to close and settle a :term:`Payment Channel` without undergoing through the :term:`Settlement Window`. See the :ref:`message definition <cooperative-settle-proof-message>`.
 
    nonce
-       Strictly monotonic value used to order off-chain transfers. It starts at ``1``. It is a :term:`balance proof` component. The ``nonce`` differentiates between older the newer balance proofs that can be sent by a delegate to the :term:`Token Network` contract and updated through :ref:`updateNonClosingBalanceProof <update-channel>`.
+       Strictly monotonic value used to order off-chain transfers. It starts at ``1``. It is a :term:`balance proof` component. The ``nonce`` differentiates between older and newer balance proofs that can be sent by a delegate to the :term:`Token Network` contract and updated through :ref:`updateNonClosingBalanceProof <update-channel>`.
 
    chain id
        Chain identifier as defined in EIP155.
