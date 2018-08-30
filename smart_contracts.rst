@@ -762,10 +762,10 @@ Also, the amount that a participant can receive cannot be bigger than the total 
 
 ::
 
-    (7 R) -D1 <= T2 + L2 - T1 - L1 <= D2
+    (7 R) -(D1 - W1) <= T2 + L2 - T1 - L1 <= D2 - W2
 
-``T2 + L2 - T1 - L1`` is the netted total transferred amount from ``P2`` to ``P1``. This amount cannot be bigger than ``P2``'s deposit. We enforce that a participant cannot transfer more tokens than what he has in the channel, during the lifecycle of a channel.
-This amount cannot be smaller than the negative value of ``P1``'s deposit ``- D1``. This can also be deducted from the corresponding ``T1 + L1 - T2 - L2 <= D1``
+``T2 + L2 - T1 - L1`` is the netted total transferred amount from ``P2`` to ``P1``. This amount cannot be bigger than ``P2``'s **available** deposit. We enforce that a participant cannot transfer more tokens than what he has in the channel, during the lifecycle of a channel.
+This amount cannot be smaller than the negative value of ``P1``'s **available** deposit ``- (D1 - W1)``. This can also be deducted from the corresponding ``T1 + L1 - T2 - L2 <= D1 - W1``
 This ``MUST`` be ensured by the Raiden client.
 
 
@@ -866,7 +866,7 @@ Solidity Settlement Algorithm - Explained
 
 - ``(10 R)`` solves overflows for ``TLmax1`` and ``TLmax2``
 - ``TLmax2 - TLmax1`` underflow is solved by setting an order on the input arrguments that :ref:`settleChannel <settle-channel>` receives. The order in which ``RmaxP1`` and ``RmaxP2`` is computed does not affect the result of the calculation for valid balance proofs.
-- ``(7 R)`` solves the ``+ D1`` overflow: ``T2 + L2 - T1 - L1 <= D2`` --> ``T2 + L2 - T1 - L1 + D1 <= D1 + D2``. ``D1 + D2 < 2^256`` is enforced by the ``TokenNetwork`` contract here: https://github.com/raiden-network/raiden-contracts/blob/d4acfdc1e77e477b42c20e6b4b8e721e765eae78/raiden_contracts/contracts/TokenNetwork.sol#L308-L311
+- ``(7 R)`` solves the ``+ D1`` overflow: ``T2 + L2 - T1 - L1 <= D2 - W2`` --> ``T2 + L2 - T1 - L1 + D1 <= D1 + D2 - W2``. ``D1 + D2 < 2^256`` is enforced by the ``TokenNetwork`` contract here: https://github.com/raiden-network/raiden-contracts/blob/d4acfdc1e77e477b42c20e6b4b8e721e765eae78/raiden_contracts/contracts/TokenNetwork.sol#L308-L311
 - ``(6 R)`` solves the ``- W1`` underflow
 
 ::
