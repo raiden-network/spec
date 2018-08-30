@@ -762,9 +762,10 @@ Also, the amount that a participant can receive cannot be bigger than the total 
 
 ::
 
-    (7 R) T2 + L2 - T1 - L1 <= D2
+    (7 R) -D1 <= T2 + L2 - T1 - L1 <= D2
 
-``T2 + L2 - T1 - L1`` is the netted total transferred amount from ``P2`` to ``P1``. This amount cannot be bigger than ``P2``'s deposit -> a participant cannot transfer more tokens than what he has in the channel, during the lifecycle of a channel.
+``T2 + L2 - T1 - L1`` is the netted total transferred amount from ``P2`` to ``P1``. This amount cannot be bigger than ``P2``'s deposit. We enforce that a participant cannot transfer more tokens than what he has in the channel, during the lifecycle of a channel.
+This amount cannot be smaller than the negative value of ``P1``'s deposit ``- D1``. This can also be deducted from the corresponding ``T1 + L1 - T2 - L2 <= D1``
 This ``MUST`` be ensured by the Raiden client.
 
 
