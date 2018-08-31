@@ -760,6 +760,14 @@ Also, the amount that a participant can receive cannot be bigger than the total 
 
 ``(6 R)`` is deduced from ``(5 R)``. It is needed by the Raiden client in order to not allow a participant to :ref:`withdraw <withdraw-channel>` more tokens from the on-chain channel deposit than he is entitled to.
 
+::
+
+    (7 R) -(D1 - W1) <= T2 + L2 - T1 - L1 <= D2 - W2
+
+``T2 + L2 - T1 - L1`` is the netted total transferred amount from ``P2`` to ``P1``. This amount cannot be bigger than ``P2``'s **available** deposit. We enforce that a participant cannot transfer more tokens than what he has in the channel, during the lifecycle of a channel.
+This amount cannot be smaller than the negative value of ``P1``'s **available** deposit ``- (D1 - W1)``. This can also be deducted from the corresponding ``T1 + L1 - T2 - L2 <= D1 - W1``
+The Raiden client ``MUST`` ensure this. However, it must use up-to-date values for ``D2`` and ``W2`` (e.g. Raiden node might have sent an on-chain transaction to withdraw tokens; this is not mined yet, therefore it does not reflect in the contract yet. The Raiden client will use the off-chain ``W2`` value.)
+
 
 Settlement Algorithm - Protocol
 -------------------------------
@@ -770,9 +778,9 @@ The following must be true if both participants use a ``last valid BP`` for each
 
 ::
 
-    (7) B1 = D1 - W1 + T2 - T1 + Lc2 - Lc1, B1 >= 0
-    (8) B2 = D2 - W2 + T1 - T2 + Lc1 - Lc2, B2 >= 0
-    (9) B1 + B2 = TAD, where TAD = D1 + D2 - W1 - W2, TAD >= 0
+    (8) B1 = D1 - W1 + T2 - T1 + Lc2 - Lc1, B1 >= 0
+    (9) B2 = D2 - W2 + T1 - T2 + Lc1 - Lc2, B2 >= 0
+    (10) B1 + B2 = TAD, where TAD = D1 + D2 - W1 - W2, TAD >= 0
 
 For each participant, we must calculate the netted transferred amounts and then the token amounts from pending transfers. Note that the pending transfer distribution can only be known at the time of calling :ref:`unlock <unlock-channel>`.
 
@@ -858,9 +866,7 @@ Solidity Settlement Algorithm - Explained
 
 - ``(10 R)`` solves overflows for ``TLmax1`` and ``TLmax2``
 - ``TLmax2 - TLmax1`` underflow is solved by setting an order on the input arrguments that :ref:`settleChannel <settle-channel>` receives. The order in which ``RmaxP1`` and ``RmaxP2`` is computed does not affect the result of the calculation for valid balance proofs.
-- ``(5 R)`` solves the ``+ D1`` overflow: ``AB1 <= TAD`` --> ``D1 - W1 + T2 - T1 - L1 < TAD`` --> ``T2 + L2 - T1 - L1 + D1 - W1 < TAD - L2`` --> ``T2 + L2 - T1 - L1 + D1 < TAD - L2 + W1`` --> ``T2 + L2 - T1 - L1 + D1 < D1 + D2 - W2 - L2``
-  - ``D1 + D2 < 2^256`` ``MUST`` be enforced by the ``TokenNetwork`` contract
-  - ``D1 + D2 - W2 - L2 <= D1 + D2``
+- ``(7 R)`` solves the ``+ D1`` overflow: ``T2 + L2 - T1 - L1 <= D2 - W2`` --> ``T2 + L2 - T1 - L1 + D1 <= D1 + D2 - W2``. ``D1 + D2 < 2^256`` is enforced by the ``TokenNetwork`` contract here: https://github.com/raiden-network/raiden-contracts/blob/d4acfdc1e77e477b42c20e6b4b8e721e765eae78/raiden_contracts/contracts/TokenNetwork.sol#L308-L311
 - ``(6 R)`` solves the ``- W1`` underflow
 
 ::
