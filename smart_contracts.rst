@@ -721,7 +721,9 @@ Protocol Values Constraints
     (2 TN) Wk <= Wt, time k < time t
     (3 R) Tk <= Tt, time k < time t
 
-Channel deposits, channel withdraws, off-chain transferred amounts are all monotonically increasing in time. The ``TokenNetwork`` contract must enforce this for deposits and withdraws. The Raiden client must enforce this for the off-chain transferred amounts, contained in the balance proofs.
+Channel deposits, channel withdraws, off-chain transferred amounts are all monotonically increasing in time.
+The ``TokenNetwork`` contract must enforce this for deposits (`code here <https://github.com/raiden-network/raiden-contracts/blob/fc1c79329a165c738fc55c3505cf801cc79872e4/raiden_contracts/contracts/TokenNetwork.sol#L306-L308/>`_) and withdraws (`code here <https://github.com/raiden-network/raiden-contracts/blob/fc1c79329a165c738fc55c3505cf801cc79872e4/raiden_contracts/contracts/TokenNetwork.sol#L394-L399/>`_).
+The Raiden client must enforce this for the off-chain transferred amounts, contained in the balance proofs (`code here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L1332/>`_ and `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L1284/>`_).
 
 ::
 
@@ -745,6 +747,15 @@ The sum of each transferred amount and the claimable amounts from the pending tr
     (5 R) AB1 = D1 - W1 + T2 - T1 - L1; AB1 >= 0, AB1 <= TAD
 
 The Raiden client ``MUST`` not allow a participant to transfer more tokens than he has available.
+Enforced `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L1253/>`_, `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L960/>`_ and `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L923-L927/>`_. Note that withdrawing tokens is not currently implemented in the Raiden client.
+
+From this, we also have:
+
+::
+
+    (5.1 R) L1 <= AB1, L1 <= TAD, L1 >= 0
+
+A mediated transfer starts by locking tokens through the :ref:`locked transfer message <locked-transfer-message>`. A user cannot send more than his available balance. Enforced in the Raiden client `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L1195/>`_.
 
 This means that for ``P1``:
 
@@ -760,6 +771,8 @@ Also, the amount that a participant can receive cannot be bigger than the total 
 
 ``(6 R)`` is deduced from ``(5 R)``. It is needed by the Raiden client in order to not allow a participant to :ref:`withdraw <withdraw-channel>` more tokens from the on-chain channel deposit than he is entitled to.
 
+Not implemented yet in the Raien client.
+
 ::
 
     (7 R) -(D1 - W1) <= T2 + L2 - T1 - L1 <= D2 - W2
@@ -767,6 +780,8 @@ Also, the amount that a participant can receive cannot be bigger than the total 
 ``T2 + L2 - T1 - L1`` is the netted total transferred amount from ``P2`` to ``P1``. This amount cannot be bigger than ``P2``'s **available** deposit. We enforce that a participant cannot transfer more tokens than what he has in the channel, during the lifecycle of a channel.
 This amount cannot be smaller than the negative value of ``P1``'s **available** deposit ``- (D1 - W1)``. This can also be deducted from the corresponding ``T1 + L1 - T2 - L2 <= D1 - W1``
 The Raiden client ``MUST`` ensure this. However, it must use up-to-date values for ``D2`` and ``W2`` (e.g. Raiden node might have sent an on-chain transaction to withdraw tokens; this is not mined yet, therefore it does not reflect in the contract yet. The Raiden client will use the off-chain ``W2`` value.)
+
+Not implemented yet in the Raien client.
 
 
 Settlement Algorithm - Protocol
@@ -850,6 +865,7 @@ Raiden Client Additional Constraints
     (10 R) T1 + L1 < 2^256 ; T2 + L2 < 2^256
 
 This ensures that calculating ``RmaxP1`` does not overflow on ``T2 + L2`` and ``T1 + L1``.
+Enforced `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L962-L965/>`_.
 
 
 Solidity Settlement Algorithm - Explained
