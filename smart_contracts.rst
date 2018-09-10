@@ -49,38 +49,57 @@ Project Requirements
 Data structures
 ===============
 
+.. Note::
+    The signed message format used in the data structures below is of this format:
+    ``ecdsa_recoverable(privkey, keccak256(("\x19Ethereum Signed Message:\n" + message_length) || message))``
+
+    Where:
+
+    - ``message_length``: Length of the actual message to be signed
+    - ``message = token_network_address || chain_id || message_type_id || message_specific_data``
+    - ``message_type_id`` has a different value depending on the type of message signed
+
+    This is compatible with https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign and https://github.com/ethereum/EIPs/blob/master/EIPS/eip-191.md.
+    
+    Message content is tightly packed as described here: https://solidity.readthedocs.io/en/v0.4.24/abi-spec.html#abi-packed-mode.
+
+
 .. _balance-proof-message:
 
 Balance Proof
 -------------
 
-Data required by the smart contracts to update the payment channel end of the participant that signed the balance proof.
-The signature must be valid and is defined as:
-
 ::
 
-    ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id)
+    ecdsa_recoverable(privkey, sha3_keccak("\x19Ethereum Signed Message:\n212" || token_network_address || chain_id || message_type_id || channel_identifier || balance_hash || nonce || additional_hash))
+
 
 Fields
 ^^^^^^
 
-+------------------------+------------+--------------------------------------------------------------------------------+
-| Field Name             | Field Type |  Description                                                                   |
-+========================+============+================================================================================+
-|  balance_hash          | bytes32    | Balance data hash                                                              |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  nonce                 | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  additional_hash       | bytes32    | Hash of additional data used on the application layer, e.g.: payment metadata  |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract                            |
-+------------------------+------------+--------------------------------------------------------------------------------+
-| token_network_address  | address    | Address of the TokenNetwork contract                                           |
-+------------------------+------------+--------------------------------------------------------------------------------+
-| chain_id               | uint256    | Chain identifier as defined in EIP155                                          |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  signature             | bytes      | Elliptic Curve 256k1 signature on the above data                               |
-+------------------------+------------+--------------------------------------------------------------------------------+
++-----------------------+------------+-------------------------------------------------------------------------------+
+| Field Name            | Field Type | Description                                                                   |
++=======================+============+===============================================================================+
+|  signature_prefix     | string     | ``\x19Ethereum Signed Message:\n``                                            |
++-----------------------+------------+-------------------------------------------------------------------------------+
+|  message_length       | string     | ``212`` = length of message = ``20 + 32 + 32 + 32 + 32 + 32 + 32``            |
++-----------------------+------------+-------------------------------------------------------------------------------+
+| token_network_address | address    | Address of the TokenNetwork contract                                          |
++-----------------------+------------+-------------------------------------------------------------------------------+
+| chain_id              | uint256    | Chain identifier as defined in EIP155                                         |
++-----------------------+------------+-------------------------------------------------------------------------------+
+| message_type_id       | uint256    | ``1`` = message type identifier                                               |
++-----------------------+------------+-------------------------------------------------------------------------------+
+|  channel_identifier   | uint256    | Channel identifier inside the TokenNetwork contract                           |
++-----------------------+------------+-------------------------------------------------------------------------------+
+|  balance_hash         | bytes32    | Balance data hash                                                             |
++-----------------------+------------+-------------------------------------------------------------------------------+
+|  nonce                | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1       |
++-----------------------+------------+-------------------------------------------------------------------------------+
+|  additional_hash      | bytes32    | Hash of additional data used on the application layer, e.g.: payment metadata |
++-----------------------+------------+-------------------------------------------------------------------------------+
+|  signature            | bytes      | Elliptic Curve 256k1 signature on the above data                              |
++-----------------------+------------+-------------------------------------------------------------------------------+
 
 Balance Data Hash
 ^^^^^^^^^^^^^^^^^
@@ -97,6 +116,48 @@ Balance Data Hash
 |  locksroot             | bytes32    | Root of merkle tree of all pending lock lockhashes                                    |
 +------------------------+------------+---------------------------------------------------------------------------------------+
 
+.. _balance-update-proof-message:
+
+Balance Update Proof
+--------------------
+
+::
+
+    ecdsa_recoverable(privkey, sha3_keccak("\x19Ethereum Signed Message:\n277" || token_network_address || chain_id || message_type_id || channel_identifier || balance_hash || nonce || additional_hash || closing_signature))
+
+
+- ``closing_signature`` is the closing participant's signature on the :ref:`balance proof message <balance-proof-message>`
+
+
+Fields
+^^^^^^
+
++-----------------------+------------+-----------------------------------------------------------------------------------+
+| Field Name            | Field Type | Description                                                                       |
++=======================+============+===================================================================================+
+|  signature_prefix     | string     | ``\x19Ethereum Signed Message:\n``                                                |
++-----------------------+------------+-----------------------------------------------------------------------------------+
+|  message_length       | string     | ``277`` = length of message = ``20 + 32 + 32 + 32 + 32 + 32 + 32 + 65``           |
++-----------------------+------------+-----------------------------------------------------------------------------------+
+| token_network_address | address    | Address of the TokenNetwork contract                                              |
++-----------------------+------------+-----------------------------------------------------------------------------------+
+| chain_id              | uint256    | Chain identifier as defined in EIP155                                             |
++-----------------------+------------+-----------------------------------------------------------------------------------+
+| message_type_id       | uint256    | ``2`` = message type identifier                                                   |
++-----------------------+------------+-----------------------------------------------------------------------------------+
+|  channel_identifier   | uint256    | Channel identifier inside the TokenNetwork contract                               |
++-----------------------+------------+-----------------------------------------------------------------------------------+
+|  balance_hash         | bytes32    | Balance data hash                                                                 |
++-----------------------+------------+-----------------------------------------------------------------------------------+
+|  nonce                | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1           |
++-----------------------+------------+-----------------------------------------------------------------------------------+
+|  additional_hash      | bytes32    | Hash of additional data used on the application layer, e.g.: payment metadata     |
++-----------------------+------------+-----------------------------------------------------------------------------------+
+|  closing_signature    | bytes      | Elliptic Curve 256k1 balance proof signature from the closing participant         |
++-----------------------+------------+-----------------------------------------------------------------------------------+
+|  signature            | bytes      | Elliptic Curve 256k1 signature on the above data from the non-closing participant |
++-----------------------+------------+-----------------------------------------------------------------------------------+
+
 .. _withdraw-proof-message:
 
 Withdraw Proof
@@ -108,7 +169,7 @@ Signatures must be valid and are defined as:
 
 ::
 
-    ecdsa_recoverable(privkey, sha3_keccak(participant_address || total_withdraw || channel_identifier || token_network_address || chain_id)
+    ecdsa_recoverable(privkey, sha3_keccak("\x19Ethereum Signed Message:\n168" || token_network_address || chain_id || message_type_id || channel_identifier || participant_address || total_withdraw))
 
 Invariants
 ^^^^^^^^^^
@@ -118,23 +179,29 @@ Invariants
 Fields
 ^^^^^^
 
-+------------------------+------------+--------------------------------------------------------------------------------+
-| Field Name             | Field Type |  Description                                                                   |
-+========================+============+================================================================================+
-|  participant_address   | address    | Channel participant, who withdraws the tokens                                  |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  total_withdraw        | uint256    | Total amount of tokens that participant_address has withdrawn from the channel |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract                            |
-+------------------------+------------+--------------------------------------------------------------------------------+
-| token_network_address  | address    | Address of the TokenNetwork contract                                           |
-+------------------------+------------+--------------------------------------------------------------------------------+
-| chain_id               | uint256    | Chain identifier as defined in EIP155                                          |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  participant_signature | bytes      | Elliptic Curve 256k1 signature of the participant on the above data            |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  partner_signature     | bytes      | Elliptic Curve 256k1 signature of the partner on the above data                |
-+------------------------+------------+--------------------------------------------------------------------------------+
++------------------------+------------+---------------------------------------------------------------------------------+
+| Field Name             | Field Type |  Description                                                                    |
++========================+============+=================================================================================+
+|  signature_prefix      | string     | ``\x19Ethereum Signed Message:\n``                                              |
++------------------------+------------+---------------------------------------------------------------------------------+
+|  message_length        | string     | ``168`` = length of message = ``20 + 32 + 32 + 32 + 20 + 32``                   |
++------------------------+------------+---------------------------------------------------------------------------------+
+| token_network_address  | address    | Address of the TokenNetwork contract                                            |
++------------------------+------------+---------------------------------------------------------------------------------+
+| chain_id               | uint256    | Chain identifier as defined in EIP155                                           |
++------------------------+------------+---------------------------------------------------------------------------------+
+| message_type_id        | uint256    | ``3`` = message type identifier                                                 |
++------------------------+------------+---------------------------------------------------------------------------------+
+|  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract                             |
++------------------------+------------+---------------------------------------------------------------------------------+
+|  participant_address   | address    | Channel participant, who withdraws the tokens                                   |
++------------------------+------------+---------------------------------------------------------------------------------+
+|  total_withdraw        | uint256    | Total amount of tokens that participant_address has withdrawn from the channel  |
++------------------------+------------+---------------------------------------------------------------------------------+
+|  participant_signature | bytes      | Elliptic Curve 256k1 signature of the participant on the withdraw data          |
++------------------------+------------+---------------------------------------------------------------------------------+
+|  partner_signature     | bytes      | Elliptic Curve 256k1 signature of the partner on the withdraw data              |
++------------------------+------------+---------------------------------------------------------------------------------+
 
 .. _cooperative-settle-proof-message:
 
@@ -146,7 +213,7 @@ Signatures must be valid and are defined as:
 
 ::
 
-    ecdsa_recoverable(privkey, sha3_keccak(participant1_address || participant1_balance || participant2_address || participant2_balance || channel_identifier || token_network_address || chain_id)
+    ecdsa_recoverable(privkey, sha3_keccak("\x19Ethereum Signed Message:\n220" || token_network_address || chain_id || message_type_id || channel_identifier || participant1_address || participant1_balance || participant2_address || participant2_balance))
 
 Fields
 ^^^^^^
@@ -154,6 +221,18 @@ Fields
 +------------------------+------------+--------------------------------------------------------------------------------+
 | Field Name             | Field Type |  Description                                                                   |
 +========================+============+================================================================================+
+|  signature_prefix      | string     | ``\x19Ethereum Signed Message:\n``                                             |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  message_length        | string     | ``220`` = length of message = ``20 + 32 + 32 + 32 + 20 + 32 + 20 + 32``        |
++------------------------+------------+--------------------------------------------------------------------------------+
+| token_network_address  | address    | Address of the TokenNetwork contract                                           |
++------------------------+------------+--------------------------------------------------------------------------------+
+| chain_id               | uint256    | Chain identifier as defined in EIP155                                          |
++------------------------+------------+--------------------------------------------------------------------------------+
+| message_type_id        | uint256    | ``4`` = message type identifier                                                |
++------------------------+------------+--------------------------------------------------------------------------------+
+|  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract                            |
++------------------------+------------+--------------------------------------------------------------------------------+
 |  participant1_address  | address    | One of the channel participants                                                |
 +------------------------+------------+--------------------------------------------------------------------------------+
 |  participant1_balance  | uint256    | Amount of tokens that participant1_address will receive after settling         |
@@ -162,15 +241,9 @@ Fields
 +------------------------+------------+--------------------------------------------------------------------------------+
 |  participant2_balance  | uint256    | Amount of tokens that participant2_address will receive after settling         |
 +------------------------+------------+--------------------------------------------------------------------------------+
-|  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract                            |
+|  participant1_signature| bytes      | Elliptic Curve 256k1 signature of participant1 on the message data             |
 +------------------------+------------+--------------------------------------------------------------------------------+
-| token_network_address  | address    | Address of the TokenNetwork contract                                           |
-+------------------------+------------+--------------------------------------------------------------------------------+
-| chain_id               | uint256    | Chain identifier as defined in EIP155                                          |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  participant1_signature| bytes      | Elliptic Curve 256k1 signature of participant1 on the above data               |
-+------------------------+------------+--------------------------------------------------------------------------------+
-|  participant2_signature| bytes      | Elliptic Curve 256k1 signature of participant2 on the above data               |
+|  participant2_signature| bytes      | Elliptic Curve 256k1 signature of participant2 on the message data             |
 +------------------------+------------+--------------------------------------------------------------------------------+
 
 Project Specification
