@@ -794,7 +794,7 @@ Protocol Values Constraints
     (2 TN) Wk <= Wt, time k < time t
     (3 R) Tk <= Tt, time k < time t
 
-Channel deposits, channel withdraws, off-chain transferred amounts are all monotonically increasing in time.
+Channel deposits, channel withdraws, off-chain transferred amounts are all monotonically increasing.
 The ``TokenNetwork`` contract must enforce this for deposits (`code here <https://github.com/raiden-network/raiden-contracts/blob/fc1c79329a165c738fc55c3505cf801cc79872e4/raiden_contracts/contracts/TokenNetwork.sol#L306-L308/>`_) and withdraws (`code here <https://github.com/raiden-network/raiden-contracts/blob/fc1c79329a165c738fc55c3505cf801cc79872e4/raiden_contracts/contracts/TokenNetwork.sol#L394-L399/>`_).
 The Raiden client must enforce this for the off-chain transferred amounts, contained in the balance proofs (`code here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L1332/>`_ and `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L1284/>`_).
 
@@ -844,7 +844,7 @@ Also, the amount that a participant can receive cannot be bigger than the total 
 
 ``(6 R)`` is deduced from ``(5 R)``. It is needed by the Raiden client in order to not allow a participant to :ref:`withdraw <withdraw-channel>` more tokens from the on-chain channel deposit than he is entitled to.
 
-Not implemented yet in the Raien client.
+Not implemented yet in the Raiden client.
 
 ::
 
@@ -854,7 +854,7 @@ Not implemented yet in the Raien client.
 This amount cannot be smaller than the negative value of ``P1``'s **available** deposit ``- (D1 - W1)``. This can also be deducted from the corresponding ``T1 + L1 - T2 - L2 <= D1 - W1``
 The Raiden client ``MUST`` ensure this. However, it must use up-to-date values for ``D2`` and ``W2`` (e.g. Raiden node might have sent an on-chain transaction to withdraw tokens; this is not mined yet, therefore it does not reflect in the contract yet. The Raiden client will use the off-chain ``W2`` value.)
 
-Not implemented yet in the Raien client.
+Not implemented yet in the Raiden client.
 
 
 Settlement Algorithm - Protocol
