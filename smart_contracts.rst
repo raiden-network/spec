@@ -13,8 +13,8 @@ General Requirements
 Secure
 ------
 
-- A ``participant`` ``MUST NOT`` be able to steal funds. Therefore, a participant ``MUST NOT`` receive more tokens than he is entitled to, after calculating his final balance, unless this is due to his ``partner``'s attempt to cheat.
-- A participant ``MUST`` be able to eventually retrieve his tokens from the channel, regardless of his partner's availability in the network.
+- A ``participant`` ``MUST NOT`` be able to steal funds. Therefore, a participant ``MUST NOT`` receive more tokens than they are entitled to, after calculating their final balance, unless this is due to their ``partner``'s attempt to cheat.
+- A participant ``MUST`` be able to eventually retrieve their tokens from the channel, regardless of their partner's availability in the network.
 - The ``sum of the final balances`` of the two channel participants, after the channel lifecycle has ended, ``MUST NOT`` be greater than the entire channel deposit available at settlement time.
 - The signed messages ``MUST`` be non malleable.
 - A participant ``MUST NOT`` be able to change the state of a channel by using a signed message from an old and settled channel with the same ``partner`` or from another channel.
@@ -439,7 +439,7 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 
     This function is idempotent. The UI and internal smart contract logic has to make sure that the amount of tokens actually transferred is the difference between ``total_deposit`` and the ``deposit`` at transaction time.
 
-    A participant or a delegate ``MUST`` be able to deposit more tokens into a channel, regardless of his partner's availability.
+    A participant or a delegate ``MUST`` be able to deposit more tokens into a channel, regardless of their partner's availability.
 
 .. _withdraw-channel:
 
@@ -473,8 +473,8 @@ Allows a channel participant to withdraw tokens from a channel without closing i
 - ``partner_signature``: Elliptic Curve 256k1 signature of the channel ``partner`` on the :term:`withdraw proof` data.
 
 .. Note::
-    A ``participant`` ``MUST NOT`` be able to withdraw tokens from the channel without his ``partner``'s signature.
-    A ``participant`` ``MUST NOT`` be able to withdraw more tokens than his available balance ``AB``, as defined in the :ref:`settlement algorithm <settlement-algorithm>`.
+    A ``participant`` ``MUST NOT`` be able to withdraw tokens from the channel without their ``partner``'s signature.
+    A ``participant`` ``MUST NOT`` be able to withdraw more tokens than their available balance ``AB``, as defined in the :ref:`settlement algorithm <settlement-algorithm>`.
     A ``participant`` ``MUST NOT`` be able to withdraw more tokens than the available channel deposit ``TAD``, as defined in the :ref:`settlement algorithm <settlement-algorithm>`.
 
 .. _close-channel:
@@ -513,11 +513,11 @@ Allows a channel participant to close the channel. The channel cannot be settled
 .. Note::
     Only a participant may close the channel.
 
-    A participant ``MUST`` be able to set his partner's balance proof on-chain, in order to be used in the settlement algorithm.
+    A participant ``MUST`` be able to set their partner's balance proof on-chain, in order to be used in the settlement algorithm.
 
     Only a valid signed :term:`balance proof` from the channel ``partner`` ``MUST`` be accepted. This :term:`balance proof` sets the amount of tokens owed to the ``participant`` by the channel ``partner``.
 
-    A ``participant`` ``MUST`` be able to close a channel regardless of his ``partner``'s availability (online/offline status).
+    A ``participant`` ``MUST`` be able to close a channel regardless of their ``partner``'s availability (online/offline status).
 
 .. _update-channel:
 
@@ -560,11 +560,11 @@ Called after a channel has been closed. Can be called by any Ethereum address an
 .. Note::
     Can be called by any Ethereum address due to the requirement of providing signatures from both channel participants.
 
-    The ``participant`` who did not close the channel ``MUST`` be able to send to the :term:`Token Network` contract his ``partner``'s :term:`balance proof`, in order to retrieve his tokens.
+    The ``participant`` who did not close the channel ``MUST`` be able to send to the :term:`Token Network` contract their ``partner``'s :term:`balance proof`, in order to retrieve their tokens.
 
     Only a valid signed :term:`balance proof` from the channel's ``closing participant`` (the other channel participant) ``MUST`` be accepted. This :term:`balance proof` sets the amount of tokens owed to the ``non-closing participant`` by the ``closing participant``.
 
-    Only a valid signed balance proof update message  ``MUST`` be accepted. This message is a confirmation from the ``non-closing participant`` that the contained :term:`balance proof` can be set on his behalf.
+    Only a valid signed balance proof update message  ``MUST`` be accepted. This message is a confirmation from the ``non-closing participant`` that the contained :term:`balance proof` can be set on their behalf.
 
 .. _settle-channel:
 
@@ -646,7 +646,7 @@ Allows the participants to cooperate and provide both of their balances and sign
 .. Note::
     Emits the ChannelSettled event.
 
-    A ``participant`` ``MUST NOT`` be able to cooperatively settle a channel without his ``partner``'s signature on the agreed upon balances.
+    A ``participant`` ``MUST NOT`` be able to cooperatively settle a channel without their ``partner``'s signature on the agreed upon balances.
 
     Can be called by a third party because both signatures are required.
 
@@ -819,7 +819,7 @@ The sum of each transferred amount and the claimable amounts from the pending tr
 
     (5 R) AB1 = D1 - W1 + T2 - T1 - L1; AB1 >= 0, AB1 <= TAD
 
-The Raiden client ``MUST`` not allow a participant to transfer more tokens than he has available.
+The Raiden client ``MUST`` not allow a participant to transfer more tokens than they have available.
 Enforced `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L1253/>`_, `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L960/>`_ and `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L923-L927/>`_. Note that withdrawing tokens is not currently implemented in the Raiden client.
 
 From this, we also have:
@@ -828,12 +828,12 @@ From this, we also have:
 
     (5.1 R) L1 <= AB1, L1 <= TAD, L1 >= 0
 
-A mediated transfer starts by locking tokens through the :ref:`locked transfer message <locked-transfer-message>`. A user cannot send more than his available balance. Enforced in the Raiden client `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L1195/>`_.
+A mediated transfer starts by locking tokens through the :ref:`locked transfer message <locked-transfer-message>`. A user cannot send more than their available balance. Enforced in the Raiden client `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L1195/>`_.
 
 This means that for ``P1``:
 
 - we need to calculate the netted transferred amounts for him: ``T2 - T1``
-- subtract any tokens that he has locked in pending transfers to ``P2``: ``-L1``
+- subtract any tokens that they have locked in pending transfers to ``P2``: ``-L1``
 - do not take into consideration the pending transfers from ``P2``: ``L2``, because the token distribution will only be known at ``unlock`` time.
 
 Also, the amount that a participant can receive cannot be bigger than the total channel available deposit ``(9)``. Therefore, the available balance of a participant at any point in time cannot be bigger than the total available deposit of the channel ``ABI1 <= TAD``.
@@ -842,7 +842,7 @@ Also, the amount that a participant can receive cannot be bigger than the total 
 
     (6 R) W1 <= D1 + T2 - T1 - L1
 
-``(6 R)`` is deduced from ``(5 R)``. It is needed by the Raiden client in order to not allow a participant to :ref:`withdraw <withdraw-channel>` more tokens from the on-chain channel deposit than he is entitled to.
+``(6 R)`` is deduced from ``(5 R)``. It is needed by the Raiden client in order to not allow a participant to :ref:`withdraw <withdraw-channel>` more tokens from the on-chain channel deposit than they are entitled to.
 
 Not implemented yet in the Raiden client.
 
@@ -850,7 +850,7 @@ Not implemented yet in the Raiden client.
 
     (7 R) -(D1 - W1) <= T2 + L2 - T1 - L1 <= D2 - W2
 
-``T2 + L2 - T1 - L1`` is the netted total transferred amount from ``P2`` to ``P1``. This amount cannot be bigger than ``P2``'s **available** deposit. We enforce that a participant cannot transfer more tokens than what he has in the channel, during the lifecycle of a channel.
+``T2 + L2 - T1 - L1`` is the netted total transferred amount from ``P2`` to ``P1``. This amount cannot be bigger than ``P2``'s **available** deposit. We enforce that a participant cannot transfer more tokens than what they have in the channel, during the lifecycle of a channel.
 This amount cannot be smaller than the negative value of ``P1``'s **available** deposit ``- (D1 - W1)``. This can also be deducted from the corresponding ``T1 + L1 - T2 - L2 <= D1 - W1``
 The Raiden client ``MUST`` ensure this. However, it must use up-to-date values for ``D2`` and ``W2`` (e.g. Raiden node might have sent an on-chain transaction to withdraw tokens; this is not mined yet, therefore it does not reflect in the contract yet. The Raiden client will use the off-chain ``W2`` value.)
 
@@ -914,7 +914,7 @@ The end results of respecting all these constraints while also ensuring fair bal
 Solidity Settlement Algorithm
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- ``TLmax1``: the maximum amount that ``P1`` might transfer to ``P2`` (if his pending transfers will all be claimed)
+- ``TLmax1``: the maximum amount that ``P1`` might transfer to ``P2`` (if their pending transfers will all be claimed)
 - ``RmaxP1``: the maximum receivable amount by ``P1`` at settlement time; this concept exists only for handling the overflows and underflows.
 
 ::
