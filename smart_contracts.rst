@@ -13,17 +13,17 @@ General Requirements
 Secure
 ------
 
-- A ``participant`` ``MUST NOT`` be able to steal funds. Therefore, a participant ``MUST NOT`` receive more tokens than they are entitled to, after calculating their final balance, unless this is due to their ``partner``'s attempt to cheat.
-- A participant ``MUST`` be able to eventually retrieve their tokens from the channel, regardless of their partner's availability in the network.
+- A ``participant`` ``MUST NOT`` be able to steal funds. Therefore, a ``participant`` ``MUST NOT`` receive more tokens than that ``participant`` is entitled to, after calculating the final channel balance, unless this is due to the ``partner``'s attempt to cheat.
+- A ``participant`` ``MUST`` be able to eventually retrieve tokens from the channel, regardless of the ``partner``'s availability in the network.
 - The ``sum of the final balances`` of the two channel participants, after the channel lifecycle has ended, ``MUST NOT`` be greater than the entire channel deposit available at settlement time.
-- The signed messages ``MUST`` be non malleable.
-- A participant ``MUST NOT`` be able to change the state of a channel by using a signed message from an old and settled channel with the same ``partner`` or from another channel.
+- The signed messages ``MUST`` be non-malleable.
+- A ``participant`` ``MUST NOT`` be able to change the state of a channel by using a signed message from an old and settled channel with the same ``partner`` or from another channel.
 
 Privacy
 -------
 
-- A participant payment pattern in time ``MUST NOT`` be public on-chain (smart contracts only know about the final balance proofs, not all the intermediary ones).
-- Participant addresses can be public.
+- A ``participant`` payment pattern in time ``MUST NOT`` be public on-chain (smart contracts only know about the final balance proofs, not all the intermediary ones).
+- A ``participant`` addresses can be public.
 - The final transferred amounts of the two participants can be public.
 - The channel deposit can be public.
 
@@ -109,7 +109,7 @@ Balance Data Hash
 +------------------------+------------+---------------------------------------------------------------------------------------+
 | Field Name             | Field Type |  Description                                                                          |
 +========================+============+=======================================================================================+
-|  transferred_amount    | uint256    | Monotonically increasing amount of tokens transferred by a channel participant        |
+|  transferred_amount    | uint256    | Monotonically increasing amount of tokens transferred by a ``participant``            |
 +------------------------+------------+---------------------------------------------------------------------------------------+
 |  locked_amount         | uint256    | Total amount of tokens locked in pending transfers                                    |
 +------------------------+------------+---------------------------------------------------------------------------------------+
@@ -126,37 +126,37 @@ Balance Update Proof
     ecdsa_recoverable(privkey, sha3_keccak("\x19Ethereum Signed Message:\n277" || token_network_address || chain_id || message_type_id || channel_identifier || balance_hash || nonce || additional_hash || closing_signature))
 
 
-- ``closing_signature`` is the closing participant's signature on the :ref:`balance proof message <balance-proof-message>`
+- ``closing_signature`` is the closing ``participant``'s signature on the :ref:`balance proof message <balance-proof-message>`
 
 
 Fields
 ^^^^^^
 
-+-----------------------+------------+-----------------------------------------------------------------------------------+
-| Field Name            | Field Type | Description                                                                       |
-+=======================+============+===================================================================================+
-|  signature_prefix     | string     | ``\x19Ethereum Signed Message:\n``                                                |
-+-----------------------+------------+-----------------------------------------------------------------------------------+
-|  message_length       | string     | ``277`` = length of message = ``20 + 32 + 32 + 32 + 32 + 32 + 32 + 65``           |
-+-----------------------+------------+-----------------------------------------------------------------------------------+
-| token_network_address | address    | Address of the TokenNetwork contract                                              |
-+-----------------------+------------+-----------------------------------------------------------------------------------+
-| chain_id              | uint256    | Chain identifier as defined in EIP155                                             |
-+-----------------------+------------+-----------------------------------------------------------------------------------+
-| message_type_id       | uint256    | ``2`` = message type identifier                                                   |
-+-----------------------+------------+-----------------------------------------------------------------------------------+
-|  channel_identifier   | uint256    | Channel identifier inside the TokenNetwork contract                               |
-+-----------------------+------------+-----------------------------------------------------------------------------------+
-|  balance_hash         | bytes32    | Balance data hash                                                                 |
-+-----------------------+------------+-----------------------------------------------------------------------------------+
-|  nonce                | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1           |
-+-----------------------+------------+-----------------------------------------------------------------------------------+
-|  additional_hash      | bytes32    | Hash of additional data used on the application layer, e.g.: payment metadata     |
-+-----------------------+------------+-----------------------------------------------------------------------------------+
-|  closing_signature    | bytes      | Elliptic Curve 256k1 balance proof signature from the closing participant         |
-+-----------------------+------------+-----------------------------------------------------------------------------------+
-|  signature            | bytes      | Elliptic Curve 256k1 signature on the above data from the non-closing participant |
-+-----------------------+------------+-----------------------------------------------------------------------------------+
++-----------------------+------------+---------------------------------------------------------------------------------------+
+| Field Name            | Field Type | Description                                                                           |
++=======================+============+=======================================================================================+
+|  signature_prefix     | string     | ``\x19Ethereum Signed Message:\n``                                                    |
++-----------------------+------------+---------------------------------------------------------------------------------------+
+|  message_length       | string     | ``277`` = length of message = ``20 + 32 + 32 + 32 + 32 + 32 + 32 + 65``               |
++-----------------------+------------+---------------------------------------------------------------------------------------+
+| token_network_address | address    | Address of the TokenNetwork contract                                                  |
++-----------------------+------------+---------------------------------------------------------------------------------------+
+| chain_id              | uint256    | Chain identifier as defined in EIP155                                                 |
++-----------------------+------------+---------------------------------------------------------------------------------------+
+| message_type_id       | uint256    | ``2`` = message type identifier                                                       |
++-----------------------+------------+---------------------------------------------------------------------------------------+
+|  channel_identifier   | uint256    | Channel identifier inside the TokenNetwork contract                                   |
++-----------------------+------------+---------------------------------------------------------------------------------------+
+|  balance_hash         | bytes32    | Balance data hash                                                                     |
++-----------------------+------------+---------------------------------------------------------------------------------------+
+|  nonce                | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1               |
++-----------------------+------------+---------------------------------------------------------------------------------------+
+|  additional_hash      | bytes32    | Hash of additional data used on the application layer, e.g.: payment metadata         |
++-----------------------+------------+---------------------------------------------------------------------------------------+
+|  closing_signature    | bytes      | Elliptic Curve 256k1 balance proof signature from the closing ``participant``         |
++-----------------------+------------+---------------------------------------------------------------------------------------+
+|  signature            | bytes      | Elliptic Curve 256k1 signature on the above data from the non-closing ``participant`` |
++-----------------------+------------+---------------------------------------------------------------------------------------+
 
 .. _withdraw-proof-message:
 
@@ -194,11 +194,11 @@ Fields
 +------------------------+------------+---------------------------------------------------------------------------------+
 |  channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract                             |
 +------------------------+------------+---------------------------------------------------------------------------------+
-|  participant_address   | address    | Channel participant, who withdraws the tokens                                   |
+|  participant_address   | address    | ``participant`` who withdraws the tokens                                        |
 +------------------------+------------+---------------------------------------------------------------------------------+
 |  total_withdraw        | uint256    | Total amount of tokens that participant_address has withdrawn from the channel  |
 +------------------------+------------+---------------------------------------------------------------------------------+
-|  participant_signature | bytes      | Elliptic Curve 256k1 signature of the participant on the withdraw data          |
+|  participant_signature | bytes      | Elliptic Curve 256k1 signature of the ``participant`` on the withdraw data      |
 +------------------------+------------+---------------------------------------------------------------------------------+
 |  partner_signature     | bytes      | Elliptic Curve 256k1 signature of the partner on the withdraw data              |
 +------------------------+------------+---------------------------------------------------------------------------------+
@@ -337,7 +337,7 @@ We currently limit the number of channels between two participants to one. There
 - ``state``: Channel state. It can be ``NonExistent`` - ``0``, ``Opened`` - ``1``, ``Closed`` - ``2``, ``Settled`` - ``3``, ``Removed`` - ``4``.
 
 .. Note::
-    Channel state ``Settled`` means the channel was settled and channel data removed. However, there is still data remaining in the contract for calling ``unlock`` - for at least one participant.
+    Channel state ``Settled`` means the channel was settled and channel data removed. However, there is still data remaining in the contract for calling ``unlock`` - for at least one ``participant``.
 
     Channel state ``Removed`` means that no channel data and no ``unlock`` data remain in the contract.
 
@@ -393,16 +393,16 @@ Opens a channel between ``participant1`` and ``participant2`` and sets the chall
     );
 
 - ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
-- ``participant1``: Ethereum address of a channel participant.
-- ``participant2``: Ethereum address of the other channel participant.
+- ``participant1``: Ethereum address of a ``participant``.
+- ``participant2``: Ethereum address of ``participant1``'s ``partner``.
 - ``settle_timeout``: Number of blocks that need to be mined between a call to ``closeChannel`` and ``settleChannel``.
 
 .. Note::
     Anyone can open a channel between ``participant1`` and ``participant2``.
 
-    A participant or delegate ``MUST`` be able to ``open`` a channel with another participant if one does not exist.
+    A ``participant`` or delegate ``MUST`` be able to ``open`` a channel with another participant if one does not exist.
 
-    A participant ``MUST`` be able to ``reopen`` a channel with another participant if there were previous channels opened between them and then settled.
+    A ``participant`` ``MUST`` be able to ``reopen`` a channel with another participant if there were previous channels opened between them and then settled.
 
 .. _deposit-channel:
 
@@ -432,20 +432,20 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 - ``total_deposit``: Total amount of tokens that the ``participant`` will have as ``deposit`` in the channel.
 - ``partner``: Ethereum address of the other channel participant, used for computing ``channel_identifier``.
 - ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
-- ``deposit``: The total amount of tokens deposited in a channel by a participant.
+- ``deposit``: The total amount of tokens deposited in a channel by a ``participant``.
 
 .. Note::
     Allowed to be called multiple times. Can be called by anyone.
 
     This function is idempotent. The UI and internal smart contract logic has to make sure that the amount of tokens actually transferred is the difference between ``total_deposit`` and the ``deposit`` at transaction time.
 
-    A participant or a delegate ``MUST`` be able to deposit more tokens into a channel, regardless of their partner's availability.
+    A ``participant`` or a delegate ``MUST`` be able to deposit more tokens into a channel, regardless of the ``partner``'s availability.
 
 .. _withdraw-channel:
 
 **Withdraw tokens from a channel**
 
-Allows a channel participant to withdraw tokens from a channel without closing it. Can be called by anyone. Can only be called once per each signed withdraw message.
+Allows a ``participant`` to withdraw tokens from a channel without closing it. Can be called by anyone. Can only be called once per each signed withdraw message.
 
 ::
 
@@ -473,15 +473,15 @@ Allows a channel participant to withdraw tokens from a channel without closing i
 - ``partner_signature``: Elliptic Curve 256k1 signature of the channel ``partner`` on the :term:`withdraw proof` data.
 
 .. Note::
-    A ``participant`` ``MUST NOT`` be able to withdraw tokens from the channel without their ``partner``'s signature.
-    A ``participant`` ``MUST NOT`` be able to withdraw more tokens than their available balance ``AB``, as defined in the :ref:`settlement algorithm <settlement-algorithm>`.
+    A ``participant`` ``MUST NOT`` be able to withdraw tokens from the channel without the ``partner``'s signature.
+    A ``participant`` ``MUST NOT`` be able to withdraw more tokens than the available channel balance ``AB``, as defined in the :ref:`settlement algorithm <settlement-algorithm>`.
     A ``participant`` ``MUST NOT`` be able to withdraw more tokens than the available channel deposit ``TAD``, as defined in the :ref:`settlement algorithm <settlement-algorithm>`.
 
 .. _close-channel:
 
 **Close a channel**
 
-Allows a channel participant to close the channel. The channel cannot be settled before the challenge period has ended.
+Allows a ``participant`` to close the channel. The channel cannot be settled before the challenge period has ended.
 
 ::
 
@@ -504,26 +504,26 @@ Allows a channel participant to close the channel. The channel cannot be settled
 - ``balance_hash``: Hash of the balance data ``keccak256(transferred_amount, locked_amount, locksroot)``
 - ``nonce``: Strictly monotonic value used to order transfers.
 - ``additional_hash``: Computed from the message. Used for message authentication.
-- ``transferred_amount``: The monotonically increasing counter of the partner's amount of tokens sent.
+- ``transferred_amount``: The monotonically increasing counter of the ``partner``'s amount of tokens sent.
 - ``locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers) contained in the merkle tree.
-- ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the partner.
-- ``signature``: Elliptic Curve 256k1 signature of the channel partner on the :term:`balance proof` data.
-- ``closing_participant``: Ethereum address of the channel participant who calls this contract function.
+- ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the ``partner``.
+- ``signature``: Elliptic Curve 256k1 signature of the channel ``partner`` on the :term:`balance proof` data.
+- ``closing_participant``: Ethereum address of the channel ``participant`` who calls this contract function.
 
 .. Note::
-    Only a participant may close the channel.
+    Only a ``participant`` may close the channel.
 
-    A participant ``MUST`` be able to set their partner's balance proof on-chain, in order to be used in the settlement algorithm.
+    A ``participant`` ``MUST`` be able to set the ``partner``'s balance proof on-chain, in order to be used in the settlement algorithm.
 
     Only a valid signed :term:`balance proof` from the channel ``partner`` ``MUST`` be accepted. This :term:`balance proof` sets the amount of tokens owed to the ``participant`` by the channel ``partner``.
 
-    A ``participant`` ``MUST`` be able to close a channel regardless of their ``partner``'s availability (online/offline status).
+    A ``participant`` ``MUST`` be able to close a channel regardless of the ``partner``'s availability (online/offline status).
 
 .. _update-channel:
 
 **Update non-closing participant balance proof**
 
-Called after a channel has been closed. Can be called by any Ethereum address and allows the non-closing participant to provide the latest :term:`balance proof` from the closing participant. This modifies the stored state for the closing participant.
+Called after a channel has been closed. Can be called by any Ethereum address and allows the ``non_closing_participant`` to provide the latest :term:`balance proof` from the ``closing_participant``. This modifies the stored state for the ``closing_participant``.
 
 ::
 
@@ -548,29 +548,29 @@ Called after a channel has been closed. Can be called by any Ethereum address an
     );
 
 - ``channel_identifier``: Channel identifier assigned by the current contract.
-- ``closing_participant``: Ethereum address of the channel participant who closed the channel.
-- ``non_closing_participant``: Ethereum address of the channel participant who is updating the balance proof data.
+- ``closing_participant``: Ethereum address of the ``participant`` who closed the channel.
+- ``non_closing_participant``: Ethereum address of the ``participant`` who is updating the balance proof data.
 - ``balance_hash``: Hash of the balance data
 - ``nonce``: Strictly monotonic value used to order transfers.
 - ``additional_hash``: Computed from the message. Used for message authentication.
-- ``closing_signature``: Elliptic Curve 256k1 signature of the closing participant on the :term:`balance proof` data.
-- ``non_closing_signature``: Elliptic Curve 256k1 signature of the non-closing participant on the :term:`balance proof` data.
-- ``closing_participant``: Ethereum address of the participant who closed the channel.
+- ``closing_signature``: Elliptic Curve 256k1 signature of the closing ``participant`` on the :term:`balance proof` data.
+- ``non_closing_signature``: Elliptic Curve 256k1 signature of the non-closing ``participant`` on the :term:`balance proof` data.
+- ``closing_participant``: Ethereum address of the ``participant`` who closed the channel.
 
 .. Note::
     Can be called by any Ethereum address due to the requirement of providing signatures from both channel participants.
 
-    The ``participant`` who did not close the channel ``MUST`` be able to send to the :term:`Token Network` contract their ``partner``'s :term:`balance proof`, in order to retrieve their tokens.
+    The ``participant`` who did not close the channel ``MUST`` be able to send to the :term:`Token Network` contract the ``partner``'s :term:`balance proof`, in order to retrieve their tokens.
 
-    Only a valid signed :term:`balance proof` from the channel's ``closing participant`` (the other channel participant) ``MUST`` be accepted. This :term:`balance proof` sets the amount of tokens owed to the ``non-closing participant`` by the ``closing participant``.
+    Only a valid signed :term:`balance proof` from the channel's ``closing participant`` (the ``partner``) ``MUST`` be accepted. This :term:`balance proof` sets the amount of tokens owed to the ``non_closing_participant`` by the ``closing_participant``.
 
-    Only a valid signed balance proof update message  ``MUST`` be accepted. This message is a confirmation from the ``non-closing participant`` that the contained :term:`balance proof` can be set on their behalf.
+    Only a valid signed balance proof update message  ``MUST`` be accepted. This message is a confirmation from the ``non_closing_participant`` that the contained :term:`balance proof` can be set on the ``non_closing_participant``'s behalf.
 
 .. _settle-channel:
 
 **Settle channel**
 
-Settles the channel by transferring the amount of tokens each participant is owed. We need to provide the entire balance state because we only store the balance data hash when closing the channel and updating the non-closing participant balance.
+Settles the channel by transferring the amount of tokens each ``participant`` is owed. We need to provide the entire balance state because we only store the balance data hash when closing the channel and updating the ``non_closing_participant`` balance.
 
 .. Note::
     For an explanation of how the settlement values are computed, please check :ref:`Protocol Values and Settlement Algorithm Analysis <settlement-algorithm>`
@@ -614,7 +614,7 @@ Settles the channel by transferring the amount of tokens each participant is owe
 
     We expect the ``cooperativeSettle`` function to be used as the go-to way to end a channel's life. However, this would require both Raiden nodes to be online at the same time. For cases where a Raiden node is not online, the uncooperative settle will be used (``closeChannel`` -> ``updateNonClosingBalanceProof`` -> ``settleChannel`` -> ``unlock``). This is why the ``settleChannel`` transaction ``MUST`` never fail from internal errors - tokens ``MUST`` not remain locked inside the contract without a way of retrieving them. ``settleChannel`` can only receive balance proof values that correspond to the stored ``balance_hash``. Therefore, any overflows or underflows (or other potential causes of failure ) ``MUST`` be handled graciously.
 
-    We currently enforce an ordering of the participant data based on the following rule: ``participant2_transferred_amount + participant2_locked_amount >= participant1_transferred_amount + participant1_locked_amount``. This is an artificial rule to help the settlement algorithm handle overflows and underflows easier, without failing the transaction. Therefore, calling ``settleChannel`` with wrong input arguments order must be the only case when the transaction can fail.
+    We currently enforce an ordering of the ``participant`` data based on the following rule: ``participant2_transferred_amount + participant2_locked_amount >= participant1_transferred_amount + participant1_locked_amount``. This is an artificial rule to help the settlement algorithm handle overflows and underflows easier, without failing the transaction. Therefore, calling ``settleChannel`` with wrong input arguments order must be the only case when the transaction can fail.
 
 .. _cooperative-settle-channel:
 
@@ -646,7 +646,7 @@ Allows the participants to cooperate and provide both of their balances and sign
 .. Note::
     Emits the ChannelSettled event.
 
-    A ``participant`` ``MUST NOT`` be able to cooperatively settle a channel without their ``partner``'s signature on the agreed upon balances.
+    A ``participant`` ``MUST NOT`` be able to cooperatively settle a channel without the ``partner``'s signature on the agreed upon balances.
 
     Can be called by a third party because both signatures are required.
 
@@ -688,7 +688,7 @@ Unlocks all pending transfers by providing the entire merkle tree of pending tra
 - ``returned_tokens``: The total amount of unlocked tokens that return to the ``partner`` because the secret was not revealed, therefore the mediating transfer did not occur.
 
 .. Note::
-    Anyone can unlock a transfer on behalf of a channel participant.
+    Anyone can unlock a transfer on behalf of a ``participant``.
     ``unlock`` must be called after ``settleChannel`` because it needs the ``locksroot`` from the latest :term:`balance proof` in order to guarantee that all locks have either been unlocked or have expired.
 
 
@@ -740,7 +740,7 @@ Channel Settlement
 Channel Settlement Window
 -------------------------
 
-The non-closing participant can update the closing participant's balance proof during the settlement window, by calling ``TokenNetwork.updateNonClosingBalanceProof``.
+The ``non_closing_participant`` can update the ``closing_participant``'s balance proof during the settlement window, by calling ``TokenNetwork.updateNonClosingBalanceProof``.
 
 .. image:: diagrams/RaidenSC_channel_update.png
     :alt: Channel Settlement Window Updating NonClosing BalanceProof
@@ -819,7 +819,7 @@ The sum of each transferred amount and the claimable amounts from the pending tr
 
     (5 R) AB1 = D1 - W1 + T2 - T1 - L1; AB1 >= 0, AB1 <= TAD
 
-The Raiden client ``MUST`` not allow a participant to transfer more tokens than they have available.
+The Raiden client ``MUST`` not allow the ``participant`` to transfer more tokens than available to that ``participant``.
 Enforced `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L1253/>`_, `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L960/>`_ and `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L923-L927/>`_. Note that withdrawing tokens is not currently implemented in the Raiden client.
 
 From this, we also have:
@@ -828,21 +828,21 @@ From this, we also have:
 
     (5.1 R) L1 <= AB1, L1 <= TAD, L1 >= 0
 
-A mediated transfer starts by locking tokens through the :ref:`locked transfer message <locked-transfer-message>`. A user cannot send more than their available balance. Enforced in the Raiden client `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L1195/>`_.
+A mediated transfer starts by locking tokens through the :ref:`locked transfer message <locked-transfer-message>`. A ``participant`` cannot send more than the ``participant``'s available balance. Enforced in the Raiden client `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L1195/>`_.
 
 This means that for ``P1``:
 
-- we need to calculate the netted transferred amounts for him: ``T2 - T1``
-- subtract any tokens that they have locked in pending transfers to ``P2``: ``-L1``
+- we need to calculate the netted transferred amounts for ``P1``: ``T2 - T1``
+- subtract any tokens that ``P1`` has locked in pending transfers to ``P2``: ``-L1``
 - do not take into consideration the pending transfers from ``P2``: ``L2``, because the token distribution will only be known at ``unlock`` time.
 
-Also, the amount that a participant can receive cannot be bigger than the total channel available deposit ``(9)``. Therefore, the available balance of a participant at any point in time cannot be bigger than the total available deposit of the channel ``ABI1 <= TAD``.
+Also, the amount that a ``participant`` can receive cannot be bigger than the total channel available deposit ``(9)``. Therefore, the available balance of a ``participant`` at any point in time cannot be bigger than the total available deposit of the channel ``ABI1 <= TAD``.
 
 ::
 
     (6 R) W1 <= D1 + T2 - T1 - L1
 
-``(6 R)`` is deduced from ``(5 R)``. It is needed by the Raiden client in order to not allow a participant to :ref:`withdraw <withdraw-channel>` more tokens from the on-chain channel deposit than they are entitled to.
+``(6 R)`` is deduced from ``(5 R)``. It is needed by the Raiden client in order to not allow a ``participant`` to :ref:`withdraw <withdraw-channel>` more tokens from the on-chain channel deposit than that ``participant`` is entitled to.
 
 Not implemented yet in the Raiden client.
 
@@ -850,7 +850,7 @@ Not implemented yet in the Raiden client.
 
     (7 R) -(D1 - W1) <= T2 + L2 - T1 - L1 <= D2 - W2
 
-``T2 + L2 - T1 - L1`` is the netted total transferred amount from ``P2`` to ``P1``. This amount cannot be bigger than ``P2``'s **available** deposit. We enforce that a participant cannot transfer more tokens than what they have in the channel, during the lifecycle of a channel.
+``T2 + L2 - T1 - L1`` is the netted total transferred amount from ``P2`` to ``P1``. This amount cannot be bigger than ``P2``'s **available** deposit. We enforce that a ``participant`` cannot transfer more tokens than what they have in the channel, during the lifecycle of a channel.
 This amount cannot be smaller than the negative value of ``P1``'s **available** deposit ``- (D1 - W1)``. This can also be deducted from the corresponding ``T1 + L1 - T2 - L2 <= D1 - W1``
 The Raiden client ``MUST`` ensure this. However, it must use up-to-date values for ``D2`` and ``W2`` (e.g. Raiden node might have sent an on-chain transaction to withdraw tokens; this is not mined yet, therefore it does not reflect in the contract yet. The Raiden client will use the off-chain ``W2`` value.)
 
@@ -870,7 +870,7 @@ The following must be true if both participants use a ``last valid BP`` for each
     (9) B2 = D2 - W2 + T1 - T2 + Lc1 - Lc2, B2 >= 0
     (10) B1 + B2 = TAD, where TAD = D1 + D2 - W1 - W2, TAD >= 0
 
-For each participant, we must calculate the netted transferred amounts and then the token amounts from pending transfers. Note that the pending transfer distribution can only be known at the time of calling :ref:`unlock <unlock-channel>`.
+For each ``participant``, we must calculate the netted transferred amounts and then the token amounts from pending transfers. Note that the pending transfer distribution can only be known at the time of calling :ref:`unlock <unlock-channel>`.
 
 The above is easy to calculate off-chain for the ``cooperativeSettle`` transaction, because the Raiden node has all the needed information.
 
@@ -914,7 +914,7 @@ The end results of respecting all these constraints while also ensuring fair bal
 Solidity Settlement Algorithm
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- ``TLmax1``: the maximum amount that ``P1`` might transfer to ``P2`` (if their pending transfers will all be claimed)
+- ``TLmax1``: the maximum amount that ``P1`` might transfer to ``P2`` (if ``P1``'s pending transfers will all be claimed)
 - ``RmaxP1``: the maximum receivable amount by ``P1`` at settlement time; this concept exists only for handling the overflows and underflows.
 
 ::
