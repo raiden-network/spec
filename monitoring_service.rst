@@ -50,7 +50,7 @@ They can decide to accept any balance proofs that are submitted to the chat room
 
 Once it does accept a BP it MUST provide monitoring for the associated channel at least until a newer BP is provided or the channel is settled. MS SHOULD continue to accept newer balance proofs for the same channel.
 
-Once a `ChannelClosed` or `TransferUpdated` event is seen the MS MUST verify that the channel’s balance matches the latest BP it accepted. If the balances do not match the MS MUST submit that BP to the channel’s `updateTransfer` method.
+Once a `ChannelClosed` or `NonClosingBalanceProofUpdated` event is seen the MS MUST verify that the channel’s balance matches the latest BP it accepted. If the balances do not match the MS MUST submit that BP to the channel’s `updateNonClosingBalanceProof` method.
 
 [TBD] There needs to be a selection mechanism which MS should act at what time (see below in “notes / observations”)
 
@@ -63,20 +63,19 @@ Fees/Rewards structure
 
 Monitoring servers compete to be the first to provide a balance proof update. This mechanism is simple to implement: MS will decide if the risk/reward ratio is worth it and submits an on-chain transaction.
 
-Fees have to be paid upfront. A smart contract governing the reward payout is required, and will probably add an additional logic to the NettingChannel contract code.
+Fees have to be paid upfront. A smart contract governing the reward payout is required, and will probably add an additional logic to the channel contract code.
 
 
 Proposed SC logic
 '''''''''''''''''
 
-1) Raiden node will transfer tokens used as a reward to the NettingChannelContract
+1) Raiden node will transfer tokens used as a reward to the channel smart contract.
 2) Whoever calls SC’s updateTransfer method MUST supply payout address as a parameter. This address is stored in the SC. updateTransfer MAY be called multiple times, but it will only accept BP newer than the previous one.
 3) When settling (calling contract suicide), the reward tokens will be sent to the payout address.
 
 Notes/observations
 ------------------
-The NettingChannelContract/Library as it is now doesn’t allow more than one updated BP to be submitted. 
-The contract also doesn’t check if the updated BP is newer than the already provided one
+
 How will raiden nodes specify/deposit the monitoring fee? How will it be collected?
 
 A scheme to prevent unnecessary simultaneous updates needs to exist. Options:
@@ -95,8 +94,8 @@ Monitoring service requires a synced Ethereum node with an enabled JSON-RPC inte
 
 Event filtering
 '''''''''''''''
-MS MUST filter events for each ``NettingChannelContract`` that belongs to submitted Balance Proofs.
-On ``ChannelClosed`` and ``TransferUpdated`` events state the channel was closed with MUST be compared with the Balance Proof. In case of any discrepancy, channel state must be updated immediately.
+MS MUST filter events for each onchain channel that corresponds to the submitted Balance Proofs.
+On ``ChannelClosed`` and ``NonClosingBalanceProofUpdated`` events state the channel was closed with MUST be compared with the Balance Proof. In case of any discrepancy, channel state must be updated immediately.
 On ``ChannelSettled`` event any state data for this channel MAY be deleted from the MS.
 
 REST interface
