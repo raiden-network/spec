@@ -46,7 +46,7 @@ The following data types are taken from the Raiden Core spec.
 
 *Balance_Proof*
 
-See :ref:`balance proof definition <balance-proof-message>`.
+See :ref:`offchain balance proof <balance-proof-offchain>`.
 
 
 *Lock*
@@ -70,17 +70,17 @@ Update the balance for the given channel with the provided :term:`balance proof`
 Arguments
 """""""""
 
-+----------------------+---------------+-------------------------------------------------------------------+
-| Field Name           | Field Type    |  Description                                                      |
-+======================+===============+===================================================================+
-| token_network_address| address       | The token network address for which the balance is updated.       |
-+----------------------+---------------+-------------------------------------------------------------------+
-| channel_id           | int           | The channel for which the balance proof should be updated.        |
-+----------------------+---------------+-------------------------------------------------------------------+
-| balance_proof        | BalanceProof  | The new balance proof which should be used for the given channel. |
-+----------------------+---------------+-------------------------------------------------------------------+
-| locks                | List[Lock]    | The list of all locks used to compute the locksroot.              |
-+----------------------+---------------+-------------------------------------------------------------------+
++----------------------+----------------------+-------------------------------------------------------------------+
+| Field Name           | Field Type           |  Description                                                      |
++======================+======================+===================================================================+
+| token_network_address| address              | The token network address for which the balance is updated.       |
++----------------------+----------------------+-------------------------------------------------------------------+
+| channel_id           | int                  | The channel for which the balance proof should be updated.        |
++----------------------+----------------------+-------------------------------------------------------------------+
+| balance_proof        | OffchainBalanceProof | The new balance proof which should be used for the given channel. |
++----------------------+----------------------+-------------------------------------------------------------------+
+| locks                | List[Lock]           | The list of all locks used to compute the locksroot.              |
++----------------------+----------------------+-------------------------------------------------------------------+
 
 Returns
 """""""

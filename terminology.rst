@@ -76,7 +76,7 @@ Raiden Terminology
    balance proof
    Participant Balance Proof
    BP
-       Signed data required by the :term:`Payment Channel` to prove the balance of one of the parties. See the :ref:`message definition <balance-proof-message>`.
+       Signed data required by the :term:`Payment Channel` to prove the balance of one of the parties. Different formats exist for offchain communication and onchain communication.  See the :ref:`onchain balance proof definition <balance-proof-onchain>` and :ref:`offchain balance proof definition <balance-proof-offchain>`.
 
    withdraw proof
    Participant Withdraw Proof

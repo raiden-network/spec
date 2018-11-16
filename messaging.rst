@@ -9,10 +9,14 @@ This is the specification document for the messages used in the Raiden protocol.
 Data Structures
 ===============
 
-Balance Proof
--------------
+.. _balance-proof-offchain:
+
+Offchain Balance Proof
+----------------------
 
 Data required by the smart contracts to update the payment channel end of the participant that signed the balance proof.
+Messages into smart contracts contain a shorter form called :ref:`Onchain Balance Proof <balance-proof-onchain>`.
+
 The signature must be valid and is defined as:
 
 ::
@@ -50,7 +54,7 @@ Fields
 Merkle Tree
 -----------
 
-A binary tree composed of the hash of the locks. The root of the tree is the value used in the :ref:`balance proofs <balance-proof-message>`. The tree is changed by the ``LockedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types.
+A binary tree composed of the hash of the locks. The root of the tree is the value used in the :term:`balance proof`. The tree is changed by the ``LockedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types.
 
 HashTimeLock
 ------------
@@ -103,11 +107,11 @@ Only valid if all the following hold:
 Fields
 ^^^^^^
 
-+----------------------+---------------+------------------------------------------------------------+
-| Field Name           | Field Type    |  Description                                               |
-+======================+===============+============================================================+
-|  balance_proof       | BalanceProof  | Balance proof for this transfer                            |
-+----------------------+---------------+------------------------------------------------------------+
++----------------------+----------------------+------------------------------------------------------------+
+| Field Name           | Field Type           |  Description                                               |
++======================+======================+============================================================+
+|  balance_proof       | OffchainBalanceProof | Balance proof for this transfer                            |
++----------------------+----------------------+------------------------------------------------------------+
 
 .. _locked-transfer-message:
 
@@ -133,17 +137,17 @@ Only valid if all the following hold:
 Fields
 ^^^^^^
 
-+----------------------+---------------+------------------------------------------------------------+
-| Field Name           | Field Type    |  Description                                               |
-+======================+===============+============================================================+
-|  lock                | HashTimeLock  | The lock for this locked transfer                          |
-+----------------------+---------------+------------------------------------------------------------+
-|  balance_proof       | BalanceProof  | Balance proof for this transfer                            |
-+----------------------+---------------+------------------------------------------------------------+
-|  initiator           | address       | Initiator of the transfer and person who knows the secret  |
-+----------------------+---------------+------------------------------------------------------------+
-|  target              | address       | Final target for this transfer                             |
-+----------------------+---------------+------------------------------------------------------------+
++----------------------+----------------------+------------------------------------------------------------+
+| Field Name           | Field Type           |  Description                                               |
++======================+======================+============================================================+
+|  lock                | HashTimeLock         | The lock for this locked transfer                          |
++----------------------+----------------------+------------------------------------------------------------+
+|  balance_proof       | OffchainBalanceProof | Balance proof for this transfer                            |
++----------------------+----------------------+------------------------------------------------------------+
+|  initiator           | address              | Initiator of the transfer and person who knows the secret  |
++----------------------+----------------------+------------------------------------------------------------+
+|  target              | address              | Final target for this transfer                             |
++----------------------+----------------------+------------------------------------------------------------+
 
 .. _secret-request-message:
 
@@ -207,15 +211,15 @@ Invariants
 Fields
 ^^^^^^
 
-+----------------------+---------------+------------------------------------------------------------+
-| Field Name           | Field Type    |  Description                                               |
-+======================+===============+============================================================+
-|  balance_proof       | BalanceProof  | Balance proof to update                                    |
-+----------------------+---------------+------------------------------------------------------------+
-|  lock_secret         | bytes32       | The secret that unlocked the lock                          |
-+----------------------+---------------+------------------------------------------------------------+
-|  signature           | bytes         | Elliptic Curve 256k1 signature                             |
-+----------------------+---------------+------------------------------------------------------------+
++----------------------+------------------------+------------------------------------------------------------+
+| Field Name           | Field Type             |  Description                                               |
++======================+========================+============================================================+
+|  balance_proof       | OffchainBalanceProof   | Balance proof to update                                    |
++----------------------+------------------------+------------------------------------------------------------+
+|  lock_secret         | bytes32                | The secret that unlocked the lock                          |
++----------------------+------------------------+------------------------------------------------------------+
+|  signature           | bytes                  | Elliptic Curve 256k1 signature                             |
++----------------------+------------------------+------------------------------------------------------------+
 
 
 Specification
