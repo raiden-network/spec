@@ -98,12 +98,15 @@ Example
         "balance_proof": {
             "nonce": 1234,
             "transferred_amount": 23,
+            "locked_amount": 0,
             "locksroot": "<keccak-hash>",
             "channel_id": 123,
-            "token_network_address": "0xtoken"],
+            "token_network_address": "0xtoken",
             "chain_id": 1,
             "additional_hash": "<keccak-hash>",
-            "signature": "<signature>"
+            "balance_hash": "<keccak-hash>",
+            "signature": "<signature>",
+            "message_type": "BalanceProof",
         },
         "locks": [
             {
