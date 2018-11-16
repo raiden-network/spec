@@ -54,7 +54,7 @@ Fields
 Merkle Tree
 -----------
 
-A binary tree composed of the hash of the locks. The root of the tree is the value used in the :ref:`onchain balance proofs <balance-proof-onchain>`. The tree is changed by the ``LockedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types.
+A binary tree composed of the hash of the locks. The root of the tree is the value used in the :term:`balance proof`. The tree is changed by the ``LockedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types.
 
 HashTimeLock
 ------------
