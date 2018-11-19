@@ -104,7 +104,7 @@ Raiden Terminology
        A node that mediates a transfer.
 
    Sender
-       The node that is sending a Message.
+       The node that is sending a Message.  The address of the sender can be inferred from the signature.
 
    Receiver
        The node that is receiving a Message.
