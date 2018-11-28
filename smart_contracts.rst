@@ -44,6 +44,7 @@ Project Requirements
 - There must not be a way for a single party to hold other user’s tokens hostage, therefore the system must hold in escrow any tokens that are deposited in a channel.
 - Losing funds as a penalty is not considered stealing, but must be clearly documented.
 - The system must support smart locks.
+- The system must expose the network graph. Clients have to collect events in order to derive the network graph.
 
 
 Data structures
@@ -250,11 +251,6 @@ Fields
 
 Project Specification
 =====================
-
-Expose the network graph
-------------------------
-
-Clients have to collect events in order to derive the network graph.
 
 Functional decomposition
 ------------------------
