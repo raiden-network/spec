@@ -14,22 +14,15 @@ Data Structures
 Offchain Balance Proof
 ----------------------
 
-Data required by the smart contracts to update the payment channel end of the participant that signed the balance proof.
-Messages into smart contracts contain a shorter form called :ref:`Onchain Balance Proof <balance-proof-onchain>`.
+An offchain balance proof is a set of fields of Raiden protocol messages. The fields contain enough information for producing an :ref:`Onchain Balance Proof <balance-proof-onchain>`, which is required by the smart contracts to update the payment channel regarding the state of the participant that signed the balance proof. The offchain balance contains more information for easier bookkeeping.
 
-The signature must be valid and is defined as:
 
-::
-
-    ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id))
-
-Fields
-^^^^^^
-
+Fields of the Offchain Balance Proof message
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 +--------------------------+------------+--------------------------------------------------------------------------------+
 | Field Name               | Field Type |  Description                                                                   |
 +==========================+============+================================================================================+
-|  nonce                   | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
+|  nonce                   | uint256    | Strictly monotonic value used to order balance proofs. The nonce starts at 1   |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  transferred_amount      | uint256    | Total transferred amount in the history of the channel (monotonic value)       |
 +--------------------------+------------+--------------------------------------------------------------------------------+
@@ -41,13 +34,22 @@ Fields
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  channel_identifier      | uint256    | Channel identifier inside the TokenNetwork contract                            |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-|  message_hash            | bytes32    | Hash of the message                                                            |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-|  signature               | bytes      | Elliptic Curve 256k1 signature on the above data                               |
+|  signature               | bytes      | Elliptic Curve 256k1 signature described below                                 |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  chain_id                | uint256    | Chain identifier as defined in EIP155                                          |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 
+
+Signature of Balance Proofs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The signature field in the offchain balance proof is exactly the same thing as the signature in the onchain balance proof.  The signature must be valid and is defined as:
+
+::
+
+    ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id))
+
+In the signature, ``additional_hash`` witnesses the integrity of the whole Raiden message that contains the balance proof.
 
 Merkle Tree
 -----------
