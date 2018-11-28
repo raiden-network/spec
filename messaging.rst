@@ -95,12 +95,12 @@ Invariants
 
 Only valid if all the following hold:
 
-- There is a channel which matches the given :term:`chain id`, :term:`token network` address, and :term:`channel identifier`.
-- The corresponding channel is in the open state.
+- There is an onchain channel which matches the given :term:`chain id`, :term:`token network` address, and :term:`channel identifier`.
+- The above mentioned channel is in the open state.
 - The :term:`transferred amount` is larger than the previous value and it increased by an amount smaller or equal to the participant's current :term:`capacity`.
-- The :term:`nonce` is increased by ``1`` in respect to the previous :term:`balance proof`
-- The :term:`locksroot` didn't change
-- The :term:`locked amount` didn't change
+- The :term:`nonce` is increased by ``1`` in respect to the previous :term:`balance proof` sent in the same direction.
+- The :term:`locksroot` didn't change from the previous balance proof.
+- The :term:`locked amount` didn't change from the previous balance proof.
 
 Fields
 ^^^^^^
