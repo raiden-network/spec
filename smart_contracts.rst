@@ -249,14 +249,11 @@ Fields
 |  participant2_signature| bytes      | Elliptic Curve 256k1 signature of participant2 on the message data             |
 +------------------------+------------+--------------------------------------------------------------------------------+
 
-Project Specification
-=====================
-
-Functional decomposition
-------------------------
+Smart Contract Functional Decomposition
+=======================================
 
 TokenNetworkRegistry Contract
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------
 
 Attributes:
 
@@ -286,7 +283,7 @@ Deploy a new ``TokenNetwork`` contract and add its address in the registry.
     It also provides the ``SecretRegistry`` contract address to the ``TokenNetwork`` constructor.
 
 TokenNetwork Contract
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 Provides the interface to interact with payment channels. The channels can only transfer the type of token that this contract defines through ``token_address``.
 
@@ -691,7 +688,7 @@ Unlocks all pending transfers by providing the entire merkle tree of pending tra
 
 
 SecretRegistry Contract
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 This contract will store the block height at which the secret was revealed in a mediating transfer.
 In collaboration with a monitoring service, it acts as a security measure, to allow all nodes participating in a mediating transfer to withdraw the transferred tokens even if some of the nodes might be offline.
@@ -718,7 +715,7 @@ Getters
 
 
 EndpointRegistry Contract
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 This contract is a registry which maps a Raiden node's Ethereum address to its endpoint ``host:port``. It is only used when starting the Raiden client with the UDP transport layer (the current default is the Matrix-based transport).
 For the UDP transport, the Raiden node must register its Ethereum address in this registry, so its endpoint can be found by other nodes in order to send the Raiden protocol messages.
