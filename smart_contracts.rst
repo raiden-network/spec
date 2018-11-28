@@ -51,11 +51,11 @@ Data structures
 
 .. Note::
     The signed message format used in the data structures below is of this format:
-    ``ecdsa_recoverable(privkey, keccak256(("\x19Ethereum Signed Message:\n" + message_length) || message))``
+    ``ecdsa_recoverable(privkey, keccak256("\x19Ethereum Signed Message:\n" || message_length || message))``
 
     Where:
 
-    - ``message_length``: Length of the actual message to be signed
+    - ``message_length``: Length of the actual message to be signed in decimal representation (not null-terminated).
     - ``message = token_network_address || chain_id || message_type_id || message_specific_data``
     - ``message_type_id`` has a different value depending on the type of message signed
 
