@@ -98,7 +98,8 @@ Fields
 +-----------------------+------------+---------------------------------------------------------------------------------------------+
 |  nonce                | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1                     |
 +-----------------------+------------+---------------------------------------------------------------------------------------------+
-|  additional_hash      | bytes32    | Hash of bigger contextual data: e.g.: the offchain message that contains the balance proof  |
+|  additional_hash      | bytes32    | Hash of the offchain message that contains the balance proof (possibly application-specific |
+|                       |            | metadata can be also hashed in here)                                                        |
 +-----------------------+------------+---------------------------------------------------------------------------------------------+
 |  signature            | bytes      | Elliptic Curve 256k1 signature on the above data                                            |
 +-----------------------+------------+---------------------------------------------------------------------------------------------+
@@ -153,7 +154,8 @@ Fields
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 |  nonce                | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1                    |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
-|  additional_hash      | bytes32    | Hash of bigger contextual data: e.g.: the offchain message that contains the balance proof |
+|  additional_hash      | bytes32    | Hash of the offchain message that contains the balance proof (possibly application-specific|
+|                       |            | metadata can be also hashed in here)                                                       |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 |  closing_signature    | bytes      | Elliptic Curve 256k1 balance proof signature from the closing participant                  |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
