@@ -556,7 +556,7 @@ Called after a channel has been closed. Can be called by any Ethereum address an
 - ``non_closing_participant``: Ethereum address of the channel participant who is updating the balance proof data.
 - ``balance_hash``: Hash of the balance data
 - ``nonce``: Strictly monotonic value used to order transfers.
-- ``additional_hash``: Computed from the offchain message. Used for message authentication.
+- ``additional_hash``: Computed from the offchain message. Used for message authentication. Potentially useful for hashing in other application-specific metadata.
 - ``closing_signature``: Elliptic Curve 256k1 signature of the closing participant on the :term:`balance proof` data.
 - ``non_closing_signature``: Elliptic Curve 256k1 signature of the non-closing participant on the :term:`balance proof` data.
 - ``closing_participant``: Ethereum address of the participant who closed the channel.
