@@ -751,8 +751,10 @@ Finds the endpoint if given a registered Ethereum address.
 - ``eth_address``: The Raiden node's 20 byte Ethereum address.
 
 
-Protocol Overview
-=================
+TokenNetwork Channel Protocol Overview
+======================================
+
+This section contains a few flowcharts describing the token network channel lifecycle.
 
 Opened Channel Lifecycle
 ------------------------
