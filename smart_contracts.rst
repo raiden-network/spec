@@ -22,7 +22,7 @@ Secure
 Privacy
 -------
 
-- A participant payment pattern in time ``MUST NOT`` be public on-chain (smart contracts only know about the final balance proofs, not all the intermediary ones).
+- A participant's payment pattern in time ``MUST NOT`` be public on-chain (smart contracts only know about the final balance proofs, not all the intermediary ones).
 - Participant addresses can be public.
 - The final transferred amounts of the two participants can be public.
 - The channel deposit can be public.
