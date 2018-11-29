@@ -22,7 +22,7 @@ Secure
 Privacy
 -------
 
-- A participant payment pattern in time ``MUST NOT`` be public on-chain (smart contracts only know about the final balance proofs, not all the intermediary ones).
+- A participant's payment pattern in time ``MUST NOT`` be public on-chain (smart contracts only know about the final balance proofs, not all the intermediary ones).
 - Participant addresses can be public.
 - The final transferred amounts of the two participants can be public.
 - The channel deposit can be public.
@@ -51,11 +51,11 @@ Data structures
 
 .. Note::
     The signed message format used in the data structures below is of this format:
-    ``ecdsa_recoverable(privkey, keccak256(("\x19Ethereum Signed Message:\n" + message_length) || message))``
+    ``ecdsa_recoverable(privkey, keccak256("\x19Ethereum Signed Message:\n" || message_length || message))``
 
     Where:
 
-    - ``message_length``: Length of the actual message to be signed
+    - ``message_length``: Length of the actual message to be signed in decimal representation (not null-terminated).
     - ``message = token_network_address || chain_id || message_type_id || message_specific_data``
     - ``message_type_id`` has a different value depending on the type of message signed
 
