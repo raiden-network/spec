@@ -49,7 +49,7 @@ The signature field in the offchain balance proof is exactly the same thing as t
 
     ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id))
 
-In the signature, ``additional_hash`` witnesses the integrity of the whole Raiden message that contains the balance proof.
+In the signature, :term:`additional_hash` witnesses the integrity of the whole Raiden message that contains the balance proof.
 
 Merkle Tree
 -----------

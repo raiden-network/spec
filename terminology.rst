@@ -172,7 +172,7 @@ Raiden Terminology
 
    Additional Hash
    additional_hash
-       Hash of additional data used on the application layer. This can for example be some form of payment metadata. The Raiden Network protocol does not use or enforce the type or content of this additional data.
+       Hash of additional data used on the Raiden protocol (and potentially in the future also the application layer). Currently this is the hash of the offchain message that contains the balance proof. In the future, for example, some form of payment metadata can be hashed in.
 
    Payment Receipt
        TBD
