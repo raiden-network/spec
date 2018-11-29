@@ -44,6 +44,7 @@ Project Requirements
 - There must not be a way for a single party to hold other user’s tokens hostage, therefore the system must hold in escrow any tokens that are deposited in a channel.
 - Losing funds as a penalty is not considered stealing, but must be clearly documented.
 - The system must support smart locks.
+- The system must expose the network graph. Clients have to collect events in order to derive the network graph.
 
 
 Data structures
@@ -250,19 +251,11 @@ Fields
 |  participant2_signature| bytes      | Elliptic Curve 256k1 signature of participant2 on the message data             |
 +------------------------+------------+--------------------------------------------------------------------------------+
 
-Project Specification
-=====================
-
-Expose the network graph
-------------------------
-
-Clients have to collect events in order to derive the network graph.
-
-Functional decomposition
-------------------------
+Smart Contract Functional Decomposition
+=======================================
 
 TokenNetworkRegistry Contract
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------
 
 Attributes:
 
@@ -292,7 +285,7 @@ Deploy a new ``TokenNetwork`` contract and add its address in the registry.
     It also provides the ``SecretRegistry`` contract address to the ``TokenNetwork`` constructor.
 
 TokenNetwork Contract
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 Provides the interface to interact with payment channels. The channels can only transfer the type of token that this contract defines through ``token_address``.
 
@@ -697,7 +690,7 @@ Unlocks all pending transfers by providing the entire merkle tree of pending tra
 
 
 SecretRegistry Contract
-^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------
 
 This contract will store the block height at which the secret was revealed in a mediating transfer.
 In collaboration with a monitoring service, it acts as a security measure, to allow all nodes participating in a mediating transfer to withdraw the transferred tokens even if some of the nodes might be offline.
@@ -724,7 +717,7 @@ Getters
 
 
 EndpointRegistry Contract
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 This contract is a registry which maps a Raiden node's Ethereum address to its endpoint ``host:port``. It is only used when starting the Raiden client with the UDP transport layer (the current default is the Matrix-based transport).
 For the UDP transport, the Raiden node must register its Ethereum address in this registry, so its endpoint can be found by other nodes in order to send the Raiden protocol messages.
