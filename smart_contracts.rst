@@ -130,7 +130,7 @@ Balance Proof Update
     ecdsa_recoverable(privkey, sha3_keccak("\x19Ethereum Signed Message:\n277" || token_network_address || chain_id || message_type_id || channel_identifier || balance_hash || nonce || additional_hash || closing_signature))
 
 
-- ``closing_signature`` is the closing participant's signature on the :ref:`balance proof message <balance-proof-onchain>`
+- ``closing_signature`` is the closing participant's signature on the :ref:`balance proof <balance-proof-onchain>`
 
 
 Fields
@@ -163,12 +163,12 @@ Fields
 |  signature            | bytes      | Elliptic Curve 256k1 signature on the above data from the non-closing participant          |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 
-.. _withdraw-proof-message:
+.. _withdraw-proof:
 
 Withdraw Proof
 --------------
 
-Data required by the smart contracts to allow a user to withdraw funds from a channel without closing it. It contains the withdraw message data and signatures from both participants on the withdraw message.
+Data required by the smart contracts to allow a user to withdraw funds from a channel without closing it. It contains the withdraw proof which is signed by both participants.
 
 Signatures must be valid and are defined as:
 
@@ -208,12 +208,12 @@ Fields
 |  partner_signature     | bytes      | Elliptic Curve 256k1 signature of the partner on the withdraw data              |
 +------------------------+------------+---------------------------------------------------------------------------------+
 
-.. _cooperative-settle-proof-message:
+.. _cooperative-settle-proof:
 
 Cooperative Settle Proof
 ------------------------
 
-Data required by the smart contracts to allow the two channel participants to close and settle the channel instantly, in one transaction. It contains the cooperative settle message data and signatures from both participants on the cooperative settle message.
+Data required by the smart contracts to allow the two channel participants to close and settle the channel instantly, in one transaction. It contains the cooperative settle proof which is signed by both participants.
 Signatures must be valid and are defined as:
 
 ::
@@ -442,7 +442,7 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 
 **Withdraw tokens from a channel**
 
-Allows a channel participant to withdraw tokens from a channel without closing it. Can be called by anyone. Can only be called once per each signed withdraw message.
+Allows a channel participant to withdraw tokens from a channel without closing it. Can be called by anyone. Can only be called once per each signed withdraw proof.
 
 ::
 
@@ -562,7 +562,7 @@ Called after a channel has been closed. Can be called by any Ethereum address an
 
     Only a valid signed :term:`balance proof` from the channel's ``closing participant`` (the other channel participant) ``MUST`` be accepted. This :term:`balance proof` sets the amount of tokens owed to the ``non-closing participant`` by the ``closing participant``.
 
-    Only a valid signed `balance proof update`__ message  ``MUST`` be accepted. This message is a confirmation from the ``non-closing participant`` that the contained :term:`balance proof` can be set on his behalf.
+    Only a valid signed `balance proof update`__  ``MUST`` be accepted. This update is a confirmation from the ``non-closing participant`` that the contained :term:`balance proof` can be set on his behalf.
 
     __ balance-proof-update-onchain_
 
