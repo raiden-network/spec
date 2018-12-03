@@ -827,9 +827,9 @@ Protocol Values Constraints
 
 ::
 
-    (1 TN) Dk <= Dt, time k < time t
-    (2 TN) Wk <= Wt, time k < time t
-    (3 R) Tk <= Tt, time k < time t
+    (1 TN) Dk <= Dt, if time k < time t
+    (2 TN) Wk <= Wt, if time k < time t
+    (3 R) Tk <= Tt, if time k < time t
 
 Channel deposits, channel withdraws, off-chain transferred amounts are all monotonically increasing.
 The ``TokenNetwork`` contract must enforce this for deposits (`code here <https://github.com/raiden-network/raiden-contracts/blob/fc1c79329a165c738fc55c3505cf801cc79872e4/raiden_contracts/contracts/TokenNetwork.sol#L306-L308/>`_) and withdraws (`code here <https://github.com/raiden-network/raiden-contracts/blob/fc1c79329a165c738fc55c3505cf801cc79872e4/raiden_contracts/contracts/TokenNetwork.sol#L394-L399/>`_).
@@ -837,7 +837,7 @@ The Raiden client must enforce this for the off-chain transferred amounts, conta
 
 ::
 
-    (4 R) Tk + Lck <= Tt + Lct, time k < time t
+    (4 R) Tk + Lck <= Tt + Lct, if time k < time t
 
 The sum of each transferred amount and the claimable amounts from the pending transfers ``MUST`` also be monotonically increasing over time. The claimable amounts ``Lc`` correspond to pending locked transfers that have a secret revealed on-chain.
 
