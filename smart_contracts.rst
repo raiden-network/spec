@@ -927,8 +927,8 @@ For the ideal case (both balance proofs are `valid last`), we could compute the 
 
 ::
 
-    S1 = D1 - W1 + T2 - T1
-    S2 = D2 - W2 + T1 - T2
+    S1 = D1 - W1 + T2 - T1 - L1
+    S2 = D2 - W2 + T1 - T2 - L2
 
     SL1 = L1
     SL2 = L2
@@ -941,7 +941,7 @@ Settlement Algorithm - Solidity Implementation
 
 The problem is that, in Solidity, we need to handle overflows and underflows gracefully, making sure that no tokens are lost in the process.
 
-For example:  ``S1 = D1 - W1 + T2 - T1`` cannot be computed in this order. ``D1 - W1`` can result in an underflow, because ``D1`` can be smaller than ``W1``.
+For example:  ``S1 = D1 - W1 + T2 - T1 - L1`` cannot be computed in this order. ``D1 - W1`` can result in an underflow, because ``D1`` can be smaller than ``W1``.
 
 The end results of respecting all these constraints while also ensuring fair balances, are:
 
