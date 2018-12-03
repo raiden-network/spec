@@ -80,7 +80,7 @@ Raiden Terminology
 
    withdraw proof
    Participant Withdraw Proof
-       Signed data required by the :term:`Payment Channel` to allow a participant to withdraw tokens. See the :ref:`message definition <withdraw-proof-message>`.
+       Signed data required by the :term:`Payment Channel` to allow a participant to withdraw tokens. See the :ref:`message definition <withdraw-proof>`.
 
    cooperative settle proof
        Signed data required by the :term:`Payment Channel` to allow :term:`Participants` to close and settle a :term:`Payment Channel` without undergoing through the :term:`Settlement Window`. See the :ref:`message definition <cooperative-settle-proof-message>`.

@@ -130,7 +130,7 @@ Balance Proof Update
     ecdsa_recoverable(privkey, sha3_keccak("\x19Ethereum Signed Message:\n277" || token_network_address || chain_id || message_type_id || channel_identifier || balance_hash || nonce || additional_hash || closing_signature))
 
 
-- ``closing_signature`` is the closing participant's signature on the :ref:`balance proof message <balance-proof-onchain>`
+- ``closing_signature`` is the closing participant's signature on the :ref:`balance proof <balance-proof-onchain>`
 
 
 Fields
@@ -163,12 +163,12 @@ Fields
 |  signature            | bytes      | Elliptic Curve 256k1 signature on the above data from the non-closing participant          |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 
-.. _withdraw-proof-message:
+.. _withdraw-proof:
 
 Withdraw Proof
 --------------
 
-Data required by the smart contracts to allow a user to withdraw funds from a channel without closing it. It contains the withdraw message data and signatures from both participants on the withdraw message.
+Data required by the smart contracts to allow a user to withdraw funds from a channel without closing it. It contains the withdraw proof which is signed by both participants.
 
 Signatures must be valid and are defined as:
 
@@ -442,7 +442,7 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 
 **Withdraw tokens from a channel**
 
-Allows a channel participant to withdraw tokens from a channel without closing it. Can be called by anyone. Can only be called once per each signed withdraw message.
+Allows a channel participant to withdraw tokens from a channel without closing it. Can be called by anyone. Can only be called once per each signed withdraw proof.
 
 ::
 
