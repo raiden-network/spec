@@ -915,6 +915,7 @@ Uncooperative Settlement Algorithm - Protocol
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For the uncooperative settle protocol, there are also some additional contraints:
+
 - ``settleChannel`` must never fail (see :ref:`settleChannel noted <settle-channel>`)
 - ``settleChannel`` must calculate correctly the amount of tokens transferred to the participants at settlement time and the amount of tokens remaining in the contract for a later ``unlock``, even if the ``TokenNetwork`` smart contract has no way of knowing the pending transfers distribution at this time (``Lc1, Lu1, Lc2, Lu2``)
 - the ``settleChannel`` transaction ``MUST`` be able to handle ``valid old`` balance proofs in a way that participants cannot be cheatead if their partner uses such a balance proof.
