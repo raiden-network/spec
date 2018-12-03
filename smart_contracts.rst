@@ -499,11 +499,12 @@ Allows a channel participant to close the channel. The channel cannot be settled
 - ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``partner``: Channel partner of the participant who calls the function.
 - ``balance_hash``: Hash of the balance data ``keccak256(transferred_amount, locked_amount, locksroot)``
+
+    - ``transferred_amount``: The monotonically increasing counter of the partner's amount of tokens sent.
+    - ``locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers) contained in the merkle tree.
+    - ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the partner.
 - ``nonce``: Strictly monotonic value used to order transfers.
 - ``additional_hash``: Computed from the message. Used for message authentication.
-- ``transferred_amount``: The monotonically increasing counter of the partner's amount of tokens sent.
-- ``locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers) contained in the merkle tree.
-- ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the partner.
 - ``signature``: Elliptic Curve 256k1 signature of the channel partner on the :term:`balance proof` data.
 - ``closing_participant``: Ethereum address of the channel participant who calls this contract function.
 
