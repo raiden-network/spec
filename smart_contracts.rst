@@ -208,12 +208,12 @@ Fields
 |  partner_signature     | bytes      | Elliptic Curve 256k1 signature of the partner on the withdraw data              |
 +------------------------+------------+---------------------------------------------------------------------------------+
 
-.. _cooperative-settle-proof-message:
+.. _cooperative-settle-proof:
 
 Cooperative Settle Proof
 ------------------------
 
-Data required by the smart contracts to allow the two channel participants to close and settle the channel instantly, in one transaction. It contains the cooperative settle message data and signatures from both participants on the cooperative settle message.
+Data required by the smart contracts to allow the two channel participants to close and settle the channel instantly, in one transaction. It contains the cooperative settle proof which is signed by both participants.
 Signatures must be valid and are defined as:
 
 ::
