@@ -863,7 +863,7 @@ From this, we also have:
 
 ::
 
-    (5.1 R) L1 <= AB1, L1 <= TAD, L1 >= 0
+    (5.1 R) L1 <= TAD, L1 >= 0
 
 A mediated transfer starts by locking tokens through the :ref:`locked transfer message <locked-transfer-message>`. A user cannot send more than his available balance. Enforced in the Raiden client `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L1195/>`_.
 
