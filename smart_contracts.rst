@@ -973,7 +973,7 @@ Raiden Client Additional Constraints
 
 ::
 
-    (10 R) T1 + L1 < 2^256 ; T2 + L2 < 2^256
+    (11 R) T1 + L1 < 2^256 ; T2 + L2 < 2^256
 
 This ensures that calculating ``RmaxP1`` does not overflow on ``T2 + L2`` and ``T1 + L1``.
 Enforced `here <https://github.com/raiden-network/raiden/blob/71ebf0af650111b3e17de7ee95ad99e8eabc9ecf/raiden/transfer/channel.py#L962-L965/>`_.
@@ -991,7 +991,7 @@ Solidity Settlement Algorithm - Explained
     TLmax2 = T2 + L2
     RmaxP1 = TLmax2 - TLmax1 + D1 - W1
 
-- ``(10 R)`` solves overflows for ``TLmax1`` and ``TLmax2``
+- ``(11 R)`` solves overflows for ``TLmax1`` and ``TLmax2``
 - ``TLmax2 - TLmax1`` underflow is solved by setting an order on the input arrguments that :ref:`settleChannel <settle-channel>` receives. The order in which ``RmaxP1`` and ``RmaxP2`` is computed does not affect the result of the calculation for valid balance proofs.
 - ``(7 R)`` solves the ``+ D1`` overflow: ``T2 + L2 - T1 - L1 <= D2 - W2`` --> ``T2 + L2 - T1 - L1 + D1 <= D1 + D2 - W2``. ``D1 + D2 < 2^256`` is enforced by the ``TokenNetwork`` contract here: https://github.com/raiden-network/raiden-contracts/blob/d4acfdc1e77e477b42c20e6b4b8e721e765eae78/raiden_contracts/contracts/TokenNetwork.sol#L308-L311
 - ``(6 R)`` solves the ``- W1`` underflow
