@@ -231,6 +231,7 @@ Transfers
 The protocol supports two types of transfers, direct and mediated. A :term:`Direct transfer` is non cancellable and unexpirable, while a :term:`Mediated transfer` may be cancelled and can expire.
 
 A mediated transfer is done in two stages, possibly on a series of channels:
+
 - Reserve token :term:`capacity` for a given payment, using a :ref:`locked transfer message <locked-transfer-message>`.
 - Use the reserved token amount to complete payments, using the :ref:`unlock message <unlock-message>`
 
