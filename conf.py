@@ -20,7 +20,6 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Raiden Specification'
-copyright = '2018, Brainbot'
 author = 'Brainbot'
 
 # The short X.Y version
@@ -96,6 +95,8 @@ html_static_path = ['_static']
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+
+html_show_copyright = False
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
