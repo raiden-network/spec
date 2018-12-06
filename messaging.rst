@@ -265,13 +265,14 @@ Mediated Transfer
 
 A :term:`Mediated Transfer` is a hash-time-locked transfer. Currently raiden supports only one type of lock. The lock has an amount that is being transferred, a :term:`secrethash` used to verify the secret that unlocks it, and a :term:`lock expiration` to determine its validity.
 
-Mediated transfers have an :term:`initiator` and a :term:`target` and a number of hops in between. The number of hops can also be zero as these transfers can also be sent to a direct partner. Assuming ``N`` number of hops a mediated transfer will require ``6N + 10`` messages to complete. These are:
+Mediated transfers have an :term:`initiator` and a :term:`target` and a number of hops in between. The number of hops can also be zero as these transfers can also be sent to a direct partner. Assuming ``N`` number of hops a mediated transfer will require ``10N + 14`` messages to complete. These are:
 
 - ``N + 1`` mediated or refund messages
 - ``1`` secret request
 - ``N + 2`` secret reveal
-- ``N + 1`` secret
-- ``3N + 5`` ACK
+- ``N + 1`` unlock
+- ``2N + 2`` processed (for mediated or refund messages, and unlock messages)
+- ``5N + 7`` delivered
 
 For the simplest Alice - Bob example:
 
@@ -287,7 +288,7 @@ For the simplest Alice - Bob example:
 - Alice sends the ``RevealSecret`` to Bob and at this point she must assume the transfer is complete.
 - Bob receives the secret and at this point has effectively secured the transfer of ``n`` tokens to his side.
 - Bob sends a ``RevealSecret`` message back to Alice to inform her that the secret is known and acts as a request for off-chain synchronization.
-- Finally Alice sends a ``Secret`` message to Bob. This acts also as a synchronization message informing Bob that the lock will be removed from the merkle tree and that the transferred_amount and locksroot values are updated.
+- Finally Alice sends an ``Unlock`` message to Bob. This acts also as a synchronization message informing Bob that the lock will be removed from the merkle tree and that the transferred_amount and locksroot values are updated.
 
 **Mediated Transfer - Best Case Scenario**
 
