@@ -5,7 +5,7 @@ Raiden Network Monitoring Service
 Basic requirements for the MS
 =============================
 * Good enough uptime (a third party service to monitor the servers can be used to provide statistics)
-* Sybil Attack resistance (i.e. no one should be able announce an unlimited number of (faulty) services)
+* Sybil Attack resistance (i.e. no one should be able to announce an unlimited number of (faulty) services)
 * Some degree of redundancy (ability to register balance proof with multiple competing monitoring services)
 * A stable and fast ethereum node connection (channel update transactions should be propagated ASAP as there is competition among the monitoring services)
 * If MS registry is used, a deposit will be required for registration
@@ -101,7 +101,7 @@ On ``ChannelSettled`` event any state data for this channel MAY be deleted from 
 REST interface
 --------------
 The monitoring service MAY expose some of the functionality over RESTful API.
-Therre might be API endpoints that SHOULD be protected from public access (i.e. using some form of authentication).
+There might be API endpoints that SHOULD be protected from public access (i.e. using some form of authentication).
 
 Endpoints
 '''''''''
