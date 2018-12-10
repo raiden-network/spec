@@ -34,9 +34,6 @@ Raiden Terminology
    Transfer
        A movement of tokens from a :term:`Sender` to a :term:`Receiver`.
 
-   Direct Transfer
-       A non-refundable non-cancellable off-chain Payment done with a single Transfer.
-
    Token Swaps
        Exchange of one token for another.
 

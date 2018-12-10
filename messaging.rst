@@ -85,34 +85,6 @@ Fields
 Messages
 ========
 
-.. _direct-transfer-message:
-
-Direct Transfer
----------------
-
-A non cancellable, non expirable payment.
-
-Invariants
-^^^^^^^^^^
-
-Only valid if all the following hold:
-
-- There is a channel which matches the given :term:`chain id`, :term:`token network` address, and :term:`channel identifier`.
-- The corresponding channel is in the open state.
-- The :term:`transferred amount` is larger than the previous value and it increased by an amount smaller or equal to the participant's current :term:`capacity`.
-- The :term:`nonce` is increased by ``1`` in respect to the previous :term:`balance proof`
-- The :term:`locksroot` didn't change
-- The :term:`locked amount` didn't change
-
-Fields
-^^^^^^
-
-+----------------------+----------------------+------------------------------------------------------------+
-| Field Name           | Field Type           |  Description                                               |
-+======================+======================+============================================================+
-|  balance_proof       | OffchainBalanceProof | Balance proof for this transfer                            |
-+----------------------+----------------------+------------------------------------------------------------+
-
 .. _locked-transfer-message:
 
 Locked Transfer
@@ -230,7 +202,7 @@ The encoding used by the transport layer is independent of this specification, a
 Transfers
 ---------
 
-The protocol supports two types of transfers, direct and mediated. A :term:`Direct transfer` is non cancellable and unexpirable, while a :term:`Mediated transfer` may be cancelled and can expire.
+The protocol supports mediated transfers. A :term:`Mediated transfer` may be cancelled and can expire unless the initiator reveals the secret.
 
 A mediated transfer is done in two stages, possibly on a series of channels:
 
@@ -240,25 +212,7 @@ A mediated transfer is done in two stages, possibly on a series of channels:
 Message Flow
 ------------
 
-Nodes may use direct or mediated transfers to send payments.
-
-Direct Transfer
-^^^^^^^^^^^^^^^
-
-A ``DirectTransfer`` does not rely on locks to complete. It is automatically completed once the network packet is sent off. Since Raiden runs on top of an asynchronous network that can not guarantee delivery, transfers can not be completed atomically. The main points to consider about direct transfers are the following:
-
-- The messages are not locked, meaning the envelope :term:`transferred amount` is incremented and the message may be used to withdraw the token. This means that a :term:`sender` is unconditionally transferring the token, regardless of getting a service or not. Trust is assumed among the :term:`sender`/:term:`receiver` to complete the goods transaction.
-
-- The sender must assume the transfer is completed once the message is sent to the network, there is no workaround. The acknowledgement in this case is only used as a synchronization primitive, the payer will only know about the transfer once the message is received.
-
-A succesfull direct transfer involves only 2 messages. The direct transfer message and an ``ACK``. For an Alice - Bob example:
-
-* Alice wants to transfer ``n`` tokens to Bob.
-* Alice creates a new transfer with.
-    - transferred_amount = ``current_value + n``
-    - ``locksroot`` = ``current_locksroot_value``
-    - nonce = ``current_value + 1``
-* Alice signs the transfer and sends it to Bob and at this point should consider the transfer complete.
+Nodes may use mediated transfers to send payments.
 
 Mediated Transfer
 ^^^^^^^^^^^^^^^^^
