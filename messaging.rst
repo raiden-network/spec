@@ -171,13 +171,15 @@ Unlock
 
 .. Note:: At the current (15/02/2018) Raiden implementation as of commit ``cccfa572298aac8b14897ee9677e88b2b55c9a29`` this message is known in the codebase as ``Secret``.
 
-Non cancellable, Non expirable. Updated :term:`balance proof`, increases the :term:`transferred amount` and removes the unlocked lock from the merkle tree.
+Non cancellable, Non expirable.
 
 Invariants
 ^^^^^^^^^^
 
 - The :term:`balance proof` merkle tree must have the corresponding lock removed (and only this lock).
 - This message is only sent after the corresponding partner has sent a :ref:`Secret Reveal message <secret-reveal-message>`.
+- The :term:`nonce` is increased by ``1`` with respect to the previous :term:`balance proof`
+- The :term:`locked amount` must decrease and the :term:`transferred amount` must increase by the amount held in the unlocked lock.
 
 
 Fields
