@@ -847,7 +847,7 @@ The sum of each transferred amount and the claimable amounts from the pending tr
 .. Note::
     Any two consecutive balance proofs for ``P1``, named ``BP1k`` and ``BP1t`` were ``time k < time t``,  must respect the following constraints:
 
-    1. A :term:`Direct Transfer` or a succesfull :term:`HTL Transfer` with ``value`` tokens was finalized, therefore ``T1t == T1k + value`` and ``L1t == L1k``.
+    1. A succesfull :term:`HTL Transfer` with ``value`` tokens was finalized, therefore ``T1t == T1k + value`` and ``L1t == L1k``.
     2. A :ref:`locked transfer message <locked-transfer-message>` with ``value`` was sent, part of a :term:`HTL Transfer`, therefore ``T1t == T1k`` and ``L1t == L1k + value``.
     3. A :term:`HTL Unlock` for a previous ``value`` was finalized, therefore ``T1t == T1k + value`` and ``L1t == L1k - value``.
     4. A :term:`lock expiration` message for a previous ``value`` was done, therefore ``T1t == T1k`` and ``L1t == L1k - value``.
