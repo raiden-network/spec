@@ -442,6 +442,9 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 
 **Withdraw tokens from a channel**
 
+.. Warning::
+    ``setTotalWithdraw`` function is currently commented out and is not available.
+
 Allows a channel participant to withdraw tokens from a channel without closing it. Can be called by anyone. Can only be called once per each signed withdraw proof.
 
 ::
@@ -619,6 +622,9 @@ Settles the channel by transferring the amount of tokens each participant is owe
 .. _cooperative-settle-channel:
 
 **Cooperatively close and settle a channel**
+
+.. Warning::
+    ``cooperativeSettle`` function is currently commented out and is not available.
 
 Allows the participants to cooperate and provide both of their balances and signatures. This closes and settles the channel immediately, without triggering a challenge period.
 
