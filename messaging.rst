@@ -54,7 +54,9 @@ Fields
 Merkle Tree
 -----------
 
-A binary tree composed of the hash of the locks. The root of the tree is the value used in the :term:`balance proof`. The tree is changed by the ``LockedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types.
+A binary tree composed of the hash of the locks. For each payment channel, each participant keeps track of two Merkle trees: one for the hashlocks that have been sent out to the partner, and the other for the hashlocks that have been received from the partner. Conceptually, each direction of a payment channel has one Merkle tree, and each participant has a copy of it. Only the sender of the hashlocks can change the Merkle tree of this direction.
+
+The root of the tree is the value used in the :term:`balance proof`. The tree is changed by the ``LockedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types. The sender of these messages applies the change to its copy of the tree and computes the root hash of the new tree. The receiver applies the same change to its copy of the tree and checks the root hash of the new tree against the root hash in the messages.
 
 HashTimeLock
 ------------
