@@ -23,6 +23,8 @@ The signature must be valid and is defined as:
 
     ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id))
 
+Also see :term:`additional_hash`.
+
 Fields
 ^^^^^^
 
