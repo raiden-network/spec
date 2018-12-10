@@ -138,12 +138,24 @@ Invariants
 Fields
 ^^^^^^
 
+This should match `the encoding implementation <https://github.com/raiden-network/raiden/blob/16384b555b63c69aef8c2a575afc7a67610eb2bc/raiden/encoding/messages.py#L99>`_.
+
 +----------------------+---------------+------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                               |
 +======================+===============+============================================================+
-|  payment_amount      | uint256       | The amount received by the node once secret is revealed    |
+|  cmdid               | one byte      | Value 3 (indicating ``Secret Request``)                    |
++----------------------+---------------+------------------------------------------------------------+
+|  pad                 | three bytes   | Ignored                                                    |
++----------------------+---------------+------------------------------------------------------------+
+|  message identifier  | uint64        | An identifier used in ``Delivered`` acknowledgments        |
++----------------------+---------------+------------------------------------------------------------+
+|  payment_identifier  | uint64        | An identifier for the payment chosen by the initiator      |
 +----------------------+---------------+------------------------------------------------------------+
 |  lock_secrethash     | bytes32       | Specifies which lock is being unlocked                     |
++----------------------+---------------+------------------------------------------------------------+
+|  payment_amount      | uint256       | The amount received by the node once secret is revealed    |
++----------------------+---------------+------------------------------------------------------------+
+|  expiration          | uint256       | See `HashTimeLock`_                                        |
 +----------------------+---------------+------------------------------------------------------------+
 |  signature           | bytes         | Elliptic Curve 256k1 signature                             |
 +----------------------+---------------+------------------------------------------------------------+
