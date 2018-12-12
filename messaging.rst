@@ -147,7 +147,8 @@ This should match `the encoding implementation <https://github.com/raiden-networ
 +----------------------+---------------+------------------------------------------------------------+
 |  pad                 | three bytes   | Ignored                                                    |
 +----------------------+---------------+------------------------------------------------------------+
-|  message identifier  | uint64        | An identifier used in ``Delivered`` acknowledgments        |
+|  message identifier  | uint64        | An ID used in ``Delivered`` and ``Processed``              |
+|                      |               | acknowledgments                                            |
 +----------------------+---------------+------------------------------------------------------------+
 |  payment_identifier  | uint64        | An identifier for the payment chosen by the initiator      |
 +----------------------+---------------+------------------------------------------------------------+
