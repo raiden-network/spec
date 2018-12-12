@@ -124,7 +124,7 @@ This should correspond to `the packed format of LockedTransfer <https://github.c
 +-----------------------+----------------------+------------------------------------------------------------+
 |  chain_id             | uint256              | See `Offchain Balance Proof`_                              |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  message_identifier   | uint64               | An identifier for ``Delivered`` messages                   |
+|  message_identifier   | uint64               | An ID for ``Delivered`` and ``Processed`` acknowledgments  |
 +-----------------------+----------------------+------------------------------------------------------------+
 |  payment_identifier   | uint64               | An identifier for the payment that the initiator specifies |
 +-----------------------+----------------------+------------------------------------------------------------+
