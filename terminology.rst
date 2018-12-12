@@ -112,6 +112,10 @@ Raiden Terminology
    Outbound Transfer
        A :term:`locked transfer` sent by a node. The node may be a :term:`Mediator` in the path or the :term:`Initiator`.
 
+   Locked Transfer
+   Locked Transfer message
+       An offchain Raiden message that reserves an amount of tokens for a specific :term:`Payment`. See :ref:`locked-transfer-message` for details.
+
    Monitoring Service
    MS
        The service that monitors channel state on behalf of the user and takes an action if the channel is being closed with a balance proof that would violate the agreed on balances. Responsibilities
