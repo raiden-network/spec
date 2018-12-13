@@ -23,7 +23,7 @@ The signature must be valid and is defined as:
 
     ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id))
 
-Also see :term:`additional_hash`.
+where ``additioan_hash`` is the hash of the whole message being signed.
 
 Fields
 ^^^^^^
@@ -111,17 +111,53 @@ Only valid if all the following hold:
 Fields
 ^^^^^^
 
-+----------------------+----------------------+------------------------------------------------------------+
-| Field Name           | Field Type           |  Description                                               |
-+======================+======================+============================================================+
-|  lock                | HashTimeLock         | The lock for this locked transfer                          |
-+----------------------+----------------------+------------------------------------------------------------+
-|  balance_proof       | OffchainBalanceProof | Balance proof for this transfer                            |
-+----------------------+----------------------+------------------------------------------------------------+
-|  initiator           | address              | Initiator of the transfer and person who knows the secret  |
-+----------------------+----------------------+------------------------------------------------------------+
-|  target              | address              | Final target for this transfer                             |
-+----------------------+----------------------+------------------------------------------------------------+
+This should correspond to `the packed format of LockedTransfer <https://github.com/raiden-network/raiden/blob/d504ed25b85eea5738fd3d2149bd8392a2b02226/raiden/encoding/messages.py#L164>`_.
+
++-----------------------+----------------------+------------------------------------------------------------+
+| Field Name            | Field Type           |  Description                                               |
++=======================+======================+============================================================+
+|  command_id           | one byte             | Value 7 indicating ``LockedTransfer``                      |
++-----------------------+----------------------+------------------------------------------------------------+
+|  pad                  | three bytes          | Contents ignored                                           |
++-----------------------+----------------------+------------------------------------------------------------+
+|  nonce                | uint64               | See `Offchain Balance Proof`_                              |
++-----------------------+----------------------+------------------------------------------------------------+
+|  chain_id             | uint256              | See `Offchain Balance Proof`_                              |
++-----------------------+----------------------+------------------------------------------------------------+
+|  message_identifier   | uint64               | An ID for ``Delivered`` and ``Processed`` acknowledgments  |
++-----------------------+----------------------+------------------------------------------------------------+
+|  payment_identifier   | uint64               | An identifier for the payment that the initiator specifies |
++-----------------------+----------------------+------------------------------------------------------------+
+|  expiration           | uint256              | See `HashTimeLock`_                                        |
++-----------------------+----------------------+------------------------------------------------------------+
+|  token_network_address| address              | See ``token_network_id`` in `Offchain Balance Proof`_      |
++-----------------------+----------------------+------------------------------------------------------------+
+|  token                | address              | Address of the token contract                              |
++-----------------------+----------------------+------------------------------------------------------------+
+|  channel_identifier   | uint256              | See `Offchain Balance Proof`_                              |
++-----------------------+----------------------+------------------------------------------------------------+
+|  recipient            | address              | Destination for this hop of the transfer                   |
++-----------------------+----------------------+------------------------------------------------------------+
+|  target               | address              | Final destination of the payment                           |
++-----------------------+----------------------+------------------------------------------------------------+
+|  initiator            | address              | Initiator of the transfer and party who knows the secret   |
++-----------------------+----------------------+------------------------------------------------------------+
+|  locksroot            | bytes32              | See `Offchain Balance Proof`_                              |
++-----------------------+----------------------+------------------------------------------------------------+
+|  secrethash           | bytes32              | See `HashTimeLock`_                                        |
++-----------------------+----------------------+------------------------------------------------------------+
+|  transferred_amount   | uint256              | See `Offchain Balance Proof`_                              |
++-----------------------+----------------------+------------------------------------------------------------+
+|  locked_amount        | uint256              | See `Offchain Balance Proof`_                              |
++-----------------------+----------------------+------------------------------------------------------------+
+|  amount               | uint256              | Transferred amount including fees.  See `HashTimeLock`_    |
++-----------------------+----------------------+------------------------------------------------------------+
+|  fee                  | uint256              | Total available fee for remaining mediators                |
++-----------------------+----------------------+------------------------------------------------------------+
+|  signature            | 65 bytes             | Computed as in `Offchain Balance Proof`_                   |
++-----------------------+----------------------+------------------------------------------------------------+
+
+The sender of the message should be computable from ``signature`` so is not included in the message.
 
 .. _secret-request-message:
 
