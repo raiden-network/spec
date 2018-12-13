@@ -127,7 +127,7 @@ Example
     }
     // Result for failure
     {
-        "error": "Invalid balance proof"
+        "errors": "Invalid balance proof"
     }
 
 
@@ -180,7 +180,7 @@ Example
     }
     // Result for failure
     {
-        "error": "Invalid signature."
+        "errors": "Invalid signature."
     }
 
 ``api/1/<token_network_address>/paths``
@@ -271,11 +271,11 @@ Example
     }
     // Result for failure
     {
-        "error": "No suitable path found."
+        "errors": "No suitable path found."
     }
     // Result for exceeded rate limit
     {
-        "error": "Rate limit exceeded, payment required. Please call 'api/1/payment/info' to establish a payment channel or wait."
+        "errors": "Rate limit exceeded, payment required. Please call 'api/1/payment/info' to establish a payment channel or wait."
     }
 
 
@@ -338,7 +338,7 @@ Example
         }
     // Result for failure
     {
-        "error": "No suitable path found."
+        "errors": "No suitable path found."
     }
 
 
