@@ -264,7 +264,7 @@ A :term:`Mediated Transfer` is a hash-time-locked transfer. Currently raiden sup
 
 Mediated transfers have an :term:`initiator` and a :term:`target` and a number of mediators in between. The number of mediators can also be zero as these transfers can also be sent to a direct partner. Assuming ``N`` number of mediators, a mediated transfer will require ``10N + 16`` messages to complete. These are:
 
-- ``N + 1`` mediated or refund messages
+- ``N + 1`` :term:`locked transfer` or refund messages
 - ``1`` secret request
 - ``N + 2`` secret reveal
 - ``N + 1`` unlock
