@@ -257,6 +257,9 @@ Smart Contract Functional Decomposition
 TokenNetworkRegistry Contract
 -----------------------------
 
+This contract creates and remembers a TokenNetwork contract for an ERC20 Token.  Raiden clients listen to ``TokenNetworkCreated`` events so they can notice when this contract deploys a new ``TokenNetwork``.
+
+
 Attributes:
 
 - ``address public secret_registry_address``
