@@ -200,14 +200,40 @@ Invariants
 Fields
 ^^^^^^
 
+This should match `the Secret message in encoding/messages file <https://github.com/raiden-network/raiden/blob/a19a6c853b55f13725f2545c77b0475cbcc86807/raiden/encoding/messages.py#L113>`_.
+
 +----------------------+------------------------+------------------------------------------------------------+
 | Field Name           | Field Type             |  Description                                               |
 +======================+========================+============================================================+
-|  balance_proof       | OffchainBalanceProof   | Balance proof to update                                    |
+|  command id          | one byte               | Value 4 indicating Unlock                                  |
++----------------------+------------------------+------------------------------------------------------------+
+|  padding             | three bytes            | Ignored                                                    |
++----------------------+------------------------+------------------------------------------------------------+
+|  chain identifier    | uint256                | See :ref:`balance-proof-offchain`                          |
++----------------------+------------------------+------------------------------------------------------------+
+|  message identifier  | uint64                 | An ID used in ``Delivered`` and ``Processed``              |
+|                      |                        | acknowledgments                                            |
++----------------------+------------------------+------------------------------------------------------------+
+|  payment identifier  | uint64                 | An identifier for the :term:`Payment` chosen by the        |
+|                      |                        | :term:`Initiator`                                          |
++----------------------+------------------------+------------------------------------------------------------+
+| token network        | address                | See :ref:`balance-proof-offchain`                          |
+| identifier           |                        |                                                            |
 +----------------------+------------------------+------------------------------------------------------------+
 |  lock_secret         | bytes32                | The secret that unlocked the lock                          |
 +----------------------+------------------------+------------------------------------------------------------+
-|  signature           | bytes                  | Elliptic Curve 256k1 signature                             |
+|  nonce               | uint64                 | See :ref:`balance-proof-offchain`                          |
++----------------------+------------------------+------------------------------------------------------------+
+|  channel identifier  | uint256                | See :ref:`balance-proof-offchain`                          |
++----------------------+------------------------+------------------------------------------------------------+
+|  transferred amount  | uint256                | See :ref:`balance-proof-offchain`                          |
++----------------------+------------------------+------------------------------------------------------------+
+|  locked amount       | uint256                | See :ref:`balance-proof-offchain`                          |
++----------------------+------------------------+------------------------------------------------------------+
+|  lockedsroot         | bytes32                | See :ref:`balance-proof-offchain`                          |
++----------------------+------------------------+------------------------------------------------------------+
+|  signature           | bytes                  | See :ref:`balance-proof-offchain`. Note ``additional_hash``|
+|                      |                        | is the hash of the whole message                           |
 +----------------------+------------------------+------------------------------------------------------------+
 
 
