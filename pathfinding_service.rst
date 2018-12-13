@@ -186,8 +186,8 @@ Example
 ``api/1/<token_network_address>/paths``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The method will do ``num_paths`` iterations of Dijkstras algorithm on the last-known state of the Raiden
-Network (regarded as directed weighted graph) to return ``num_paths`` different paths for a mediated transfer of ``value``.
+The method will do ``max_paths`` iterations of Dijkstras algorithm on the last-known state of the Raiden
+Network (regarded as directed weighted graph) to return ``max_paths`` different paths for a mediated transfer of ``value``.
 
 * Checks if an edge (i.e. a channel) has ``capacity > value``, else ignores it.
 
@@ -209,7 +209,7 @@ Arguments
 +----------------------+---------------+-----------------------------------------------------------------------+
 | value                | int           | The amount of token to be sent.                                       |
 +----------------------+---------------+-----------------------------------------------------------------------+
-| num_paths            | int           | The maximum number of paths returned.                                 |
+| max_paths            | int           | The maximum number of paths returned.                                 |
 +----------------------+---------------+-----------------------------------------------------------------------+
 | kwargs               | any           | Currently only 'bias' to implement the speed/cost opt. trade-off      |
 +----------------------+---------------+-----------------------------------------------------------------------+
@@ -241,14 +241,14 @@ Example
         "from": "0xalice",
         "to": "0xbob",
         "value": 45,
-        "num_paths": 10
+        "max_paths": 10
     }'  /api/1/paths
     // Request with specific preference
     curl -X PUT --data '{
         "from": "0xalice",
         "to": "0xbob",
         "value": 45,
-        "num_paths": 10,
+        "max_paths": 10,
         "extra_data": "min-hops"
     }'  /api/1/0xtoken_network/paths
     // Result for success
