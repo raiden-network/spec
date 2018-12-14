@@ -230,11 +230,11 @@ If no possible path is found, one of the following errors is returned:
 
 * No suitable path found
 * Rate limit exceeded
-* From or to invalid
-* The token network address is invalid
-* Bias is invalid
-* Max_path is invalid
-* Value is invalid
+* 'from' or 'to' invalid
+* The 'token_network_address' is invalid
+* 'bias' is invalid
+* 'max_paths' is invalid
+* 'value' is invalid
 
 Example
 """""""
