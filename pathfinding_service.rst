@@ -56,8 +56,8 @@ The examples provided for each of the endpoints is for communication with a REST
 ``api/1/<token_network_address>/paths``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The method will do ``num_paths`` iterations of Dijkstras algorithm on the last-known state of the Raiden
-Network (regarded as directed weighted graph) to return ``num_paths`` different paths for a mediated transfer of ``value``.
+The method will do ``max_paths`` iterations of Dijkstras algorithm on the last-known state of the Raiden
+Network (regarded as directed weighted graph) to return ``max_paths`` different paths for a mediated transfer of ``value``.
 
 * Checks if an edge (i.e. a channel) has ``capacity > value``, else ignores it.
 
@@ -77,7 +77,7 @@ Arguments
 +----------------------+---------------+-----------------------------------------------------------------------+
 | value                | int           | The amount of token to be sent.                                       |
 +----------------------+---------------+-----------------------------------------------------------------------+
-| num_paths            | int           | The maximum number of paths returned.                                 |
+| max_paths            | int           | The maximum number of paths returned.                                 |
 +----------------------+---------------+-----------------------------------------------------------------------+
 
 Returns
@@ -96,7 +96,11 @@ If no possible path is found, one of the following errors is returned:
 
 * No suitable path found
 * Rate limit exceeded
-* From or to invalid
+* 'from' or 'to' invalid
+* The 'token_network_address' is invalid
+* 'bias' is invalid
+* 'max_paths' is invalid
+* 'value' is invalid
 
 Example
 """""""
@@ -107,37 +111,8 @@ Example
         "from": "0xalice",
         "to": "0xbob",
         "value": 45,
-        "num_paths": 10
+        "max_paths": 10
     }'  /api/1/paths
-    // Request with specific preference
-    curl -X PUT --data '{
-        "from": "0xalice",
-        "to": "0xbob",
-        "value": 45,
-        "num_paths": 10,
-    }'  /api/1/0xtoken_network/paths
-    // Result for success
-    {
-        "result": [
-        {
-            "path": ["0xalice", "0xcharlie", "0xbob"],
-            "estimated_fees": 3
-        },
-        {
-            "path": ["0xalice", "0xeve", "0xdave", "0xbob"]
-            "estimated_fees": 5
-        },
-        ...
-        ]
-    }
-    // Result for failure
-    {
-        "error": "No suitable path found."
-    }
-    // Result for exceeded rate limit
-    {
-        "error": "Rate limit exceeded, payment required. Please call 'api/1/payment/info' to establish a payment channel or wait."
-    }
 
 
 ``api/1/<token_network_address>/payment/info``
@@ -199,7 +174,7 @@ Example
         }
     // Result for failure
     {
-        "error": "No suitable path found."
+        "errors": "No suitable path found."
     }
 
 Network Topology Updates
