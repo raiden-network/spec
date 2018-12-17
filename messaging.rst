@@ -302,7 +302,7 @@ Mediated transfers have an :term:`initiator` and a :term:`target` and a number o
 
 - ``N + 1`` :term:`locked transfer` or refund messages
 - ``1`` secret request
-- ``N + 2`` secret reveal
+- ``N + 2`` :term:`secret reveal`
 - ``N + 1`` :term:`unlock`
 - ``2N + 3`` processed (one for everything above)
 - ``5N + 8`` delivered

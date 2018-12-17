@@ -157,6 +157,10 @@ Raiden Terminology
    Settle Timeout
        The number of blocks from the time of closing of a channel until it can be settled.
 
+   Secret Reveal
+   Secret Reveal message
+       An offchain Raiden message that contains the secret that can open a Hash Time Lock. See :ref:`secret-reveal-message` for details.
+
    Reveal Timeout
           The number of blocks in a channel allowed for learning about a secret being revealed through the blockchain and acting on it.
 
