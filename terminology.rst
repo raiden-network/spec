@@ -118,6 +118,10 @@ Raiden Terminology
    Locked Transfer message
        An offchain Raiden message that reserves an amount of tokens for a specific :term:`Payment`. See :ref:`locked-transfer-message` for details.
 
+   Refund Transfer
+   Refund Transfer message
+       An offchain Raiden message for a :term:`Payment` seeking a rerouting. When a receiver of a :term:`Locked Transfer` message gives up reaching the target, they return a Refund Transfer message. The Refund Transfer message locks an amount of tokens in the direction opposite from the previous :term:`Locked Transfer`.
+
    Monitoring Service
    MS
        The service that monitors channel state on behalf of the user and takes an action if the channel is being closed with a balance proof that would violate the agreed on balances. Responsibilities
