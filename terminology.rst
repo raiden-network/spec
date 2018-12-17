@@ -125,6 +125,10 @@ Raiden Terminology
    Pathfinding Service
        A centralized path finding service that has a global view on a token network and provides suitable payment paths for Raiden nodes.
 
+   Unlock
+   Unlock message
+       An offchain Raiden message that contains a new :term:`balance proof` after a Hash Time Lock is unlocked.  See :ref:`unlock-message` for details.
+
    Raiden Light Client
        A client that does not mediate payments.
 
