@@ -4,18 +4,22 @@ Raiden Pathfinding Service Specification
 Overview
 ========
 
-A centralized path finding service that has a global view on a token network and provides suitable payment paths for Raiden nodes.
+A path finding service having a global view on a token network can provide suitable payment paths for Raiden nodes.
+Raiden nodes can request paths via public endpoints and pay per request. The service will keep its view on the
+token network updated by listening to blockchain events and a public matrix room where balance proofs and
+fees are being published. Nodes will publish their current balance proofs and fees in order to advertise
+their channels to become mediators.
 
-Assumptions
-===========
+Implementation Process and Assumptions
+======================================
 
-* The pathfinding service in its current spec is a temporary solution.
+* The path finding service will be implemented iteratively adding more complexity on every step.
+* There are three steps planned - (1) Pathfinding Minimal Viable Product, (2) Adding service fees, (3) Handling mediation fees.
 * It should be able to handle a similar amount of active nodes as currently present in Ethereum (~20,000).
+* Nodes are incentivized to publicly report their current balances and fees to "advertise" their channels.
 * Uncooperative nodes are dropped on the Raiden-level protocol, so paths provided by the service can be expected to work most of the time.
 * User experience should be simple and free for sparse users with optional premium fee schedules for heavy users.
 * No guarantees are or can be made about the feasibility of the path with respect to node uptime or neutrality.
-* Hubs are incentivized to accurately report their current balances and fees to "advertise" their channels. Higher fees than reported would be rejected by the transfer initiator.
-* Every pathfinding service is responsible for a single token network. Pathfinding services are scaled on process level to handle multiple token networks.
 
 
 High-Level-Description
@@ -23,37 +27,24 @@ High-Level-Description
 A node can request a list of possible paths from start point to endpoint for a given transfer value.
 The ``get_paths`` method implements the canonical Dijkstra algorithm to return a given number of paths
 for a mediated transfer of a given value. The design regards the Raiden network as an unidirectional
-weighted graph, where the default weights (and therefore the primary constraint of the optimization)
-are the fees of each channel. Additionally we applied two heuristics to quantify desirable properties
-of the resulting graph:
+weighted graph, where the default weights and therefore the primary constraint of the optimization)
+* at step (1 and 2) are 1 (no fees being implemented) and
+* at step (3) are the fees of each channel.
+
+Additionally, we will apply heuristics to quantify desirable properties of the resulting graph:
 
 i) A hard coded parameter ``DIVERSITY_PEN_DEFAULT`` defined in the config; this value is added to each edge that is part of a returned path as a bias. This results in an output of "pseudo-disjoint" paths, i.e. the optimization will prefer paths with a minimal edge intersection. This should enable nodes to have a suitable amount of options for their payment routing in the case some paths are slow or broken. However, if a node has only one channel (i.e. a light client) payments could be routed through, the method will still return the specified ``number of paths``.
 
 
-ii) The second heuristic is configurable via the optional argument ``bias``, which models the trade-off between speed and cost of mediated transfer; with default 0, ``get_paths`` will  optimize with respect to overall fees only (i.e. the cheapest path). On the other hand, with ``bias=1``, ``get_paths`` will look for paths with the minimal number of hops (i.e. the  -theoretical - fastest path). Any value in ``[0,1]`` is accepted, an appropriate value depends on the average ``channel_fee`` in the network (in simulations ``mean_fee`` gave decent results for the trade-off between speed and cost). The reasoning behind this heuristic is that a node may have different needs, w.r.t to good to be paid for - buying a potato should be fast, buying a yacht should incorporate low fees.
+ii) (From step (3) on) The second heuristic is configurable via the optional argument ``bias``, which models the trade-off between speed and cost of a mediated transfer; with default 0, ``get_paths`` will  optimize with respect to overall fees only (i.e. the cheapest path). On the other hand, with ``bias=1``, ``get_paths`` will look for paths with the minimal number of hops (i.e. the  -theoretical - fastest path). Any value in ``[0,1]`` is accepted, an appropriate value depends on the average ``channel_fee`` in the network (in simulations ``mean_fee`` gave decent results for the trade-off between speed and cost). The reasoning behind this heuristic is that a node may have different needs, w.r.t to good to be paid for - buying a potato should be fast, buying a yacht should incorporate low fees.
 
-Public Interface
-================
+Public Interfaces
+=================
+The path finding service needs three public interfaces
 
-Definitions
------------
-
-The following data types are taken from the Raiden Core spec.
-
-*Channel_Id*
-
-* uint: channel_identifier
-
-*Balance_Proof*
-
-See :ref:`offchain balance proof <balance-proof-offchain>`.
-
-
-*Lock*
-
-* uint64: expiration
-* uint256: locked_amount
-* bytes32: secrethash
+* a public endpoint for path requests by Raiden nodes
+* an endpoint to get updates from blockchain events
+* an endpoint to get updates about current balances and fees
 
 Public Endpoints
 ----------------
@@ -61,127 +52,6 @@ Public Endpoints
 A path finding service must provide the following endpoints. The interface has to be versioned.
 
 The examples provided for each of the endpoints is for communication with a REST endpoint.
-
-``api/1/<token_network_address>/<channel_id>/balance``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Update the balance for the given channel with the provided :term:`balance proof`. The receiver can be read from the balance proof.
-
-Arguments
-"""""""""
-
-+----------------------+----------------------+-------------------------------------------------------------------+
-| Field Name           | Field Type           |  Description                                                      |
-+======================+======================+===================================================================+
-| token_network_address| address              | The token network address for which the balance is updated.       |
-+----------------------+----------------------+-------------------------------------------------------------------+
-| channel_id           | int                  | The channel for which the balance proof should be updated.        |
-+----------------------+----------------------+-------------------------------------------------------------------+
-| balance_proof        | OffchainBalanceProof | The new balance proof which should be used for the given channel. |
-+----------------------+----------------------+-------------------------------------------------------------------+
-| locks                | List[Lock]           | The list of all locks used to compute the locksroot.              |
-+----------------------+----------------------+-------------------------------------------------------------------+
-
-Returns
-"""""""
-*True* when the balance was updated or one of the following errors:
-
-* Invalid balance proof
-* Invalid channel id
-
-Example
-"""""""
-::
-
-    // Request
-    curl -X PUT --data '{
-        "balance_proof": {
-            "nonce": 1234,
-            "transferred_amount": 23,
-            "locked_amount": 0,
-            "locksroot": "<keccak-hash>",
-            "channel_id": 123,
-            "token_network_address": "0xtoken",
-            "chain_id": 1,
-            "additional_hash": "<keccak-hash>",
-            "balance_hash": "<keccak-hash>",
-            "signature": "<signature>",
-            "message_type": "BalanceProof",
-        },
-        "locks": [
-            {
-                "expiration": 200
-                "locked_amount": 40
-                "secrethash": "<keccak-hash>"
-            },
-            {
-                "expiration": 50
-                "locked_amount": 10
-                "secrethash": "<keccak-hash>"
-            },
-        ],
-    }'  /api/1/0xtoken_network/balance
-    // Result for success
-    {
-        "result": "OK"
-    }
-    // Result for failure
-    {
-        "errors": "Invalid balance proof"
-    }
-
-
-``api/1/<token_network_address>/<channel_id>/fee``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Update the fee for the given channel, for the outgoing channel from the partner who signed the message.
-A nonce is required to be incorporated in the signature for replay protection.
-
-* Reconstructs the signers ``public_key`` of a requested fee update with coincurve's ``from_signature_and_message`` method.
-
-* Derives the two ``channel_participants`` with ``from channel_id``. Checks if the signing ``public_key`` matches one of the ``channel participant``'s ``address`` or returns an error if the signature doesn't match.
-
-Arguments
-"""""""""
-
-+----------------------+---------------+-----------------------------------------------------------------------+
-| Field Name           | Field Type    |  Description                                                          |
-+======================+===============+=======================================================================+
-| token_network_address| address       | The token network address for which the payment info is requested.    |
-+----------------------+---------------+-----------------------------------------------------------------------+
-| Channel_id           | int           | The channel for which the fee should be updated.                      |
-+----------------------+---------------+-----------------------------------------------------------------------+
-| Nonce                | int           | A nonce for replay protection.                                        |
-+----------------------+---------------+-----------------------------------------------------------------------+
-| Fee                  | int           | The new fee to be set.                                                |
-+----------------------+---------------+-----------------------------------------------------------------------+
-| Signature            | bytes         | Signature of a channel partner                                        |
-+----------------------+---------------+-----------------------------------------------------------------------+
-
-Returns
-"""""""
-*True* when the fee was updated or one of the following errors:
-
-* Invalid channel id
-* Invalid signature
-
-
-Example
-"""""""
-::
-
-    // Request
-    curl -X PUT --data '{
-        "fee": 3,
-        "signature": "<signature>"
-    }'  /api/1/0xtoken_network/123/fee
-    // Result for success
-    {
-        "result": "True"
-    }
-    // Result for failure
-    {
-        "errors": "Invalid signature."
-    }
 
 ``api/1/<token_network_address>/paths``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -192,8 +62,6 @@ Network (regarded as directed weighted graph) to return ``max_paths`` different 
 * Checks if an edge (i.e. a channel) has ``capacity > value``, else ignores it.
 
 * Applies on the fly changes to the graph's weights - depends on ``DIVERSITY_PEN_DEFAULT`` from ``config``, to penalize edges which are part of a path that is returned already.
-
-* Depends on a user preference via the ``bias`` argument, to decided the trade off between fee-level vs. path-length (i.e. cost vs. speed) - default ``bias = 0``, i.e. full fee minimization.
 
 Arguments
 """""""""
@@ -210,8 +78,6 @@ Arguments
 | value                | int           | The amount of token to be sent.                                       |
 +----------------------+---------------+-----------------------------------------------------------------------+
 | max_paths            | int           | The maximum number of paths returned.                                 |
-+----------------------+---------------+-----------------------------------------------------------------------+
-| kwargs               | any           | Currently only 'bias' to implement the speed/cost opt. trade-off      |
 +----------------------+---------------+-----------------------------------------------------------------------+
 
 Returns
@@ -246,37 +112,28 @@ Example
         "to": "0xbob",
         "value": 45,
         "max_paths": 10
-    }'  /api/1/paths
-    // Request with specific preference
-    curl -X PUT --data '{
-        "from": "0xalice",
-        "to": "0xbob",
-        "value": 45,
-        "max_paths": 10,
-        "extra_data": "min-hops"
-    }'  /api/1/0xtoken_network/paths
+    }'
     // Result for success
     {
         "result": [
         {
             "path": ["0xalice", "0xcharlie", "0xbob"],
-            "estimated_fees": 3
         },
         {
             "path": ["0xalice", "0xeve", "0xdave", "0xbob"]
-            "estimated_fees": 5
         },
         ...
         ]
     }
     // Result for failure
     {
-        "errors": "No suitable path found."
+        "error": "No suitable path found."
     }
     // Result for exceeded rate limit
     {
-        "errors": "Rate limit exceeded, payment required. Please call 'api/1/payment/info' to establish a payment channel or wait."
+        "error": "Rate limit exceeded, payment required. Please call 'api/1/payment/info' to establish a payment channel or wait."
     }
+
 
 
 ``api/1/<token_network_address>/payment/info``
@@ -331,7 +188,6 @@ Example
             [
                 {
                     "path": ["0xrdn_alice", "0xrdn_eve", "0xrdn_service"],
-                    "estimated_fees": 10_000
                 },
                 ...
             ]
@@ -341,20 +197,11 @@ Example
         "errors": "No suitable path found."
     }
 
-
-Implementation notes
-====================
-
-Network topology updates
+Network Topology Updates
 ------------------------
 
-.. Note::
-    A pathfinding service might want to cover multiple token networks. However,
-    it always needs to cover the *RDN* token network in order to be able to
-    provide routing information for payments.
-    
-    The creation of new token networks can be followed by listening for
-    `TokenNetworkCreated` events on the `TokenNetworksRegistry` contract. 
+The creation of new token networks can be followed by listening for:
+- `TokenNetworkCreated` events on the `TokenNetworksRegistry` contract. 
 
 To learn about updates of the network topology of a token network the PFS must
 listen for the following events:
@@ -365,7 +212,14 @@ listen for the following events:
 Additionally it must listen to the `ChannelNewDeposit` event in order to learn
 about new deposits.
 
-Updates for channel balances and fees are received over the designated API endpoints.
+Balance and Fee Updates (Graph Weights)
+---------------------------------------
+Updates for channel balances and fees are published over a public matrix room. Path finding services can pick these
+balance proofs from there and update the topology represented internally.
+The Raiden nodes that want to earn fees mediating payments would be incentivized to publish their balance proofs in
+order to provide a path.
+
+This will be further specified soon.
 
 Future Work
 ===========
