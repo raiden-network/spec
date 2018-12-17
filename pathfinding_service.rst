@@ -112,7 +112,28 @@ Example
         "to": "0xbob",
         "value": 45,
         "max_paths": 10
-    }'  /api/1/paths
+    }'
+    // Result for success
+    {
+        "result": [
+        {
+            "path": ["0xalice", "0xcharlie", "0xbob"],
+        },
+        {
+            "path": ["0xalice", "0xeve", "0xdave", "0xbob"]
+        },
+        ...
+        ]
+    }
+    // Result for failure
+    {
+        "error": "No suitable path found."
+    }
+    // Result for exceeded rate limit
+    {
+        "error": "Rate limit exceeded, payment required. Please call 'api/1/payment/info' to establish a payment channel or wait."
+    }
+
 
 
 ``api/1/<token_network_address>/payment/info``
@@ -167,7 +188,6 @@ Example
             [
                 {
                     "path": ["0xrdn_alice", "0xrdn_eve", "0xrdn_service"],
-                    "estimated_fees": 10_000
                 },
                 ...
             ]
@@ -180,10 +200,8 @@ Example
 Network Topology Updates
 ------------------------
 
-.. Note::
-    A pathfinding service might want to cover multiple token networks.
-    The creation of new token networks can be followed by listening for
-    `TokenNetworkCreated` events on the `TokenNetworksRegistry` contract. 
+The creation of new token networks can be followed by listening for:
+- `TokenNetworkCreated` events on the `TokenNetworksRegistry` contract. 
 
 To learn about updates of the network topology of a token network the PFS must
 listen for the following events:
