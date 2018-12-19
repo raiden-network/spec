@@ -53,7 +53,7 @@ A path finding service must provide the following endpoints. The interface has t
 
 The examples provided for each of the endpoints is for communication with a REST endpoint.
 
-``api/1/<token_network_address>/paths``
+``api/v1/<token_network_address>/paths``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The method will do ``max_paths`` iterations of Dijkstras algorithm on the last-known state of the Raiden
@@ -127,16 +127,16 @@ Example
     }
     // Result for failure
     {
-        "error": "No suitable path found."
+        "errors": "No suitable path found."
     }
     // Result for exceeded rate limit
     {
-        "error": "Rate limit exceeded, payment required. Please call 'api/1/payment/info' to establish a payment channel or wait."
+        "errors": "Rate limit exceeded, payment required. Please call 'api/v1/payment/info' to establish a payment channel or wait."
     }
 
 
 
-``api/1/<token_network_address>/payment/info``
+``api/v1/<token_network_address>/payment/info``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Request price and path information on how and how much to pay the service for additional path requests.
@@ -178,7 +178,7 @@ Example
     // Request
     curl -X GET --data '{
         "rdn_source_addressfrom": "0xrdn_alice",
-    }'  api/1/0xtoken_network/payment/info
+    }'  api/v1/0xtoken_network/payment/info
     // Result for success
     {
         "result":
