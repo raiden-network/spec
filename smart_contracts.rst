@@ -614,6 +614,8 @@ Settles the channel by transferring the amount of tokens each participant is owe
 - ``participant2_transferred_amount``: The monotonically increasing counter of the amount of tokens sent by ``participant2`` to ``participant1``.
 - ``participant2_locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers sent by ``participant2`` to ``participant1``) contained in the merkle tree.
 - ``participant2_locksroot``: Root of the merkle tree of all pending lock lockhashes (pending transfers sent by ``participant2`` to ``participant1``).
+- ``participant1_amount``: the amount of tokens sent to ``participant1`` at the end of the settlement.
+- ``participant2_amount``: the amount of tokens sent to ``participant2`` at the end of the settlement.
 
 .. Note::
     Can be called by anyone after a channel has been closed and the challenge period is over.
