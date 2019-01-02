@@ -366,7 +366,7 @@ We currently limit the number of channels between two participants to one. There
 - ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``participant``: Ethereum address of a channel participant.
 - ``partner``: Ethereum address of the other channel participant.
-- ``deposit``: Can be ``>=0`` after the channel has been opened. Must be ``0`` when the channel is in ``Settled`` or ``Removed`` state.
+- ``deposit``: The amount of tokens that the ``participant`` has deposited through :ref:`setTotalDeposit() <deposit-channel>`. Can be ``>=0`` after the channel has been opened. Must be ``0`` when the channel is in ``Settled`` or ``Removed`` state.
 - ``withdrawn_amount``: Can be ``>=0`` after the channel has been opened. Must be ``0`` when the channel is in ``Settled`` or ``Removed`` state.
 - ``is_the_closer``: Can be ``true`` if the channel is in ``Closed`` state and if ``participant`` closed the channel. Must be ``false`` otherwise.
 - ``balance_hash``: Can be set when the channel is in ``Closed`` state. Must be ``0`` otherwise.
