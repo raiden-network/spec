@@ -136,7 +136,7 @@ Raiden Terminology
        A payment received by a :term:`Raiden Light Client` that is not online.
 
    Capacity
-       Current amount of tokens available for a given participant to make transfers.
+       Current amount of tokens available for a given participant to make transfers.  See :ref:`settlement-algorithm` for how this is computed.
 
    Deposit
        Amount of token locked in the contract.
