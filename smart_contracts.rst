@@ -335,7 +335,7 @@ We currently limit the number of channels between two participants to one. There
 - ``participant1``: Ethereum address of a channel participant.
 - ``participant2``: Ethereum address of the other channel participant.
 - ``state``: Channel state. It can be ``NonExistent`` - ``0``, ``Opened`` - ``1``, ``Closed`` - ``2``, ``Settled`` - ``3``, ``Removed`` - ``4``.
-- ``settle_block_number``: the number of blocks in the challenge period if ``state`` is ``Opened``; the block number after which settleChannel() can succeed if ``state`` is ``Closed``; 0 otherwise.
+- ``settle_block_number``: the number of blocks in the :term:`challenge period` if ``state`` is ``Opened``; the block number after which settleChannel() can succeed if ``state`` is ``Closed``; 0 otherwise.
 
 .. Note::
     Channel state ``Settled`` means the channel was settled and channel data removed. However, there is still data remaining in the contract for calling ``unlock`` - for at least one participant.
