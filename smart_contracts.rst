@@ -525,7 +525,7 @@ Allows a channel participant to close the channel. The channel cannot be settled
 
 .. _update-channel:
 
-**Update non-closing participant balance proof**
+**Update the balance proof counting towards the non-closing participant**
 
 Called after a channel has been closed. Can be called by any Ethereum address and allows the non-closing participant to provide the latest :term:`balance proof` from the closing participant. This modifies the stored state for the closing participant.
 
