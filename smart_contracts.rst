@@ -437,6 +437,8 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 .. Note::
     Allowed to be called multiple times. Can be called by anyone.
 
+    Before calling ``setTotalDeposit()``, the caller needs to send the ``approve`` transaction on the ERC20 token contract so that the ``TokenNetwork`` contract can make the token transfer for the channel deposit.
+
     This function is idempotent. The UI and internal smart contract logic has to make sure that the amount of tokens actually transferred is the difference between ``total_deposit`` and the ``deposit`` at transaction time.
 
     A participant or a delegate ``MUST`` be able to deposit more tokens into a channel, regardless of his partner's availability.
