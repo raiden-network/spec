@@ -197,9 +197,9 @@ This should match `the encoding implementation <https://github.com/raiden-networ
 |  signature           | bytes         | Elliptic Curve 256k1 signature                             |
 +----------------------+---------------+------------------------------------------------------------+
 
-.. _secret-reveal-message:
+.. _reveal-secret-message:
 
-Secret Reveal
+Reveal Secret
 -------------
 
 Message used by the nodes to inform others that the :term:`secret` is known. Used to request an updated :term:`balance proof` with the :term:`transferred amount` increased and the lock removed.
@@ -207,9 +207,18 @@ Message used by the nodes to inform others that the :term:`secret` is known. Use
 Fields
 ^^^^^^
 
+This should match `the encoding implementation <https://github.com/raiden-network/raiden/blob/8ead49a8ee688691c98828a879d93f822f60ae53/raiden/encoding/messages.py#L132>`__.
+
 +----------------------+---------------+------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                               |
 +======================+===============+============================================================+
+|  cmdid               | one byte      | Value 11 (indicating ``Reveal Secret``)                    |
++----------------------+---------------+------------------------------------------------------------+
+|  pad                 | three bytes   | Ignored                                                    |
++----------------------+---------------+------------------------------------------------------------+
+|  message identifier  | uint64        | An ID use in ``Delivered`` and ``Processed``               |
+|                      |               | acknowledgments                                            |
++----------------------+---------------+------------------------------------------------------------+
 |  lock_secret         | bytes32       | The secret that unlocks the lock                           |
 +----------------------+---------------+------------------------------------------------------------+
 |  signature           | bytes         | Elliptic Curve 256k1 signature                             |
@@ -228,7 +237,7 @@ Invariants
 ^^^^^^^^^^
 
 - The :term:`balance proof` merkle tree must have the corresponding lock removed (and only this lock).
-- This message is only sent after the corresponding partner has sent a :ref:`Secret Reveal message <secret-reveal-message>`.
+- This message is only sent after the corresponding partner has sent a :ref:`Reveal Secret message <reveal-secret-message>`.
 - The :term:`nonce` is increased by ``1`` with respect to the previous :term:`balance proof`
 - The :term:`locked amount` must decrease and the :term:`transferred amount` must increase by the amount held in the unlocked lock.
 
@@ -302,7 +311,7 @@ Mediated transfers have an :term:`initiator` and a :term:`target` and a number o
 
 - ``N + 1`` :term:`locked transfer` or refund messages
 - ``1`` secret request
-- ``N + 2`` :term:`secret reveal`
+- ``N + 2`` :term:`reveal secret`
 - ``N + 1`` :term:`unlock`
 - ``2N + 3`` processed (one for everything above)
 - ``5N + 8`` delivered
