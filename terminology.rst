@@ -147,15 +147,13 @@ Raiden Terminology
    Net Balance
        Net of balance in a contract. May be negative or positive. Negative for ``A(B)`` if ``A(B)`` received more tokens than it spent. For example ``net_balance(A) = transferred_amount(A) - transferred_amount(B)``
 
-   Challenge Period
-       The state of a channel initiated by one of the channel participants. This phase is limited for a period of ``n`` block updates.
-
    Challenge Period Update
-       Update of the channel state during the :term:`Challenge period`. The state can be updated either by the channel participants, or by a delegate (:term:`MS`).
+       Update of the channel state during the :term:`Challenge period`. The state can be updated either by the non-closing participant, or by a delegate (:term:`MS`).
 
+   Challenge Period
    Settlement Window
    Settle Timeout
-       The number of blocks from the time of closing of a channel until it can be settled.
+       The state of a channel after one channel participant closes the channel. During this period the other participant (or any delegate) is able to provide balance proofs by calling :ref:`updateNonClosingBalanceProof() <update-channel>`. This phase is limited for a number of blocks, after which the channel can be :ref:`settled <settle-channel>`. The length of the challenge period can be configured when each channel is opened.
 
    Secret Reveal
    Secret Reveal message

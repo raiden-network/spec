@@ -335,7 +335,7 @@ We currently limit the number of channels between two participants to one. There
 - ``participant1``: Ethereum address of a channel participant.
 - ``participant2``: Ethereum address of the other channel participant.
 - ``state``: Channel state. It can be ``NonExistent`` - ``0``, ``Opened`` - ``1``, ``Closed`` - ``2``, ``Settled`` - ``3``, ``Removed`` - ``4``.
-- ``settle_block_number``: the number of blocks in the settlement window if ``state`` is ``Opened``; the block number after which settleChannel() can succeed if ``state`` is ``Closed``; 0 otherwise.
+- ``settle_block_number``: the number of blocks in the challenge period if ``state`` is ``Opened``; the block number after which settleChannel() can succeed if ``state`` is ``Closed``; 0 otherwise.
 
 .. Note::
     Channel state ``Settled`` means the channel was settled and channel data removed. However, there is still data remaining in the contract for calling ``unlock`` - for at least one participant.
@@ -784,13 +784,13 @@ Channel Settlement
     :alt: Channel Settlement
     :width: 400px
 
-Channel Settlement Window
--------------------------
+Channel Challenge Period
+------------------------
 
-The non-closing participant can update the closing participant's balance proof during the settlement window, by calling ``TokenNetwork.updateNonClosingBalanceProof``.
+The non-closing participant can update the closing participant's balance proof during the challenge period, by calling ``TokenNetwork.updateNonClosingBalanceProof``.
 
 .. image:: diagrams/RaidenSC_channel_update.png
-    :alt: Channel Settlement Window Updating NonClosing BalanceProof
+    :alt: Channel Challenge Period Updating NonClosing BalanceProof
     :width: 650px
 
 Unlocking Pending Transfers
