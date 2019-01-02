@@ -29,7 +29,7 @@ Raiden Terminology
        A network of payment channels for a given Token.
 
    Raiden Network
-       A collection of Token networks.
+       A collection of :term:`Token networks <Token Network>`.
 
    Transfer
        A movement of tokens from a :term:`Sender` to a :term:`Receiver`.
@@ -38,11 +38,11 @@ Raiden Terminology
        Exchange of one token for another.
 
    HTL Transfer
-       An expirable potentially cancellable Transfer secured by a Hash Time Lock.
+       An expirable potentially cancellable Transfer secured by a :term:`Hash Time Lock`.
 
    Hash Time Locked Transfer
    Mediated Transfer
-       A token Transfer composed of multiple HTL transfers.
+       A token Transfer composed of multiple :term:`HTL transfers <HTL Transfer>`.
 
    Hash Time Lock
    HTL
@@ -86,7 +86,9 @@ Raiden Terminology
        Strictly monotonic value used to order off-chain transfers. It starts at ``1``. It is a :term:`balance proof` component. The ``nonce`` differentiates between older and newer balance proofs that can be sent by a delegate to the :term:`Token Network` contract and updated through :ref:`updateNonClosingBalanceProof <update-channel>`.
 
    chain id
-       Chain identifier as defined in EIP155.
+       Chain identifier as defined in EIP155_.
+
+       .. _EIP155: https://eips.ethereum.org/EIPS/eip-155
 
    Message
        Any message sent from one Raiden Node to the other.
@@ -98,10 +100,10 @@ Raiden Terminology
        The node that receives a :term:`Payment`.
 
    Mediator
-       A node that mediates a transfer.
+       A node that mediates a :term:`Payment`.
 
    Sender
-       The node that is sending a Message.  The address of the sender can be inferred from the signature.
+       The node that is sending a :term:`Message`.  The address of the sender can be inferred from the signature.
 
    Receiver
        The node that is receiving a Message.
@@ -127,7 +129,7 @@ Raiden Terminology
 
    Unlock
    Unlock message
-       An offchain Raiden message that contains a new :term:`balance proof` after a Hash Time Lock is unlocked.  See :ref:`unlock-message` for details.
+       An offchain Raiden message that contains a new :term:`balance proof` after a :term:`Hash Time Lock` is unlocked.  See :ref:`unlock-message` for details.
 
    Raiden Light Client
        A client that does not mediate payments.
@@ -157,7 +159,7 @@ Raiden Terminology
 
    Reveal Secret
    Reveal Secret message
-       An offchain Raiden message that contains the secret that can open a Hash Time Lock. See :ref:`reveal-secret-message` for details.
+       An offchain Raiden message that contains the secret that can open a :term:`Hash Time Lock`. See :ref:`reveal-secret-message` for details.
 
    Reveal Timeout
           The number of blocks in a channel allowed for learning about a secret being revealed through the blockchain and acting on it.
