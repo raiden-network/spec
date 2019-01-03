@@ -54,7 +54,7 @@ A path finding service must provide the following endpoints. The interface has t
 The examples provided for each of the endpoints is for communication with a REST endpoint.
 
 ``api/v1/<token_network_address>/paths``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The method will do ``max_paths`` iterations of Dijkstras algorithm on the last-known state of the Raiden
 Network (regarded as directed weighted graph) to return ``max_paths`` different paths for a mediated transfer of ``value``.
@@ -137,7 +137,7 @@ Example
 
 
 ``api/v1/<token_network_address>/payment/info``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Request price and path information on how and how much to pay the service for additional path requests.
 The service is paid in RDN tokens, so they payer might need to open an additional channel in the RDN token network.

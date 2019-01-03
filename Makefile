@@ -52,42 +52,42 @@ clean:
 .PHONY: html
 html:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html -W
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
 .PHONY: dirhtml
 dirhtml:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml
+	$(SPHINXBUILD) -b dirhtml $(ALLSPHINXOPTS) $(BUILDDIR)/dirhtml -W
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/dirhtml."
 
 .PHONY: singlehtml
 singlehtml:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(BUILDDIR)/singlehtml
+	$(SPHINXBUILD) -b singlehtml $(ALLSPHINXOPTS) $(BUILDDIR)/singlehtml -W
 	@echo
 	@echo "Build finished. The HTML page is in $(BUILDDIR)/singlehtml."
 
 .PHONY: pickle
 pickle:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) $(BUILDDIR)/pickle
+	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) $(BUILDDIR)/pickle -W
 	@echo
 	@echo "Build finished; now you can process the pickle files."
 
 .PHONY: json
 json:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(BUILDDIR)/json
+	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) $(BUILDDIR)/json -W
 	@echo
 	@echo "Build finished; now you can process the JSON files."
 
 .PHONY: htmlhelp
 htmlhelp:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) $(BUILDDIR)/htmlhelp
+	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) $(BUILDDIR)/htmlhelp -W
 	@echo
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
 	      ".hhp project file in $(BUILDDIR)/htmlhelp."
@@ -95,7 +95,7 @@ htmlhelp:
 .PHONY: qthelp
 qthelp:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b qthelp $(ALLSPHINXOPTS) $(BUILDDIR)/qthelp
+	$(SPHINXBUILD) -b qthelp $(ALLSPHINXOPTS) $(BUILDDIR)/qthelp -W
 	@echo
 	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
 	      ".qhcp project file in $(BUILDDIR)/qthelp, like this:"
@@ -106,7 +106,7 @@ qthelp:
 .PHONY: applehelp
 applehelp:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b applehelp $(ALLSPHINXOPTS) $(BUILDDIR)/applehelp
+	$(SPHINXBUILD) -b applehelp $(ALLSPHINXOPTS) $(BUILDDIR)/applehelp -W
 	@echo
 	@echo "Build finished. The help book is in $(BUILDDIR)/applehelp."
 	@echo "N.B. You won't be able to view it unless you put it in" \
@@ -116,7 +116,7 @@ applehelp:
 .PHONY: devhelp
 devhelp:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b devhelp $(ALLSPHINXOPTS) $(BUILDDIR)/devhelp
+	$(SPHINXBUILD) -b devhelp $(ALLSPHINXOPTS) $(BUILDDIR)/devhelp -W
 	@echo
 	@echo "Build finished."
 	@echo "To view the help file:"
@@ -127,21 +127,21 @@ devhelp:
 .PHONY: epub
 epub:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(BUILDDIR)/epub
+	$(SPHINXBUILD) -b epub $(ALLSPHINXOPTS) $(BUILDDIR)/epub -W
 	@echo
 	@echo "Build finished. The epub file is in $(BUILDDIR)/epub."
 
 .PHONY: epub3
 epub3:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b epub3 $(ALLSPHINXOPTS) $(BUILDDIR)/epub3
+	$(SPHINXBUILD) -b epub3 $(ALLSPHINXOPTS) $(BUILDDIR)/epub3 -W
 	@echo
 	@echo "Build finished. The epub3 file is in $(BUILDDIR)/epub3."
 
 .PHONY: latex
 latex:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
+	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex -W
 	@echo
 	@echo "Build finished; the LaTeX files are in $(BUILDDIR)/latex."
 	@echo "Run \`make' in that directory to run these through (pdf)latex" \
@@ -150,7 +150,7 @@ latex:
 .PHONY: latexpdf
 latexpdf:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
+	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex -W
 	@echo "Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(BUILDDIR)/latex all-pdf
 	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
@@ -158,7 +158,7 @@ latexpdf:
 .PHONY: latexpdfja
 latexpdfja:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
+	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex -W
 	@echo "Running LaTeX files through platex and dvipdfmx..."
 	$(MAKE) -C $(BUILDDIR)/latex all-pdf-ja
 	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
@@ -166,21 +166,21 @@ latexpdfja:
 .PHONY: text
 text:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(BUILDDIR)/text
+	$(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(BUILDDIR)/text -W
 	@echo
 	@echo "Build finished. The text files are in $(BUILDDIR)/text."
 
 .PHONY: man
 man:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(BUILDDIR)/man
+	$(SPHINXBUILD) -b man $(ALLSPHINXOPTS) $(BUILDDIR)/man -W
 	@echo
 	@echo "Build finished. The manual pages are in $(BUILDDIR)/man."
 
 .PHONY: texinfo
 texinfo:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b texinfo $(ALLSPHINXOPTS) $(BUILDDIR)/texinfo
+	$(SPHINXBUILD) -b texinfo $(ALLSPHINXOPTS) $(BUILDDIR)/texinfo -W
 	@echo
 	@echo "Build finished. The Texinfo files are in $(BUILDDIR)/texinfo."
 	@echo "Run \`make' in that directory to run these through makeinfo" \
@@ -189,7 +189,7 @@ texinfo:
 .PHONY: info
 info:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b texinfo $(ALLSPHINXOPTS) $(BUILDDIR)/texinfo
+	$(SPHINXBUILD) -b texinfo $(ALLSPHINXOPTS) $(BUILDDIR)/texinfo -W
 	@echo "Running Texinfo files through makeinfo..."
 	make -C $(BUILDDIR)/texinfo info
 	@echo "makeinfo finished; the Info files are in $(BUILDDIR)/texinfo."
@@ -197,21 +197,21 @@ info:
 .PHONY: gettext
 gettext:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b gettext $(I18NSPHINXOPTS) $(BUILDDIR)/locale
+	$(SPHINXBUILD) -b gettext $(I18NSPHINXOPTS) $(BUILDDIR)/locale -W
 	@echo
 	@echo "Build finished. The message catalogs are in $(BUILDDIR)/locale."
 
 .PHONY: changes
 changes:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(BUILDDIR)/changes
+	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) $(BUILDDIR)/changes -W
 	@echo
 	@echo "The overview file is in $(BUILDDIR)/changes."
 
 .PHONY: linkcheck
 linkcheck:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck
+	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck -W
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in $(BUILDDIR)/linkcheck/output.txt."
@@ -219,34 +219,34 @@ linkcheck:
 .PHONY: doctest
 doctest:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest
+	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) $(BUILDDIR)/doctest -W
 	@echo "Testing of doctests in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/doctest/output.txt."
 
 .PHONY: coverage
 coverage:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b coverage $(ALLSPHINXOPTS) $(BUILDDIR)/coverage
+	$(SPHINXBUILD) -b coverage $(ALLSPHINXOPTS) $(BUILDDIR)/coverage -W
 	@echo "Testing of coverage in the sources finished, look at the " \
 	      "results in $(BUILDDIR)/coverage/python.txt."
 
 .PHONY: xml
 xml:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b xml $(ALLSPHINXOPTS) $(BUILDDIR)/xml
+	$(SPHINXBUILD) -b xml $(ALLSPHINXOPTS) $(BUILDDIR)/xml -W
 	@echo
 	@echo "Build finished. The XML files are in $(BUILDDIR)/xml."
 
 .PHONY: pseudoxml
 pseudoxml:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b pseudoxml $(ALLSPHINXOPTS) $(BUILDDIR)/pseudoxml
+	$(SPHINXBUILD) -b pseudoxml $(ALLSPHINXOPTS) $(BUILDDIR)/pseudoxml -W
 	@echo
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
 
 .PHONY: dummy
 dummy:
 	$(SPHINXAPIDOC) -o $(BUILDDIR)/generated $(RAIDENMODULEPATH)
-	$(SPHINXBUILD) -b dummy $(ALLSPHINXOPTS) $(BUILDDIR)/dummy
+	$(SPHINXBUILD) -b dummy $(ALLSPHINXOPTS) $(BUILDDIR)/dummy -W
 	@echo
 	@echo "Build finished. Dummy builder generates no files."
