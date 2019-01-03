@@ -137,10 +137,10 @@ Example data: Balance proof
 ::
 
     {
-      'nonce': 13,
-      'transferred_amount': 15000,
-      'channel_address': '0x87F5636c67f2Fd4F11710974766a5B1b6f33FB1d',
-      'extra_hash': '0xe0fa3e376941dafc9b3836f80bee307ab2eacb569ec7ccceff5e66b48b1efd9c',
-      'locksroot': '0xebd7dc7d6dd7956e62104182194939a1223c738ffc2a14dbbecb6191cf76f211',
-      'signature': '0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470'
+      "nonce": 13,
+      "transferred_amount": 15000,
+      "channel_address": "0x87F5636c67f2Fd4F11710974766a5B1b6f33FB1d",
+      "extra_hash": "0xe0fa3e376941dafc9b3836f80bee307ab2eacb569ec7ccceff5e66b48b1efd9c",
+      "locksroot": "0xebd7dc7d6dd7956e62104182194939a1223c738ffc2a14dbbecb6191cf76f211",
+      "signature": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
     }
