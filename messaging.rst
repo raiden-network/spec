@@ -169,7 +169,9 @@ Message used to request the :term:`secret` that unlocks a lock. Sent by the paym
 Invariants
 ^^^^^^^^^^
 
-- The :term:`initiator` must check that the payment :term:`target` received a valid payment.
+- The :term:`initiator` must have initiated a payment to the :term:`target` with the same ``payment_identifier``, ``lock_secrethash``, ``payment_amount`` and ``expiration``.
+- The :term:`target` must have received a :term:`Locked Transfer` for the payment.
+- The ``signature`` must be from the :term:`target`.
 
 Fields
 ^^^^^^

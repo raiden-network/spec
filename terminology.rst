@@ -161,6 +161,9 @@ Raiden Terminology
    Settle Timeout
        The state of a channel after one channel participant closes the channel. During this period the other participant (or any delegate) is able to provide balance proofs by calling :ref:`updateNonClosingBalanceProof() <update-channel>`. This phase is limited for a number of blocks, after which the channel can be :ref:`settled <settle-channel>`. The length of the challenge period can be configured when each channel is opened.
 
+   Secret Request
+       An offchain Raiden message from the target that asks for the :term:`secret` of the payment. See :ref:`secret-request-message` for details.
+
    Reveal Secret
    Reveal Secret message
        An offchain Raiden message that contains the secret that can open a :term:`Hash Time Lock`. See :ref:`reveal-secret-message` for details.
