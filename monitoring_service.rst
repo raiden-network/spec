@@ -36,7 +36,7 @@ closed by Bob with an incorrect balance proof.
 Information Flow
 ================
 
-.. image:: diagrams/RaidenMonitoringService _flow_chart.png
+.. image:: diagrams/RaidenMonitoringService_flow_chart.png
     :alt: Monitoring Service - Flow Chart
     :width: 900px
 
