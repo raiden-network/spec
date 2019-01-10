@@ -1,5 +1,5 @@
-Raiden Network Monitoring Service
-#################################
+Raiden Monitoring Service
+#########################
 
 
 Basic requirements for the MS
@@ -97,22 +97,6 @@ Event filtering
 MS MUST filter events for each onchain channel that corresponds to the submitted Balance Proofs.
 On ``ChannelClosed`` and ``NonClosingBalanceProofUpdated`` events state the channel was closed with MUST be compared with the Balance Proof. In case of any discrepancy, channel state must be updated immediately.
 On ``ChannelSettled`` event any state data for this channel MAY be deleted from the MS.
-
-REST interface
---------------
-The monitoring service MAY expose some of the functionality over RESTful API.
-There might be API endpoints that SHOULD be protected from public access (i.e. using some form of authentication).
-
-Endpoints
-'''''''''
-* ``GET /api/1/balance_proofs`` - return a JSON list of known balance proofs
-* ``DEL /api/1/balance_proofs/<channel_address>`` - remove balance proof from the internal database
-* ``PUT /api/1/balance_proofs`` - register a balance proof
-
-* ``GET /api/1/channel_update`` - return a JSON list of already performed channel updates.
-* ``GET /api/1/channel_update/<channel_address>`` - return a list of updates for a given channel
-
-* ``GET /api/1/stats`` - various statistics of the server, including count of balance proofs stored, count of balance proofs submitted, count of unique Participants etc.
 
 Appendix B: Message format
 ==========================

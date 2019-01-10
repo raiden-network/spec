@@ -1,5 +1,5 @@
-Raiden Pathfinding Service Specification
-########################################
+Raiden Pathfinding Service
+##########################
 
 Overview
 ========
