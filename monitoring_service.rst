@@ -1,5 +1,5 @@
-Raiden Network Monitoring Service
-#################################
+Raiden Monitoring Service
+#########################
 
 
 Summary
