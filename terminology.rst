@@ -120,7 +120,7 @@ Raiden Terminology
 
    Refund Transfer
    Refund Transfer message
-       An offchain Raiden message for a :term:`Payment` seeking a rerouting. When a receiver of a :term:`Locked Transfer` message gives up reaching the target, they return a Refund Transfer message. The Refund Transfer message locks an amount of tokens in the direction opposite from the previous :term:`Locked Transfer`.
+       An offchain Raiden message for a :term:`Transfer` seeking a rerouting. When a receiver of a :term:`Locked Transfer` message gives up reaching the target, they return a Refund Transfer message. The Refund Transfer message locks an amount of tokens in the direction opposite from the previous :term:`Locked Transfer` allowing the previous hop to retry with a different path.
 
    Monitoring Service
    MS
