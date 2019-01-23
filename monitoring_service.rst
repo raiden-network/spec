@@ -219,18 +219,18 @@ Example Data: Monitor Request
 
     {
       "onchain_balance_proof": {
-          "signature_prefix": tbd,
-          "message_length": 212,
-          "token_network_address": tbd,
-          "chain_id": tbd,
+          "signature_prefix": "13",
+          "message_length": "212",
+          "token_network_address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+          "chain_id": 1,
           "message_type_id": 1,
-          "channel_identifier": tbd,
-          "balance_hash": tbd,
-          "nonce": tbd,
-          "additional_hash": tbd,
-          "signature": tbd
+          "channel_identifier": 76,
+          "balance_hash": "0x1c3a34a22ab087808ba772f40779b04e719080e86289c7a4ad1bd2098a3c751d",
+          "nonce": 5,
+          "additional_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "signature": "0xd38c435654373983d5bdee589980853b5e7da2714d7bdcba5282ccb88ffd29210c3b1d07313aab05f7d2a514561b6796191093a9ce5726da8f1eb89bc575bc7e1b"
       },
-      "non_closing_signature": "0xe0fa3e376941dafc9b3836f80bee307ab2eacb569ec7ccceff5e66b48b1efd9c",
+      "non_closing_signature": "0x77857e08793165163380d50ea780cf3798d2132a61b1d43395fc6e4a766f3c1918f8365d3bef173e0f8bb32c1f373be76369f54fb0ac7fdf91dd559e6e5865431b",
       "reward_amount": 1234,
-      "reward_proof_signature": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      "reward_proof_signature": "0x12345e08793165163380d50ea780cf3798d2132a61b1d43395fc6e4a766f3c1918f8365d3bef173e0f8bb32c1f373be76369f54fb0ac7fdf91dd559e6e5864444a"
     }

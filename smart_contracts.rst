@@ -56,7 +56,7 @@ Data structures
 
     Where:
 
-    - ``message_length``: Length of the actual message to be signed in decimal representation (not null-terminated).
+    - ``message_length``: String of the length of the actual message to be signed in decimal representation (not null-terminated).
     - ``message = token_network_address || chain_id || message_type_id || message_specific_data``
     - ``message_type_id`` has a different value depending on the type of message signed
 
