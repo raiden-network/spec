@@ -1,3 +1,5 @@
+.. _ms:
+
 Raiden Monitoring Service
 #########################
 

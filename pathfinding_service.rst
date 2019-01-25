@@ -1,3 +1,5 @@
+.. _pfs:
+
 Raiden Pathfinding Service
 ##########################
 
