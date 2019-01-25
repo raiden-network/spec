@@ -1,0 +1,22 @@
+[UserDeposit|
+	user deposits for service payments
+	payments claimend by services
+	planned withdrawals
+]
+
+[MonitoringService|
+	unclaimend rewards for monitoring
+]
+
+[RaidenServiceBundle|
+	registered services
+]
+
+[OneToN|
+	settled PFS payment sessions
+]
+
+[MonitoringService] -> [RaidenServiceBundle]
+[MonitoringService] -> [UserDeposit]
+[RaidenServiceBundle]<- [OneToN]
+[UserDeposit]<- [OneToN] 
