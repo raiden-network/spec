@@ -69,6 +69,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
+# where does autodoc look for source code
+autodoc_lookup_path = 'contracts'
 
 # -- Options for HTML output -------------------------------------------------
 

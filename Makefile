@@ -51,8 +51,12 @@ clean:
 
 # download `raiden-contracts/raiden_contracts/contracts` to the local `contracts` dir
 # This is skipped if the dir already exists. Use `make clean` to force an update.
+# I'd like to use `tar xvz --wildcards '*/raiden_contracts/contracts' --strip-components 2`,
+# but that only works with gnu tar and this should run on MacOS, too.
 contracts:
-	curl -sSL https://github.com/raiden-network/raiden-contracts/tarball/master | tar xvz --wildcards '*/raiden_contracts/contracts' --strip-components 2
+	mkdir contracts
+	curl -sSL https://github.com/raiden-network/raiden-contracts/tarball/master | tar xvz --directory contracts --strip-components 3
+	find contracts/ -not -name '*.sol' -not -exec rm {} \;
 
 .PHONY: html
 html: contracts
