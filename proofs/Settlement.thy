@@ -124,7 +124,7 @@ D1 - W1 + T2 - T1 - L1 \<le> D1 + D2 - W1 - W2 \<Longrightarrow> (* (5 R) *)
 T2 + L2 \<ge> T1 + L1 \<Longrightarrow>
 S1 T1 L1 T2 L2 D1 W1 D2 W2 = (Some (spec_s1 T1 T2 D1 W1 L1))"
   by(auto simp add: valid_def spec_s1_def S1_def RmaxP1_def RmaxP1_pre_def TAD_def chop_def
- TLmax2_def SL2_def TLmax1_def chop_def )
+ TLmax2_def SL2_def TLmax1_def )
 
 
 
