@@ -105,5 +105,5 @@ In Matrix, users can send direct e2e encrypted messages to each other through pr
 
 Blockchain Event Rooms
 ''''''''''''''''''''''
-Each RSB operator could provide a room, where relevant events from Raiden Token Networks are published. E.g. signed, so that false info could be challenged.
+Each operator registered with the Raiden :ref:`ServiceRegistry` could provide a room, where relevant events from Raiden Token Networks are published. E.g. signed, so that false info could be challenged.
 
