@@ -54,9 +54,7 @@ Design of the Monitoring Service (still work in progress)
 Monitoring Service Registration
 -------------------------------
 
-The Monitoring Service is part of the Raiden Service Bundle (RSB). RSB slots, the set of Raiden Service Providers, will
-be auctioned. If chosen in the auction, the service provider will become part of the list of MSs and must deposit some
-RDN.
+The Monitoring Service has to be registered in the :ref:`ServiceRegistry` contract. Registry slots will be auctioned. If chosen in the auction, the service provider will become part of the list of MSs and must deposit some RDN.
 
 Client Onboarding
 -----------------

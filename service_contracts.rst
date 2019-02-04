@@ -7,7 +7,7 @@ Overview
 The Raiden services (:ref:`MS` and :ref:`PFS`) require a set of smart contracts to function. There are two general smart contracts:
 
 * UserDeposit
-* RaidenServiceBundle
+* ServiceRegistry
 
 and one additional contract for each of the services
 
@@ -24,10 +24,12 @@ There might also be an additional contract to facilitate the onboarding of new R
 .. _Hub Contract: https://github.com/raiden-network/spec/issues/120
 
 
-RaidenServiceBundle
-===================
+.. _ServiceRegistry:
 
-The RaidenServiceBundle provides a registry in which services have to register before becoming a full part of the Raiden services system. Services have to deposit RDN tokens in this contract for a successful registration. This avoids attacks using a large number of services and increases the incentive for service provider to not harm the Raiden ecosystem.
+ServiceRegistry
+===============
+
+The ServiceRegistry provides a registry in which services have to register before becoming a full part of the Raiden services system. Services have to deposit RDN tokens in this contract for a successful registration. This avoids attacks using a large number of services and increases the incentive for service provider to not harm the Raiden ecosystem.
 
 
 UserDeposit
@@ -189,7 +191,7 @@ following precautions are taken:
    elapsed.
 -  The PFS demands a higher deposit than it's currently owed ``amount``
    to give it some safety margin when other parties claim tokens
--  Only PFSs registered in the RSBC are allowed to claim IOUs. This is
+-  Only PFSs registered in the ServiceRegistry are allowed to claim IOUs. This is
    important because claims allow circumventing the UDC's withdraw
    delay.
 
