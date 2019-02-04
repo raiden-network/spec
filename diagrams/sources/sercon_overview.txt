@@ -8,7 +8,7 @@
 	unclaimend rewards for monitoring
 ]
 
-[RaidenServiceBundle|
+[ServiceRegistry|
 	registered services
 ]
 
@@ -16,7 +16,7 @@
 	settled PFS payment sessions
 ]
 
-[MonitoringService] -> [RaidenServiceBundle]
+[MonitoringService] -> [ServiceRegistry]
 [MonitoringService] -> [UserDeposit]
-[RaidenServiceBundle]<- [OneToN]
+[ServiceRegistry]<- [OneToN]
 [UserDeposit]<- [OneToN] 
