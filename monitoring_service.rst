@@ -219,11 +219,8 @@ Example Data: Monitor Request
 
     {
       "onchain_balance_proof": {
-          "signature_prefix": "13",
-          "message_length": "212",
           "token_network_address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
           "chain_id": 1,
-          "message_type_id": 1,
           "channel_identifier": 76,
           "balance_hash": "0x1c3a34a22ab087808ba772f40779b04e719080e86289c7a4ad1bd2098a3c751d",
           "nonce": 5,
