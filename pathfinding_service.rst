@@ -259,7 +259,7 @@ The signature of the message is calculated by:
 
 ::
 
-    ecdsa_recoverable(privkey, sha3_keccak(nonce || chain_id || token_network_address || channel_identifier || transferred_amount || locked_amount || locksroot || additional_hash || reveal_timeout))
+    ecdsa_recoverable(privkey, sha3_keccak(nonce || chain_id || token_network_address || channel_identifier || transferred_amount || locked_amount || locksroot || reveal_timeout))
 
 All of this fields are required. The Pathfinding Service MUST perform verification of these data, namely channel
 existence. A Pathfinding Monitoring service SHOULD accept the message if and only if the sender of the message is same as the sender

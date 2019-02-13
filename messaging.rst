@@ -23,7 +23,7 @@ The signature must be valid and is defined as:
 
     ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id))
 
-where ``additioan_hash`` is the hash of the whole message being signed.
+where ``additional_hash`` is the hash of the whole message being signed.
 
 Fields
 ^^^^^^
@@ -43,7 +43,7 @@ Fields
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  channel_identifier      | uint256    | Channel identifier inside the TokenNetwork contract                            |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-|  message_hash            | bytes32    | Hash of the message                                                            |
+|  additional_hash         | bytes32    | Hash of the message                                                            |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  signature               | bytes      | Elliptic Curve 256k1 signature on the above data                               |
 +--------------------------+------------+--------------------------------------------------------------------------------+
