@@ -203,7 +203,7 @@ Network Topology Updates
 ------------------------
 
 The creation of new token networks can be followed by listening for:
-- `TokenNetworkCreated` events on the `TokenNetworksRegistry` contract. 
+- `TokenNetworkCreated` events on the `TokenNetworksRegistry` contract.
 
 To learn about updates of the network topology of a token network the PFS must
 listen for the following events:
@@ -221,7 +221,50 @@ balance proofs from there and update the topology represented internally.
 The Raiden nodes that want to earn fees mediating payments would be incentivized to publish their balance proofs in
 order to provide a path.
 
-This will be further specified soon.
+Balance Update
+^^^^^^^^^^^^^^
+
+Balance Updates are messages that the Raiden client broadcasts to Pathfinding Services in order to let them know about updated
+channel balances.
+
+Fields
+""""""
+
++--------------------------+------------+--------------------------------------------------------------------------------+
+| Field Name               | Field Type |  Description                                                                   |
++==========================+============+================================================================================+
+| nonce                    | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| transferred_amount       | uint256    | Total transferred amount in the history of the channel (monotonic value)       |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| locked_amount            | uint256    | Current locked amount                                                          |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| locksroot                | bytes32    | Root of the merkle tree of lock hashes (see below)                             |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| token_network_identifier | address    | Address of the TokenNetwork contract                                           |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| channel_identifier       | uint256    | Channel identifier inside the TokenNetwork contract                            |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| chain_id                 | uint256    | Chain identifier as defined in EIP155                                          |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| reveal_timeout           | uint256    | Reveal timeout of this channel                                                 |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| signature                | bytes      | Elliptic Curve 256k1 signature on the above data                               |
++--------------------------+------------+--------------------------------------------------------------------------------+
+
+Signature
+^^^^^^^^^
+
+The signature of the message is calculated by:
+
+::
+
+    ecdsa_recoverable(privkey, sha3_keccak(nonce || chain_id || token_network_address || channel_identifier || transferred_amount || locked_amount || locksroot || additional_hash || reveal_timeout))
+
+All of this fields are required. The Pathfinding Service MUST perform verification of these data, namely channel
+existence. A Pathfinding Monitoring service SHOULD accept the message if and only if the sender of the message is same as the sender
+address recovered from the signature.
+
 
 Future Work
 ===========
