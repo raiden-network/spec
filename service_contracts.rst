@@ -111,16 +111,26 @@ the `existing HTTP query params`_.
 
 .. _`existing HTTP query params`: https://raiden-network-specification.readthedocs.io/en/latest/pathfinding_service.html#arguments
 
-.. raw:: html
 
-   <table>
-     <tr><th>Field Name</th><th>Field Type</th><th>Description</th></tr>
-     <tr><td>sender</td><td>address</td><td></td></tr>
-     <tr><td>receiver</td><td>address</td><td></td></tr>
-     <tr><td>amount</td><td>uint256</td><td></td></tr>
-     <tr><td>expiration_block</td><td>uint256</td><td>last block in which the IOU can be claimed</td></tr>
-     <tr><td>signature</td><td>bytes</td><td>Signature over (`\x19Ethereum Signed Message:\n`, message_length, sender, receiver, amount, expiration_block) signed by sender's private key</td></tr>
-   </table>
++---------------------+------------+---------------------------------------------------------+
+| Field Name          | Field Type | Description                                             |
++=====================+============+=========================================================+
+| sender              | address    | Sender of the payment                                   |
++---------------------+------------+---------------------------------------------------------+
+| receiver            | address    | Receiver of the payment                                 |
++---------------------+------------+---------------------------------------------------------+
+| amount              | uint256    | Total amount of tokens transferred to the receiver      |
++---------------------+------------+---------------------------------------------------------+
+| expiration_block    | uint256    | Last block in which the IOU can be claimed              |
++---------------------+------------+---------------------------------------------------------+
+| signature           | bytes      | Signature of the message content                        |
++---------------------+------------+---------------------------------------------------------+
+
+The signature is calculated in the following way:
+
+::
+
+    ecdsa_recoverable(privkey, sha3_keccak("\x19Ethereum Signed Message:\n104" || sender || receiver || amount || expiration_block ))
 
 The PFS then thoroughly checks the IOU:
 
@@ -217,5 +227,3 @@ To handle the rewards, the MonitoringService contract provides two functions. On
 
 .. autosolcontract:: MonitoringService
     :members: monitor, claimReward
-
-
