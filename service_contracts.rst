@@ -103,38 +103,36 @@ Requirements
 -  low fraud rate (< 3%, i.e. some fraud is tolerable)
 -  can be implemented quickly
 
+.. _pfs_payment:
+
 Communication between client and PFS
 ------------------------------------
 
 When requesting a route, the IOU is added as five separate arguments to
-the `existing HTTP query params`_.
+the `existing HTTP params`_.
 
-.. _`existing HTTP query params`: https://raiden-network-specification.readthedocs.io/en/latest/pathfinding_service.html#arguments
+.. _`existing HTTP params`: https://raiden-network-specification.readthedocs.io/en/latest/pathfinding_service.html#arguments
 
 
 +---------------------+------------+---------------------------------------------------------+
 | Field Name          | Field Type | Description                                             |
 +=====================+============+=========================================================+
-| sender              | address    | Sender of the payment                                   |
+| sender              | address    | Sender of the payment (Ethereum address of client)      |
 +---------------------+------------+---------------------------------------------------------+
-| receiver            | address    | Receiver of the payment                                 |
+| receiver            | address    | Receiver of the payment (Ethereum address of PFS)       |
 +---------------------+------------+---------------------------------------------------------+
 | amount              | uint256    | Total amount of tokens transferred to the receiver      |
+|                     |            | within this session (sender, receiver, expiration_block)|
 +---------------------+------------+---------------------------------------------------------+
 | expiration_block    | uint256    | Last block in which the IOU can be claimed              |
 +---------------------+------------+---------------------------------------------------------+
-| signature           | bytes      | Signature of the message content                        |
+| signature           | bytes      | Signature of the payment arguments [#sig]_              |
 +---------------------+------------+---------------------------------------------------------+
 
-The signature is calculated in the following way:
-
-::
-
-    ecdsa_recoverable(privkey, sha3_keccak("\x19Ethereum Signed Message:\n104" || sender || receiver || amount || expiration_block ))
 
 The PFS then thoroughly checks the IOU:
 
--  Is the PFS the receiver
+-  Is the PFS the receiver?
 -  Did the amount increase enough to make the request profitable for the
    PFS (``amount >= prev_amount + pfs_fee``)
 -  Is ``expiration_block`` far enough in the future to potentially
@@ -151,6 +149,13 @@ returned and the client can try to submit a request with a proper IOU or
 try a different PFS. Otherwise, the PFS returns the requested routes as
 described in the current spec and saves the latest IOU for this (sender,
 expiration_block).
+
+.. [#sig] The signature is calculated by
+          ::
+
+               ecdsa_recoverable(privkey,
+                                 sha3_keccak("\x19Ethereum Signed Message:\n104"
+                                             || sender || receiver || amount || expiration_block ))
 
 
 Claiming the IOU

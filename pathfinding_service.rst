@@ -55,8 +55,8 @@ A path finding service must provide the following endpoints. The interface has t
 
 The examples provided for each of the endpoints is for communication with a REST endpoint.
 
-``api/v1/<token_network_address>/paths``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``POST api/v1/<token_network_address>/paths``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The method will do ``max_paths`` iterations of Dijkstras algorithm on the last-known state of the Raiden
 Network (regarded as directed weighted graph) to return ``max_paths`` different paths for a mediated transfer of ``value``.
@@ -65,8 +65,8 @@ Network (regarded as directed weighted graph) to return ``max_paths`` different 
 
 * Applies on the fly changes to the graph's weights - depends on ``DIVERSITY_PEN_DEFAULT`` from ``config``, to penalize edges which are part of a path that is returned already.
 
-Arguments
-"""""""""
+Routing Arguments
+"""""""""""""""""
 
 +----------------------+---------------+-----------------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                                          |
@@ -81,6 +81,11 @@ Arguments
 +----------------------+---------------+-----------------------------------------------------------------------+
 | max_paths            | int           | The maximum number of paths returned.                                 |
 +----------------------+---------------+-----------------------------------------------------------------------+
+
+Payment Arguments
+"""""""""""""""""
+
+See :ref:`pfs_payment`.
 
 Returns
 """""""
@@ -104,12 +109,25 @@ If no possible path is found, one of the following errors is returned:
 * 'max_paths' is invalid
 * 'value' is invalid
 
+Errors
+""""""
+
+.. note::
+   In addition to the error messages, error codes will be added to easily identify the different error cases and handle them automatically.
+
+* Wrong ``receiver``
+* Outdated payment session. Please choose new ``expiration_block``.
+* Too low payment ``amount``. The last IOU for the current session is included in the ``last_iou`` field of the returned object.
+* Invalid payment signature
+* Deposit in UserDeposit contract is too low.
+* Bad client. The client behaved badly in the past and the PFS does not want to provide service to it, anymore. One reason for this could be by using a new ``expiration_block`` for each request, so that it is not profitable for the PFS to claim the service payments.
+
 Example
 """""""
 ::
 
     // Request
-    curl -X GET --data '{
+    curl -X POST --data '{
         "from": "0xalice",
         "to": "0xbob",
         "value": 45,
@@ -138,8 +156,8 @@ Example
 
 
 
-``api/v1/<token_network_address>/payment/info``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``GET api/v1/<token_network_address>/payment/info``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Request price and path information on how and how much to pay the service for additional path requests.
 The service is paid in RDN tokens, so they payer might need to open an additional channel in the RDN token network.
@@ -157,12 +175,14 @@ Arguments
 
 Returns
 """""""
-An object consisting of two properties:
+A JSON object with the following properties:
 
 +----------------------+---------------+-----------------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                                          |
 +======================+===============+=======================================================================+
 | price_per_request    | int           | The address of payer in the RDN token network.                        |
++----------------------+---------------+-----------------------------------------------------------------------+
+| pfs_address          | address       | The PFS address in the RDN token network.                             |
 +----------------------+---------------+-----------------------------------------------------------------------+
 | paths                | list          | A list of possible paths to pay the path finding service in the RDN   |
 |                      |               | token network. Each object in the list contains a *path* and an       |
@@ -262,7 +282,7 @@ The signature of the message is calculated by:
     ecdsa_recoverable(privkey, sha3_keccak(nonce || chain_id || token_network_address || channel_identifier || transferred_amount || locked_amount || locksroot || reveal_timeout))
 
 All of this fields are required. The Pathfinding Service MUST perform verification of these data, namely channel
-existence. A Pathfinding Monitoring service SHOULD accept the message if and only if the sender of the message is same as the sender
+existence. A Pathfinding service SHOULD accept the message if and only if the sender of the message is same as the sender
 address recovered from the signature.
 
 
