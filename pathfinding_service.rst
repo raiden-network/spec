@@ -65,6 +65,8 @@ Network (regarded as directed weighted graph) to return ``max_paths`` different 
 
 * Applies on the fly changes to the graph's weights - depends on ``DIVERSITY_PEN_DEFAULT`` from ``config``, to penalize edges which are part of a path that is returned already.
 
+.. _path_args:
+
 Routing Arguments
 """""""""""""""""
 

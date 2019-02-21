@@ -109,10 +109,7 @@ Communication between client and PFS
 ------------------------------------
 
 When requesting a route, the IOU is added as five separate arguments to
-the `existing HTTP params`_.
-
-.. _`existing HTTP params`: https://raiden-network-specification.readthedocs.io/en/latest/pathfinding_service.html#arguments
-
+the :ref:`existing HTTP params <path_args>`.
 
 +---------------------+------------+---------------------------------------------------------+
 | Field Name          | Field Type | Description                                             |
