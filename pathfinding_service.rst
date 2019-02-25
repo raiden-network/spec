@@ -85,7 +85,7 @@ The arguments are POSTed as a JSON object.
 +----------------------+---------------+-----------------------------------------------------------------------+
 | max_paths            | int           | The maximum number of paths returned.                                 |
 +----------------------+---------------+-----------------------------------------------------------------------+
-| fee_iou              | object        | IOU objects as described in :ref:`pfs_payment` to pay the service fee |
+| fee_iou              | object        | IOU object as described in :ref:`pfs_payment` to pay the service fee  |
 +----------------------+---------------+-----------------------------------------------------------------------+
 
 Returns
@@ -100,6 +100,10 @@ A list of path objects. A path object consists of the following information:
 | estimated_fee        | int           | An estimate of the fees required for that path.                       |
 +----------------------+---------------+-----------------------------------------------------------------------+
 
+
+Errors
+""""""
+
 If no possible path is found, one of the following errors is returned:
 
 * No suitable path found
@@ -110,8 +114,7 @@ If no possible path is found, one of the following errors is returned:
 * 'max_paths' is invalid
 * 'value' is invalid
 
-Errors
-""""""
+Payment related errors:
 
 .. note::
    In addition to the error messages, error codes will be added to easily identify the different error cases and handle them automatically.
@@ -219,6 +222,47 @@ Example
     {
         "errors": "No suitable path found."
     }
+
+
+``GET api/v1/<token_network_address>/payment/iou``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Request the last IOU used by ``sender`` to pay the PFS.
+This IOU can be used by the client to generate the next IOU to pay the PFS by increasing the ``amount`` and updating the signature.
+
+Arguments
+"""""""""
+
++---------------------+------------+---------------------------------------------------------+
+| Field Name          | Field Type | Description                                             |
++=====================+============+=========================================================+
+| sender              | address    | Sender of the payment (Ethereum address of client)      |
++---------------------+------------+---------------------------------------------------------+
+| receiver            | address    | Receiver of the payment (Ethereum address of PFS)       |
++---------------------+------------+---------------------------------------------------------+
+| timestamp           | string     | Current UTC date and time in ISO 8601 format            |
+|                     |            | (e.g. 2019-02-25T12:53:16Z)                             |
++---------------------+------------+---------------------------------------------------------+
+| signature           | bytes      | Signature over the other three arguments [#sig]_        |
++---------------------+------------+---------------------------------------------------------+
+
+.. [#sig] The signature is calculated by
+          ::
+
+               ecdsa_recoverable(privkey,
+                                 sha3_keccak("\x19Ethereum Signed Message:\n[LENGTH]"
+                                             || sender || receiver || timestamp ))
+
+Returns
+"""""""
+A JSON object with a single property:
+
++----------------------+---------------+-----------------------------------------------+
+| Field Name           | Field Type    | Description                                   |
++======================+===============+===============================================+
+| last_iou             | object        | IOU object as described in :ref:`pfs_payment` |
++----------------------+---------------+-----------------------------------------------+
+
 
 Network Topology Updates
 ------------------------
