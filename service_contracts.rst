@@ -154,6 +154,8 @@ expiration_block).
                                  sha3_keccak("\x19Ethereum Signed Message:\n104"
                                              || sender || receiver || amount || expiration_block ))
 
+          You can use ``raiden_contracts.utils.sign_one_to_n_iou`` to generate such a signature.
+
 
 Claiming the IOU
 ----------------
