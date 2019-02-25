@@ -108,8 +108,8 @@ Requirements
 Communication between client and PFS
 ------------------------------------
 
-When requesting a route, the IOU is added as five separate arguments to
-the :ref:`existing HTTP params <path_args>`.
+When requesting a route, the IOU is added as new JSON object to
+the :ref:`existing parameters <path_args>` when requesting paths. The IOU object has the following properties:
 
 +---------------------+------------+---------------------------------------------------------+
 | Field Name          | Field Type | Description                                             |

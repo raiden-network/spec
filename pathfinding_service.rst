@@ -67,8 +67,10 @@ Network (regarded as directed weighted graph) to return ``max_paths`` different 
 
 .. _path_args:
 
-Routing Arguments
-"""""""""""""""""
+Arguments
+"""""""""
+
+The arguments are POSTed as a JSON object.
 
 +----------------------+---------------+-----------------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                                          |
@@ -83,11 +85,8 @@ Routing Arguments
 +----------------------+---------------+-----------------------------------------------------------------------+
 | max_paths            | int           | The maximum number of paths returned.                                 |
 +----------------------+---------------+-----------------------------------------------------------------------+
-
-Payment Arguments
-"""""""""""""""""
-
-See :ref:`pfs_payment`.
+| fee_iou              | object        | IOU objects as described in :ref:`pfs_payment` to pay the service fee |
++----------------------+---------------+-----------------------------------------------------------------------+
 
 Returns
 """""""
