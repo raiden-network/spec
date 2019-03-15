@@ -298,19 +298,23 @@ Fields
 +--------------------------+------------+--------------------------------------------------------------------------------+
 | Field Name               | Field Type |  Description                                                                   |
 +==========================+============+================================================================================+
-| nonce                    | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-| transferred_amount       | uint256    | Total transferred amount in the history of the channel (monotonic value)       |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-| locked_amount            | uint256    | Current locked amount                                                          |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-| locksroot                | bytes32    | Root of the merkle tree of lock hashes (see below)                             |
+| chain_id                 | uint256    | Chain identifier as defined in EIP155                                          |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 | token_network_identifier | address    | Address of the TokenNetwork contract                                           |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 | channel_identifier       | uint256    | Channel identifier inside the TokenNetwork contract                            |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-| chain_id                 | uint256    | Chain identifier as defined in EIP155                                          |
+| updating_participant     | address    | Channel participant who sends the balance update                               |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| other_participant        | address    | Channel participant who doesn't send the balance update                               |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| updating_nonce           | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| other_nonce              | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| updating_capacity        | uint256    | Available capacity for the participant sending the update                                                          |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| other_capacity           | uint256    | Available capacity for the participant not sending the update                             |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 | reveal_timeout           | uint256    | Reveal timeout of this channel                                                 |
 +--------------------------+------------+--------------------------------------------------------------------------------+
@@ -324,7 +328,7 @@ The signature of the message is calculated by:
 
 ::
 
-    ecdsa_recoverable(privkey, sha3_keccak(nonce || chain_id || token_network_address || channel_identifier || transferred_amount || locked_amount || locksroot || reveal_timeout))
+    ecdsa_recoverable(privkey, sha3_keccak(chain_id || token_network_address || channel_identifier || updating_participant || other_participant || updating_nonce || other_nonce || updating_capacity || other_capacity || reveal_timeout))
 
 All of this fields are required. The Pathfinding Service MUST perform verification of these data, namely channel
 existence. A Pathfinding service SHOULD accept the message if and only if the sender of the message is same as the sender
