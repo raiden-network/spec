@@ -306,15 +306,15 @@ Fields
 +--------------------------+------------+--------------------------------------------------------------------------------+
 | updating_participant     | address    | Channel participant who sends the balance update                               |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-| other_participant        | address    | Channel participant who doesn't send the balance update                               |
+| other_participant        | address    | Channel participant who doesn't send the balance update                        |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 | updating_nonce           | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 | other_nonce              | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-| updating_capacity        | uint256    | Available capacity for the participant sending the update                                                          |
+| updating_capacity        | uint256    | Available capacity for the participant sending the update                      |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-| other_capacity           | uint256    | Available capacity for the participant not sending the update                             |
+| other_capacity           | uint256    | Available capacity for the participant not sending the update                  |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 | reveal_timeout           | uint256    | Reveal timeout of this channel                                                 |
 +--------------------------+------------+--------------------------------------------------------------------------------+
