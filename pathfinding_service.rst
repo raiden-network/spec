@@ -298,23 +298,9 @@ Fields
 +--------------------------+------------+--------------------------------------------------------------------------------+
 | Field Name               | Field Type |  Description                                                                   |
 +==========================+============+================================================================================+
-| chain_id                 | uint256    | Chain identifier as defined in EIP155                                          |
+| balance_proof            | object     | `Offchain Balance Proof`__                                                     |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-| token_network_identifier | address    | Address of the TokenNetwork contract                                           |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-| channel_identifier       | uint256    | Channel identifier inside the TokenNetwork contract                            |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-| updating_participant     | address    | Channel participant who sends the balance update                               |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-| other_participant        | address    | Channel participant who doesn't send the balance update                        |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-| updating_nonce           | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-| other_nonce              | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-| updating_capacity        | uint256    | Available capacity for the participant sending the update                      |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-| other_capacity           | uint256    | Available capacity for the participant not sending the update                  |
+| our_nonce                | uint256    | Address of the TokenNetwork contract                                           |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 | reveal_timeout           | uint256    | Reveal timeout of this channel                                                 |
 +--------------------------+------------+--------------------------------------------------------------------------------+
@@ -324,15 +310,17 @@ Fields
 Signature
 ^^^^^^^^^
 
-The signature of the message is calculated by:
+The signature of the message is calculated by (where ``bp`` stands for ``balance_proof``):
 
 ::
 
-    ecdsa_recoverable(privkey, sha3_keccak(chain_id || token_network_address || channel_identifier || updating_participant || other_participant || updating_nonce || other_nonce || updating_capacity || other_capacity || reveal_timeout))
+    ecdsa_recoverable(privkey, sha3_keccak(bp.chain_id || bp.token_network_identifier || bp.channel_identifier || bp.transferred_amount || bp.locked_amount || bp.locksroot || bp.additional_hash || bp.signature || our_nonce || reveal_timeout))
 
 All of this fields are required. The Pathfinding Service MUST perform verification of these data, namely channel
 existence. A Pathfinding service SHOULD accept the message if and only if the sender of the message is same as the sender
 address recovered from the signature.
+
+__ https://raiden-network-specification.readthedocs.io/en/latest/messaging.html#balance-proof-offchain
 
 
 Future Work
