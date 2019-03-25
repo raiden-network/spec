@@ -8,8 +8,8 @@ Overview
 
 A path finding service having a global view on a token network can provide suitable payment paths for Raiden nodes.
 Raiden nodes can request paths via public endpoints and pay per request. The service will keep its view on the
-token network updated by listening to blockchain events and a public matrix room where balance proofs and
-fees are being published. Nodes will publish their current balance proofs and fees in order to advertise
+token network updated by listening to blockchain events and a public matrix room where current capacities and
+fees (``Capacity Updates``) are being published. Nodes will publish their ``Capacity Updates`` in order to advertise
 their channels to become mediators.
 
 Implementation Process and Assumptions
@@ -18,7 +18,7 @@ Implementation Process and Assumptions
 * The path finding service will be implemented iteratively adding more complexity on every step.
 * There are three steps planned - (1) Pathfinding Minimal Viable Product, (2) Adding service fees, (3) Handling mediation fees.
 * It should be able to handle a similar amount of active nodes as currently present in Ethereum (~20,000).
-* Nodes are incentivized to publicly report their current balances and fees to "advertise" their channels.
+* Nodes are incentivized to publicly report their current capacities and fees to "advertise" their channels.
 * Uncooperative nodes are dropped on the Raiden-level protocol, so paths provided by the service can be expected to work most of the time.
 * User experience should be simple and free for sparse users with optional premium fee schedules for heavy users.
 * No guarantees are or can be made about the feasibility of the path with respect to node uptime or neutrality.
@@ -27,7 +27,7 @@ Implementation Process and Assumptions
 High-Level-Description
 ======================
 A node can request a list of possible paths from start point to endpoint for a given transfer value.
-The ``get_paths`` method implements the canonical Dijkstra algorithm to return a given number of paths
+The ``get_paths`` method implements the bi-directional Dijkstra algorithm to return a given number of paths
 for a mediated transfer of a given value. The design regards the Raiden network as an unidirectional
 weighted graph, where the default weights and therefore the primary constraint of the optimization)
 * at step (1 and 2) are 1 (no fees being implemented) and
@@ -46,7 +46,7 @@ The path finding service needs three public interfaces
 
 * a public endpoint for path requests by Raiden nodes
 * an endpoint to get updates from blockchain events
-* an endpoint to get updates about current balances and fees
+* an endpoint to send ``Capacity Updates`` to
 
 Public Endpoints
 ----------------
@@ -279,11 +279,11 @@ listen for the following events:
 Additionally it must listen to the `ChannelNewDeposit` event in order to learn
 about new deposits.
 
-Balance and Fee Updates (Graph Weights)
+Capacity Updates (Graph Weights)
 ---------------------------------------
-Updates for channel balances and fees are published over a public matrix room. Path finding services can pick these
-balance proofs from there and update the topology represented internally.
-The Raiden nodes that want to earn fees mediating payments would be incentivized to publish their balance proofs in
+Updates for channel capacities and fees are published over a public matrix room. Path finding services can pick these
+capacity updates from there and update the topology represented internally.
+The Raiden nodes that want to earn fees mediating payments would be incentivized to publish their capacity updates in
 order to provide a path.
 
 Balance Update
