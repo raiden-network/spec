@@ -203,7 +203,7 @@ A Monitor Request consists of a the following fields:
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  non_closing_signature   | string     | Signature of the Onchain Balance Proof by the client                           |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-|  reward_amount           | uint256    | Offered reward in RDN                                                            |
+|  reward_amount           | uint256    | Offered reward in RDN                                                          |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  reward_proof_signature  | string     | Signature of the reward proof data.                                            |
 +--------------------------+------------+--------------------------------------------------------------------------------+
