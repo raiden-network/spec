@@ -29,16 +29,15 @@ High-Level-Description
 A node can request a list of possible paths from start point to endpoint for a given transfer value.
 The ``get_paths`` method implements the canonical Dijkstra algorithm to return a given number of paths
 for a mediated transfer of a given value. The design regards the Raiden network as an unidirectional
-weighted graph, where the default weights and therefore the primary constraint of the optimization)
-* at step (1 and 2) are 1 (no fees being implemented) and
-* at step (3) are the fees of each channel.
+weighted graph, where the weights of the edges/channels are the sum of multiple penalty terms:
 
-Additionally, we will apply heuristics to quantify desirable properties of the resulting graph:
+* a base weight of 1 per edge, to incentivize short paths
+* a term proportional to the mediations fees for that channel
+* if the edge is included in a route, all following routes will get a penalty
+  if they include the same edge. This increases the diversity of routes and
+  reduces the likelihood that multiple routes fail due to the same problem.
 
-i) A hard coded parameter ``DIVERSITY_PEN_DEFAULT`` defined in the config; this value is added to each edge that is part of a returned path as a bias. This results in an output of "pseudo-disjoint" paths, i.e. the optimization will prefer paths with a minimal edge intersection. This should enable nodes to have a suitable amount of options for their payment routing in the case some paths are slow or broken. However, if a node has only one channel (i.e. a light client) payments could be routed through, the method will still return the specified ``number of paths``.
-
-
-ii) (From step (3) on) The second heuristic is configurable via the optional argument ``bias``, which models the trade-off between speed and cost of a mediated transfer; with default 0, ``get_paths`` will  optimize with respect to overall fees only (i.e. the cheapest path). On the other hand, with ``bias=1``, ``get_paths`` will look for paths with the minimal number of hops (i.e. the  -theoretical - fastest path). Any value in ``[0,1]`` is accepted, an appropriate value depends on the average ``channel_fee`` in the network (in simulations ``mean_fee`` gave decent results for the trade-off between speed and cost). The reasoning behind this heuristic is that a node may have different needs, w.r.t to good to be paid for - buying a potato should be fast, buying a yacht should incorporate low fees.
+See `Routing Preferences`_ for information on how to configure the trade-off between these penalties.
 
 Public Interfaces
 =================
@@ -85,7 +84,13 @@ The arguments are POSTed as a JSON object.
 +----------------------+---------------+-----------------------------------------------------------------------+
 | max_paths            | int           | The maximum number of paths returned.                                 |
 +----------------------+---------------+-----------------------------------------------------------------------+
-| fee_iou              | object        | IOU object as described in :ref:`pfs_payment` to pay the service fee  |
+| iou                  | object        | IOU object as described in :ref:`pfs_payment` to pay the service fee  |
++----------------------+---------------+-----------------------------------------------------------------------+
+| diversity_penalty    | float         | (optional) Routing penalty per channel that is reused across multiple |
+|                      |               | different routes returned in the same response.                       |
++----------------------+---------------+-----------------------------------------------------------------------+
+| fee_penalty          | float         | (optional) Penalty applied to a channel for requiring 1 RDN as        |
+|                      |               | mediation fee.                                                        |
 +----------------------+---------------+-----------------------------------------------------------------------+
 
 Returns
@@ -100,38 +105,47 @@ A list of path objects. A path object consists of the following information:
 | estimated_fee        | int           | An estimate of the fees required for that path.                       |
 +----------------------+---------------+-----------------------------------------------------------------------+
 
+Routing Preferences
+"""""""""""""""""""
+
+The PFS will search for routes that are:
+
+* short
+* cheap
+* diverse (using different channels for different routes when multiple routes are returned)
+
+Since these goals can be conflicting, a trade-off between them has to be
+chosen. This is done by assigning a penalty to all undesired properties of a
+channel, summing up these penalties across all channels used in a route and
+then choosing the route with the lowest total penalty.
+
+When requesting a route, the calculated penalties depend on the
+``diversity_penalty`` and ``fee_penalty`` parameters. If those parameters are
+omitted, reasonable defaults are chosen. A ``diversity_penalty`` of 5 means that
+a channel which has already been used in previous route is as bad as adding 5
+more channels to the path which have not been used, yet. A ``fee_penalty`` of 100
+means that spending 1 RDN is as bad as adding 100 more channels to the route
+(or that spending 0.01 RDN is as bad as adding one more channel).
 
 Errors
 """"""
 
-If no possible path is found, one of the following errors is returned:
+Each error consists of three parts:
 
-* No suitable path found
-* Rate limit exceeded
-* 'from' or 'to' invalid
-* The 'token_network_address' is invalid
-* 'bias' is invalid
-* 'max_paths' is invalid
-* 'value' is invalid
+* ``errors``: a human readable error message
+* ``error_code``: a machine readable identifier for the type of error
+* ``error_details``: additional information on the failure, e.g. values that
+  caused the failure or expected input values (can be empty for some errors)
 
-Payment related errors:
-
-.. note::
-   In addition to the error messages, error codes will be added to easily identify the different error cases and handle them automatically.
-
-* Wrong ``receiver``
-* Outdated payment session. Please choose new ``expiration_block``.
-* Too low payment ``amount``. The last IOU for the current session is included in the ``last_iou`` field of the returned object.
-* Invalid payment signature
-* Deposit in UserDeposit contract is too low.
-* Bad client. The client behaved badly in the past and the PFS does not want to provide service to it, anymore. One reason for this could be by using a new ``expiration_block`` for each request, so that it is not profitable for the PFS to claim the service payments.
+Please have a look at the full `list of errors
+<https://github.com/raiden-network/raiden-services/blob/master/src/pathfinding_service/exceptions.py>`_.
 
 Example
 """""""
 ::
 
     // Request
-    curl -X POST --data '{
+    curl -X POST --header 'Content-Type: application/json' --data '{
         "from": "0xalice",
         "to": "0xbob",
         "value": 45,
@@ -149,53 +163,38 @@ Example
         ...
         ]
     }
-    // Result for failure
+    // Wrong IOU signature
     {
-        "errors": "No suitable path found."
+        'errors': 'The signature did not match the signed content',
+        'error_code': 2001,
     }
-    // Result for exceeded rate limit
+    // Missing `amount` in IOU
     {
-        "errors": "Rate limit exceeded, payment required. Please call 'api/v1/payment/info' to establish a payment channel or wait."
+        'errors': 'Request parameter failed validation. See `error_details`.',
+        'error_code': 2000,
+        'error_details': {'iou': {'amount': ['Missing data for required field.']}}
     }
 
 
-
-``GET api/v1/<token_network_address>/payment/info``
+``GET api/v1/info``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Request price and path information on how and how much to pay the service for additional path requests.
 The service is paid in RDN tokens, so they payer might need to open an additional channel in the RDN token network.
 
-Arguments
-"""""""""
-
-+----------------------+---------------+-----------------------------------------------------------------------+
-| Field Name           | Field Type    |  Description                                                          |
-+======================+===============+=======================================================================+
-| token_network_address| address       | The token network address for which the fee is updated.               |
-+----------------------+---------------+-----------------------------------------------------------------------+
-| rdn_source_address   | address       | The address of payer in the RDN token network.                        |
-+----------------------+---------------+-----------------------------------------------------------------------+
-
 Returns
 """""""
-A JSON object with the following properties:
+A JSON object with at least the following properties:
 
 +----------------------+---------------+-----------------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                                          |
 +======================+===============+=======================================================================+
-| price_per_request    | int           | The address of payer in the RDN token network.                        |
+| price_info           | int           | Amount of RDN per request expected by the PFS                         |
 +----------------------+---------------+-----------------------------------------------------------------------+
-| pfs_address          | address       | The PFS address in the RDN token network.                             |
-+----------------------+---------------+-----------------------------------------------------------------------+
-| paths                | list          | A list of possible paths to pay the path finding service in the RDN   |
-|                      |               | token network. Each object in the list contains a *path* and an       |
-|                      |               | *estimated_fee* property.                                             |
+| network_info.chain_id| int           | The `chain ID`_ for the network this PFS works on                     |
 +----------------------+---------------+-----------------------------------------------------------------------+
 
-If no possible path is found, the following error is returned:
-
-* No suitable path found
+_`chain ID`: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
 
 Example
 """""""
@@ -204,23 +203,19 @@ Example
     // Request
     curl -X GET --data '{
         "rdn_source_addressfrom": "0xrdn_alice",
-    }'  api/v1/0xtoken_network/payment/info
+    }'  api/v1/info
+
     // Result for success
     {
-        "result":
-        {
-            "price_per_request": 1000,
-            "paths":
-            [
-                {
-                    "path": ["0xrdn_alice", "0xrdn_eve", "0xrdn_service"],
-                },
-                ...
-            ]
-        }
-    // Result for failure
-    {
-        "errors": "No suitable path found."
+        "price_info": 0,
+        "network_info": {
+            "chain_id": 3,
+            "registry_address": "0x4a6E1fe3dB979e600712E269b26207c49FEe116E"
+        },
+        "settings": "PLACEHOLDER FOR PATHFINDER SETTINGS",
+        "version": "0.0.1",
+        "operator": "PLACEHOLDER FOR PATHFINDER OPERATOR",
+        "message": "PLACEHOLDER FOR ADDITIONAL MESSAGE BY THE PFS"
     }
 
 
