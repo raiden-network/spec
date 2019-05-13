@@ -156,7 +156,7 @@ expiration_block).
 
                ecdsa_recoverable(
                    privkey,
-                   sha3_keccak("\x19Ethereum Signed Message:\n104"
+                   sha3_keccak("\x19Ethereum Signed Message:\n156"
                                || sender || receiver || amount
                                || expiration_block || one_to_n_address || chain_id)
                )
