@@ -123,6 +123,10 @@ the :ref:`existing parameters <path_args>` when requesting paths. The IOU object
 +---------------------+------------+---------------------------------------------------------+
 | expiration_block    | uint256    | Last block in which the IOU can be claimed              |
 +---------------------+------------+---------------------------------------------------------+
+| one_to_n_address    | address    | The OneToN contract for which this IOU is valid         |
++---------------------+------------+---------------------------------------------------------+
+| chain_id            | uint256    | Chain identifier as defined in EIP155                   |
++---------------------+------------+---------------------------------------------------------+
 | signature           | bytes      | Signature of the payment arguments [#sig]_              |
 +---------------------+------------+---------------------------------------------------------+
 
@@ -150,9 +154,12 @@ expiration_block).
 .. [#sig] The signature is calculated by
           ::
 
-               ecdsa_recoverable(privkey,
-                                 sha3_keccak("\x19Ethereum Signed Message:\n104"
-                                             || sender || receiver || amount || expiration_block ))
+               ecdsa_recoverable(
+                   privkey,
+                   sha3_keccak("\x19Ethereum Signed Message:\n104"
+                               || sender || receiver || amount
+                               || expiration_block || one_to_n_address || chain_id)
+               )
 
           You can use ``raiden_contracts.utils.sign_one_to_n_iou`` to generate such a signature.
 
