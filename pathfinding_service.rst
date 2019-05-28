@@ -39,18 +39,11 @@ weighted graph, where the weights of the edges/channels are the sum of multiple 
 
 See `Routing Preferences`_ for information on how to configure the trade-off between these penalties.
 
-Public Interfaces
-=================
-The pathfinding service provides four public interfaces
 
-* a public endpoint for path requests by Raiden nodes
-* an endpoint to get updates from blockchain events
-* an endpoint to send ``Capacity Updates`` to
+Public REST API
+===============
 
-Public Endpoints
-----------------
-
-A path finding service must provide the following endpoints. The interface has to be versioned.
+A pathfinding service must provide the following endpoints. The interface has to be versioned.
 
 The examples provided for each of the endpoints is for communication with a REST endpoint.
 
@@ -108,7 +101,8 @@ Each path object consists of the following information:
 | estimated_fee        | int           | An estimate of the fees required for that path.                       |
 +----------------------+---------------+-----------------------------------------------------------------------+
 
-The feedback token is the 32-character hexadecimal string representation of a UUID.
+The feedback token is the 32-character hexadecimal string representation of a UUID and is valid for all routes that
+are included in the response.
 
 Routing Preferences
 """""""""""""""""""
@@ -161,9 +155,11 @@ Example
         "result": [
         {
             "path": ["0xalice", "0xcharlie", "0xbob"],
+            "estimated_fee": 110,
         },
         {
             "path": ["0xalice", "0xeve", "0xdave", "0xbob"]
+            "estimated_fee": 142,
         },
         ...
         ],
