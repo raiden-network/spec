@@ -41,7 +41,7 @@ See `Routing Preferences`_ for information on how to configure the trade-off bet
 
 Public Interfaces
 =================
-The path finding service needs three public interfaces
+The pathfinding service provides four public interfaces
 
 * a public endpoint for path requests by Raiden nodes
 * an endpoint to get updates from blockchain events
@@ -95,7 +95,10 @@ The arguments are POSTed as a JSON object.
 
 Returns
 """""""
-A list of path objects. A path object consists of the following information:
+
+A list of path objects and a feedback token when successful.
+
+Each path object consists of the following information:
 
 +----------------------+---------------+-----------------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                                          |
@@ -104,6 +107,8 @@ A list of path objects. A path object consists of the following information:
 +----------------------+---------------+-----------------------------------------------------------------------+
 | estimated_fee        | int           | An estimate of the fees required for that path.                       |
 +----------------------+---------------+-----------------------------------------------------------------------+
+
+The feedback token is the 32-character hexadecimal string representation of a UUID.
 
 Routing Preferences
 """""""""""""""""""
@@ -161,7 +166,8 @@ Example
             "path": ["0xalice", "0xeve", "0xdave", "0xbob"]
         },
         ...
-        ]
+        ],
+        "feedback_token": "aaabbbcccdddeeefff"
     }
     // Wrong IOU signature
     {
@@ -177,7 +183,7 @@ Example
 
 
 ``GET api/v1/info``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^
 
 Request price and path information on how and how much to pay the service for additional path requests.
 The service is paid in RDN tokens, so they payer might need to open an additional channel in the RDN token network.
@@ -186,15 +192,13 @@ Returns
 """""""
 A JSON object with at least the following properties:
 
-+----------------------+---------------+-----------------------------------------------------------------------+
-| Field Name           | Field Type    |  Description                                                          |
-+======================+===============+=======================================================================+
-| price_info           | int           | Amount of RDN per request expected by the PFS                         |
-+----------------------+---------------+-----------------------------------------------------------------------+
-| network_info.chain_id| int           | The `chain ID`_ for the network this PFS works on                     |
-+----------------------+---------------+-----------------------------------------------------------------------+
-
-_`chain ID`: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
++----------------------+---------------+-------------------------------------------------------------------------------------------------------------------+
+| Field Name           | Field Type    |  Description                                                                                                      |
++======================+===============+===================================================================================================================+
+| price_info           | int           | Amount of RDN per request expected by the PFS                                                                     |
++----------------------+---------------+-------------------------------------------------------------------------------------------------------------------+
+| network_info.chain_id| int           | The `chain ID <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md>`_ for the network this PFS works on  |
++----------------------+---------------+-------------------------------------------------------------------------------------------------------------------+
 
 Example
 """""""
@@ -258,6 +262,31 @@ A JSON object with a single property:
 | last_iou             | object        | IOU object as described in :ref:`pfs_payment` |
 +----------------------+---------------+-----------------------------------------------+
 
+
+``POST api/v1/<token_network_address>/feedback``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Send feedback about a given route to the pathfinding service. For more information see the
+`routing feedback ADR <https://github.com/raiden-network/raiden-services/blob/master/adr/002-routing-feedback.md>`_.
+
+Arguments
+"""""""""
+
++---------------------+-------------+---------------------------------------------------------+
+| Field Name          | Field Type  | Description                                             |
++=====================+=============+=========================================================+
+| token               | string      | Hexadecimal string representation of the token          |
++---------------------+-------------+---------------------------------------------------------+
+| success             | boolean     | Whether or not the route worked                         |
++---------------------+-------------+---------------------------------------------------------+
+| path                |List[address]| The route feedback is given for                         |
++---------------------+-------------+---------------------------------------------------------+
+
+Returns
+"""""""
+
+* HTTP 200 when feedback was accepted
+* HTTP 400 when feedback was not accepted
 
 Network Topology Updates
 ------------------------
