@@ -4,85 +4,12 @@ Raiden Messages Specification
 Overview
 ========
 
-This is the specification document for the messages used in the Raiden protocol.
+This is the specification document for the messages used in the Raiden protocol. There are three Raiden messages ...
 
-Data Structures
-===============
+@Kelsos: HERE EXPLAIN THE MESSAGE FLOW AND AN EXAMPLE. ALWAYS USE INITIATOR AND TARGET TO BE CONSISTENT
 
-.. _balance-proof-offchain:
+@Kelsos: THEN I SUGGEST TO INTRODUCE THE MESSAGES FIRST AND THEN THE UNDERLYING DATA STRUCTURES
 
-Offchain Balance Proof
-----------------------
-
-Data required by the smart contracts to update the payment channel end of the participant that signed the balance proof.
-Messages into smart contracts contain a shorter form called :ref:`Onchain Balance Proof <balance-proof-onchain>`.
-
-The signature must be valid and is defined as:
-
-::
-
-    ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id))
-
-where ``additional_hash`` is the hash of the whole message being signed.
-
-Fields
-^^^^^^
-
-+--------------------------+------------+--------------------------------------------------------------------------------+
-| Field Name               | Field Type |  Description                                                                   |
-+==========================+============+================================================================================+
-|  nonce                   | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-|  transferred_amount      | uint256    | Total transferred amount in the history of the channel (monotonic value)       |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-|  locked_amount           | uint256    | Current locked amount                                                          |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-|  locksroot               | bytes32    | Root of the merkle tree of lock hashes (see below)                             |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-| token_network_identifier | address    | Address of the TokenNetwork contract                                           |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-|  channel_identifier      | uint256    | Channel identifier inside the TokenNetwork contract                            |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-|  additional_hash         | bytes32    | Hash of the message                                                            |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-|  signature               | bytes      | Elliptic Curve 256k1 signature on the above data                               |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-|  chain_id                | uint256    | Chain identifier as defined in EIP155                                          |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-
-
-Merkle Tree
------------
-
-A binary tree composed of the hash of the locks. For each payment channel, each participant keeps track of two Merkle trees: one for the hashlocks that have been sent out to the partner, and the other for the hashlocks that have been received from the partner. Conceptually, each direction of a payment channel has one Merkle tree, and each participant has a copy of it. Only the sender of the hashlocks can change the Merkle tree of this direction.
-
-The root of the tree is the value used in the :term:`balance proof`. The tree is changed by the ``LockedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types. The sender of these messages applies the change to its copy of the tree and computes the root hash of the new tree. The receiver applies the same change to its copy of the tree and checks the root hash of the new tree against the root hash in the messages.
-
-HashTimeLock
-------------
-
-Invariants
-^^^^^^^^^^
-
-- Expiration must be larger than the current block number and smaller than the channel’s settlement period.
-
-Hash
-^^^^
-
-- ``keccak256(expiration || amount || secrethash)``
-
-Fields
-^^^^^^
-
-+----------------------+-------------+------------------------------------------------------------+
-| Field Name           | Field Type  |  Description                                               |
-+======================+=============+============================================================+
-|  expiration          | uint256     | Block number until which transfer can be settled           |
-+----------------------+-------------+------------------------------------------------------------+
-|  locked_amount       | uint256     | amount of tokens held by the lock                          |
-+----------------------+-------------+------------------------------------------------------------+
-|  secrethash          | bytes32     | keccak256 hash of the secret                               |
-+----------------------+-------------+------------------------------------------------------------+
 
 Messages
 ========
@@ -92,23 +19,23 @@ Messages
 Locked Transfer
 -----------------
 
-Cancellable and expirable :term:`transfer`. Sent by a node when a transfer is being initiated, this message adds a new lock to the corresponding merkle tree of the sending participant node.
+Cancellable and expirable :term:`transfer`. Sent by the initiator when a transfer is being initiated, this message adds a new lock to the corresponding (@KELSOS: WE DON'T HAVE A MERKLE TREE ANYMORE, BUT WHAT DO WE HAVE?) merkle tree of the initiator.
 
-Invariants
+Invariants (KELSOS: Prerequisites?)
 ^^^^^^^^^^
 
-Only valid if all the following hold:
+Only valid if all the following hold: (Maybe: The client checks for the following before accepting the message:)
 
-- There is a channel which matches the given :term:`chain id`, :term:`token network` address, and :term:`channel identifier`.
-- The corresponding channel is in the open state.
+- There is a channel which matches the given :term:`chain id`, :term:`token network` address, and :term:`channel identifier`. (<- This is the unique identifier now, right?)
+- The corresponding channel is in the state: open.
 - The :term:`nonce` is increased by ``1`` in respect to the previous :term:`balance proof`
-- The :term:`locksroot` must change, the new value must be equal to the root of a new tree, which has all the previous locks plus the lock provided in the message.
+- The :term:`locksroot` must change, the new value must be equal to the root of a new tree, which has all the previous locks plus the lock provided in the message. (<- This has chaged now, right?)
 - The :term:`locked amount` must increase, the new value is equal to the old value plus the lock's amount.
-- The lock's amount must be smaller then the participant's :term:`capacity`.
+- The lock's amount must be smaller than the participant's :term:`capacity`. (<- Smaller or equal than the sender's capacity, right?)
 - The lock expiration must be greater than the current block number.
-- The :term:`transferred amount` must not change.
+- The :term:`transferred amount` must not change. (<- in respect to the previous one, right?)
 
-Fields
+Fields (@Kelsos: Let's go over the fields together with Augusto and see what is still there)
 ^^^^^^
 
 This should correspond to `the packed format of LockedTransfer <https://github.com/raiden-network/raiden/blob/d504ed25b85eea5738fd3d2149bd8392a2b02226/raiden/encoding/messages.py#L164>`_.
@@ -116,9 +43,9 @@ This should correspond to `the packed format of LockedTransfer <https://github.c
 +-----------------------+----------------------+------------------------------------------------------------+
 | Field Name            | Field Type           |  Description                                               |
 +=======================+======================+============================================================+
-|  command_id           | one byte             | Value 7 indicating ``LockedTransfer``                      |
+|  command_id           | one byte (TYPE?)     | Value 7 indicating ``LockedTransfer``                      |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  pad                  | three bytes          | Contents ignored                                           |
+|  pad                  | three bytes (TYPE?)  | Contents ignored                                           |
 +-----------------------+----------------------+------------------------------------------------------------+
 |  nonce                | uint64               | See `Offchain Balance Proof`_                              |
 +-----------------------+----------------------+------------------------------------------------------------+
@@ -154,7 +81,7 @@ This should correspond to `the packed format of LockedTransfer <https://github.c
 +-----------------------+----------------------+------------------------------------------------------------+
 |  fee                  | uint256              | Total available fee for remaining mediators                |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  signature            | 65 bytes             | Computed as in `Offchain Balance Proof`_                   |
+|  signature            | 65 bytes (TYPE?)     | Computed as in `Offchain Balance Proof`_                   |
 +-----------------------+----------------------+------------------------------------------------------------+
 
 The sender of the message should be computable from ``signature`` so is not included in the message.
@@ -164,9 +91,9 @@ The sender of the message should be computable from ``signature`` so is not incl
 Secret Request
 --------------
 
-Message used to request the :term:`secret` that unlocks a lock. Sent by the payment :term:`target` to the :term:`initiator` once a :ref:`locked transfer <locked-transfer-message>` is received.
+Message used to request the :term:`secret` that unlocks a lock (A LOCKED TRANSFER?). Sent by the payment :term:`target` to the :term:`initiator` once a :ref:`locked transfer <locked-transfer-message>` is received.
 
-Invariants
+Invariants (KELSOS: Prerequisites?)
 ^^^^^^^^^^
 
 - The :term:`initiator` must have initiated a payment to the :term:`target` with the same ``payment_identifier``, ``lock_secrethash``, ``payment_amount`` and ``expiration``.
@@ -183,7 +110,7 @@ This should match `the encoding implementation <https://github.com/raiden-networ
 +======================+===============+============================================================+
 |  cmdid               | one byte      | Value 3 (indicating ``Secret Request``)                    |
 +----------------------+---------------+------------------------------------------------------------+
-|  pad                 | three bytes   | Ignored                                                    |
+|  pad                 | 3bytes(TYPE?) | Contents ignored                                           |
 +----------------------+---------------+------------------------------------------------------------+
 |  message identifier  | uint64        | An ID used in ``Delivered`` and ``Processed``              |
 |                      |               | acknowledgments                                            |
@@ -204,7 +131,7 @@ This should match `the encoding implementation <https://github.com/raiden-networ
 Reveal Secret
 -------------
 
-Message used by the nodes to inform others that the :term:`secret` is known. Used to request an updated :term:`balance proof` with the :term:`transferred amount` increased and the lock removed.
+Message used by the nodes to inform others that the :term:`secret` is known (BUT IT ALSO REVEALS THE SECRET, RIGHT?). Used to request an updated :term:`balance proof` with the :term:`transferred amount` increased and the lock removed.
 
 Fields
 ^^^^^^
@@ -216,7 +143,7 @@ This should match `the encoding implementation <https://github.com/raiden-networ
 +======================+===============+============================================================+
 |  cmdid               | one byte      | Value 11 (indicating ``Reveal Secret``)                    |
 +----------------------+---------------+------------------------------------------------------------+
-|  pad                 | three bytes   | Ignored                                                    |
+|  pad                 | 3bytes(TYPE?) | Contents ignored                                           |
 +----------------------+---------------+------------------------------------------------------------+
 |  message identifier  | uint64        | An ID use in ``Delivered`` and ``Processed``               |
 |                      |               | acknowledgments                                            |
@@ -228,17 +155,17 @@ This should match `the encoding implementation <https://github.com/raiden-networ
 
 .. _unlock-message:
 
-Unlock
+Unlock (WHY DON'T WE CALL THIS SECRET THEN?)
 ------
 
 .. Note:: At the current (15/02/2018) Raiden implementation as of commit ``cccfa572298aac8b14897ee9677e88b2b55c9a29`` this message is known in the codebase as ``Secret``.
 
-Non cancellable, Non expirable.
+Non cancellable, Non expirable. WHAT IS THE GOAL OF THIS MESSAGE?
 
-Invariants
+Invariants (THIS SEEMS TO BE DIFFERENT INVARIANTS THAN IN THE OTHER CHAPTERS?)
 ^^^^^^^^^^
 
-- The :term:`balance proof` merkle tree must have the corresponding lock removed (and only this lock).
+- The :term:`balance proof` merkle tree must have the corresponding lock removed (and only this lock). NO MERKLE TREE ANYMORE
 - This message is only sent after the corresponding partner has sent a :ref:`Reveal Secret message <reveal-secret-message>`.
 - The :term:`nonce` is increased by ``1`` with respect to the previous :term:`balance proof`
 - The :term:`locked amount` must decrease and the :term:`transferred amount` must increase by the amount held in the unlocked lock.
@@ -282,6 +209,86 @@ This should match `the Secret message in encoding/messages file <https://github.
 |  signature           | bytes                  | See :ref:`balance-proof-offchain`. Note ``additional_hash``|
 |                      |                        | is the hash of the whole message                           |
 +----------------------+------------------------+------------------------------------------------------------+
+
+xxxx Dominik just came until here xxxx
+
+Data Structures
+===============
+
+.. _balance-proof-offchain:
+
+Offchain Balance Proof
+----------------------
+
+Data required by the smart contracts to update the payment channel end of the participant that signed the balance proof.
+Messages into smart contracts contain a shorter form called :ref:`Onchain Balance Proof <balance-proof-onchain>`.
+
+
+Fields
+^^^^^^
+
++--------------------------+------------+--------------------------------------------------------------------------------+
+| Field Name               | Field Type |  Description                                                                   |
++==========================+============+================================================================================+
+|  nonce                   | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  transferred_amount      | uint256    | Total transferred amount in the history of the channel (monotonic value)       |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  locked_amount           | uint256    | Current locked amount                                                          |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  locksroot               | bytes32    | Root of the merkle tree of lock hashes (see below)                             |
++--------------------------+------------+--------------------------------------------------------------------------------+
+| token_network_identifier | address    | Address of the TokenNetwork contract                                           |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  channel_identifier      | uint256    | Channel identifier inside the TokenNetwork contract                            |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  additional_hash         | bytes32    | Hash of the message                                                            |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  signature               | bytes      | Elliptic Curve 256k1 signature on the above data                               |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  chain_id                | uint256    | Chain identifier as defined in EIP155                                          |
++--------------------------+------------+--------------------------------------------------------------------------------+
+
+
+The signature must be valid and is defined as:
+::
+
+    ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id))
+
+where ``additional_hash`` is the hash of the whole message being signed.
+
+
+
+
+HashTimeLock
+------------
+DEFINITION OF MESSAGE - WHEN TO SEND - WHAT DOES IT TRIGGER
+
+Invariants
+^^^^^^^^^^
+
+- Expiration must be larger than the current block number and smaller than the channel’s settlement period.
+
+Hash
+^^^^
+
+- ``keccak256(expiration || amount || secrethash)``
+We now use SHA256 right?
+
+Fields
+^^^^^^
+
++----------------------+-------------+------------------------------------------------------------+
+| Field Name           | Field Type  |  Description                                               |
++======================+=============+============================================================+
+|  expiration          | uint256     | Block number until which transfer can be settled           |
++----------------------+-------------+------------------------------------------------------------+
+|  locked_amount       | uint256     | amount of tokens held by the lock                          |
++----------------------+-------------+------------------------------------------------------------+
+|  secrethash          | bytes32     | keccak256 hash of the secret                               |
++----------------------+-------------+------------------------------------------------------------+
+
+
 
 
 Specification
