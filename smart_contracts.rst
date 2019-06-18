@@ -117,7 +117,7 @@ Balance Data Hash
 +------------------------+------------+---------------------------------------------------------------------------------------+
 |  locked_amount         | uint256    | Total amount of tokens locked in pending transfers                                    |
 +------------------------+------------+---------------------------------------------------------------------------------------+
-|  locksroot             | bytes32    | Root of merkle tree of all pending lock lockhashes                                    |
+|  locksroot             | bytes32    | Hash of all pending locks encoded and concatenated                                    |
 +------------------------+------------+---------------------------------------------------------------------------------------+
 
 .. _balance-proof-update-onchain:
@@ -510,8 +510,8 @@ Allows a channel participant to close the channel. The channel cannot be settled
 - ``balance_hash``: Hash of the balance data ``keccak256(transferred_amount, locked_amount, locksroot)``
 
     - ``transferred_amount``: The monotonically increasing counter of the partner's amount of tokens sent.
-    - ``locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers) contained in the merkle tree.
-    - ``locksroot``: Root of the merkle tree of all pending lock lockhashes for the partner.
+    - ``locked_amount``: The sum of the all the tokens that correspond to the the pending locks.
+    - ``locksroot``: Hash of all pending locks for the partner.
 - ``nonce``: Strictly monotonic value used to order transfers.
 - ``additional_hash``: Computed from the message. Used for message authentication.
 - ``signature``: Elliptic Curve 256k1 signature of the channel partner on the :term:`balance proof` data.
@@ -611,12 +611,12 @@ Settles the channel by transferring the amount of tokens each participant is owe
 - ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``participant1``: Ethereum address of one of the channel participants.
 - ``participant1_transferred_amount``: The monotonically increasing counter of the amount of tokens sent by ``participant1`` to ``participant2``.
-- ``participant1_locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers sent by ``participant1`` to ``participant2``) contained in the merkle tree.
-- ``participant1_locksroot``: Root of the merkle tree of all pending lock lockhashes (pending transfers sent by ``participant1`` to ``participant2``).
+- ``participant1_locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers sent by ``participant1`` to ``participant2``) contained in the pending lock list.
+- ``participant1_locksroot``: Hash of all pending lock lockhashes (pending transfers sent by ``participant1`` to ``participant2``).
 - ``participant2``: Ethereum address of the other channel participant.
 - ``participant2_transferred_amount``: The monotonically increasing counter of the amount of tokens sent by ``participant2`` to ``participant1``.
-- ``participant2_locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers sent by ``participant2`` to ``participant1``) contained in the merkle tree.
-- ``participant2_locksroot``: Root of the merkle tree of all pending lock lockhashes (pending transfers sent by ``participant2`` to ``participant1``).
+- ``participant2_locked_amount``: The sum of the all the tokens that correspond to the locks (pending transfers sent by ``participant2`` to ``participant1``) contained in the pending lock list.
+- ``participant2_locksroot``: Hash of the all pending lock lockhashes (pending transfers sent by ``participant2`` to ``participant1``).
 - ``participant1_amount``: the amount of tokens sent to ``participant1`` at the end of the settlement.
 - ``participant2_amount``: the amount of tokens sent to ``participant2`` at the end of the settlement.
 
@@ -668,7 +668,7 @@ Allows the participants to cooperate and provide both of their balances and sign
 
 **Unlock lock**
 
-Unlocks all pending transfers by providing the entire merkle tree of pending transfers data. The merkle tree is used to calculate the merkle root, which must be the same as the ``locksroot`` provided in the latest :term:`balance proof`.
+Unlocks all pending transfers by providing all pending transfers data. The hash of the whole data must be the same as the ``locksroot`` provided in the latest :term:`balance proof`.
 
 ::
 
@@ -676,7 +676,7 @@ Unlocks all pending transfers by providing the entire merkle tree of pending tra
         uint256 channel_identifier,
         address participant,
         address partner,
-        bytes merkle_tree_leaves
+        bytes pending_locks
     )
         public
 
@@ -694,7 +694,7 @@ Unlocks all pending transfers by providing the entire merkle tree of pending tra
 - ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``participant``: Ethereum address of the channel participant who will receive the unlocked tokens that correspond to the pending transfers that have a revealed secret.
 - ``partner``: Ethereum address of the channel participant that pays the amount of tokens that correspond to the pending transfers that have a revealed secret. This address will receive the rest of the tokens that correspond to the pending transfers that have not finalized and do not have a revelead secret.
-- ``merkle_tree_leaves``: The data for computing the entire merkle tree of pending transfers. It contains tightly packed data for each transfer, consisting of ``expiration_block``, ``locked_amount``, ``secrethash``.
+- ``pending_locks``: The data representing pending transfers. It contains tightly packed data for each transfer, consisting of ``expiration_block``, ``locked_amount``, ``secrethash``.
 - ``expiration_block``: The absolute block number at which the lock expires.
 - ``locked_amount``: The number of tokens being transferred from ``partner`` to ``participant`` in a pending transfer.
 - ``secrethash``: A hashed secret, ``sha3_keccack(secret)``.
@@ -856,7 +856,7 @@ The Raiden client must enforce this for the off-chain transferred amounts, conta
 The sum of each transferred amount and the claimable amounts from the pending transfers ``MUST`` also be monotonically increasing over time. The claimable amounts ``Lc`` correspond to pending locked transfers that have a secret revealed on-chain.
 
 - at ``time=t`` we will always have more secrets revealed on-chain than at ``time=k``, where ``k < t``
-- even if the protocol implements off-chain unlocking of claimable pending transfers, in order to reduce the size of the merkle tree of pending transfers, the off-chain unlocked amount will be added to ``T`` and subtracted from ``Lc``, maintaining monotonicity of ``T + Lc``.
+- even if the protocol implements off-chain unlocking of claimable pending transfers, in order to reduce the number of pending transfers, the off-chain unlocked amount will be added to ``T`` and subtracted from ``Lc``, maintaining monotonicity of ``T + Lc``.
 
 .. Note::
     Any two consecutive balance proofs for ``P1``, named ``BP1k`` and ``BP1t`` were ``time k < time t``,  must respect the following constraints:
@@ -1032,7 +1032,7 @@ We bound ``RmaxP1`` to ``TAD``, to ensure that participants do not receive more 
     SL2 = min(RmaxP1, L2)
 
 We bound ``L2`` to ``RmaxP1`` in case old balance proofs are used.
-There are cases where old balance proofs can have a bigger ``L2`` amount than a later balance proof, if they contain expired locks that have been later removed from the merkle tree of pending transfers or contain claimable locked amounts that have been later claimed on-chain.
+There are cases where old balance proofs can have a bigger ``L2`` amount than a later balance proof, if they contain expired locks that have been later removed from the list of pending transfers or contain claimable locked amounts that have been later claimed on-chain.
 
 ::
 
