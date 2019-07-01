@@ -52,11 +52,13 @@ clean:
 
 # Download `raiden-contracts/raiden_contracts/contracts` to the local
 # `contracts` dir to provide up-to-date contracts for the solidity autodoc.
-# I'd like to use `tar xvz --wildcards '*/raiden_contracts/contracts' --strip-components 2`,
-# but that only works with gnu tar and this should run on MacOS, too.
+# Due to the directory structure of the contracts tarball, this can only be
+# done with `--wildcard`, which is only available on GNU tar. MacOS users,
+# please install and use gtar.
 update_contracts:
-	curl -sSL https://github.com/raiden-network/raiden-contracts/tarball/master | tar xvz --directory contracts --strip-components 3
-	find contracts/ -not -name '*.sol' -not -exec rm {} \;
+	rm -fr contracts/*
+	curl -sSL https://github.com/raiden-network/raiden-contracts/tarball/master | tar xvz --directory contracts --strip-components 4 --wildcards '*/raiden_contracts/data/source'
+	find contracts/ -not -name '*.sol' -not -type d -exec rm {} \;
 
 .PHONY: html
 html:

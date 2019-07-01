@@ -1,25 +1,23 @@
-pragma solidity ^0.5.2;
+pragma solidity 0.5.4;
 
+import "lib/ECVerify.sol";
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
-import "raiden/lib/ECVerify.sol";
 import "raiden/TokenNetwork.sol";
-import "services/RaidenServiceBundle.sol";
+import "services/ServiceRegistry.sol";
 import "services/UserDeposit.sol";
 
 contract MonitoringService is Utils {
-    string constant public contract_version = "0.5.0";
-
     // Token to be used for paying the rewards
     Token public token;
 
     // Raiden Service Bundle contract to use for checking if MS has deposits
-    RaidenServiceBundle public rsb;
+    ServiceRegistry public service_registry;
     UserDeposit public user_deposit;
 
     // keccak256(channel_identifier, token_network_address) => Struct
     // Keep track of the rewards per channel
-    mapping(bytes32 => Reward) rewards;
+    mapping(bytes32 => Reward) internal rewards;
 
     /*
      *  Structs
@@ -54,41 +52,32 @@ contract MonitoringService is Utils {
     event RewardClaimed(address indexed ms_address, uint amount, bytes32 indexed reward_identifier);
 
     /*
-     *  Modifiers
-     */
-
-    modifier canMonitor(address _ms_address) {
-        require(rsb.deposits(_ms_address) > 0);
-        _;
-    }
-
-    /*
      *  Constructor
      */
 
     /// @notice Set the default values for the smart contract
     /// @param _token_address The address of the token to use for rewards
-    /// @param _rsb_address The address of the RaidenServiceBundle contract
+    /// @param _service_registry_address The address of the ServiceRegistry contract
     constructor(
         address _token_address,
-        address _rsb_address,
+        address _service_registry_address,
         address _udc_address
     )
         public
     {
         require(_token_address != address(0x0));
-        require(_rsb_address != address(0x0));
+        require(_service_registry_address != address(0x0));
         require(_udc_address != address(0x0));
         require(contractExists(_token_address));
-        require(contractExists(_rsb_address));
+        require(contractExists(_service_registry_address));
         require(contractExists(_udc_address));
 
         token = Token(_token_address);
-        rsb = RaidenServiceBundle(_rsb_address);
+        service_registry = ServiceRegistry(_service_registry_address);
         user_deposit = UserDeposit(_udc_address);
         // Check if the contract is indeed a token contract
         require(token.totalSupply() > 0);
-        // Check if the contract is indeed an rsb contract
+        // Check if the contract is indeed a service_registry contract
         // TODO: Check that some function exists in the contract
     }
 
@@ -111,10 +100,12 @@ contract MonitoringService is Utils {
         address monitoring_service_address,
         bytes memory reward_proof_signature
     )
-    internal
+        internal
     {
         TokenNetwork token_network = TokenNetwork(token_network_address);
-        uint256 channel_identifier = token_network.getChannelIdentifier(closing_participant, non_closing_participant);
+        uint256 channel_identifier = token_network.getChannelIdentifier(
+            closing_participant, non_closing_participant
+        );
 
         // Make sure that the reward proof is signed by the non_closing_participant
         address raiden_node_address = recoverAddressFromRewardProof(
@@ -122,6 +113,7 @@ contract MonitoringService is Utils {
             reward_amount,
             token_network_address,
             token_network.chain_id(),
+            address(this),
             nonce,
             reward_proof_signature
         );
@@ -170,9 +162,10 @@ contract MonitoringService is Utils {
         address token_network_address,
         bytes memory reward_proof_signature
     )
-        canMonitor(msg.sender)
         public
     {
+        // Call updateReward first to avoid reentrancy problems when the
+        // token_network_address belongs to a malicious contract.
         updateReward(
             token_network_address,
             closing_participant,
@@ -182,8 +175,15 @@ contract MonitoringService is Utils {
             msg.sender,
             reward_proof_signature
         );
+
         TokenNetwork token_network = TokenNetwork(token_network_address);
-        uint256 channel_identifier = token_network.getChannelIdentifier(closing_participant, non_closing_participant);
+        uint256 channel_identifier = token_network.getChannelIdentifier(
+            closing_participant, non_closing_participant
+        );
+        require(isAllowedToMonitor(
+            token_network, channel_identifier,
+            closing_participant, non_closing_participant, msg.sender
+        ));
 
         // Call updateTransfer in the corresponding TokenNetwork
         token_network.updateNonClosingBalanceProof(
@@ -207,9 +207,74 @@ contract MonitoringService is Utils {
         );
     }
 
+    function isAllowedToMonitor(
+        TokenNetwork token_network,
+        uint256 channel_identifier,
+        address closing_participant,
+        address non_closing_participant,
+        address monitoring_service_address
+    )
+        internal
+        returns (bool)
+    {
+        TokenNetwork.ChannelState channel_state;
+        uint256 settle_block_number;
+        (settle_block_number, channel_state) = token_network.getChannelInfo(
+            channel_identifier, closing_participant, non_closing_participant
+        );
+        require(channel_state == TokenNetwork.ChannelState.Closed);
+
+        // We don't actually know when the channel has been closed. So we'll
+        // make a guess so that assumed_close_block >= real_close_block.
+        uint256 assumed_settle_timeout = token_network.settlement_timeout_min();
+        require(settle_block_number >= assumed_settle_timeout);
+        uint256 assumed_close_block = settle_block_number - assumed_settle_timeout;
+        return block.number >= firstBlockAllowedToMonitor(
+            assumed_close_block,
+            assumed_settle_timeout,
+            closing_participant,
+            non_closing_participant,
+            monitoring_service_address
+        );
+    }
+
+    function firstBlockAllowedToMonitor(
+        uint256 closed_at_block,
+        uint256 settle_timeout,
+        address participant1,
+        address participant2,
+        address monitoring_service_address
+    )
+        public pure
+        returns (uint256)
+    {
+        // avoid overflows when multiplying with percentages
+        require(settle_timeout < uint256(2**256 - 1) / 100);
+        require(closed_at_block < uint256(2**256 - 1) / 100);
+
+        // First allowed block as percentage of settle_timeout. We're using
+        // integers here to avoid accuracy loss during calculations.
+        uint256 BEST_CASE = 30;
+        uint256 WORST_CASE = 80;
+
+        // When is the first block that any MS might be allowed to monitor
+        uint256 best_case_block = closed_at_block + BEST_CASE * settle_timeout / 100;
+        // Length of the range into which the first allowed block will fall
+        uint256 range_length = (WORST_CASE - BEST_CASE) * settle_timeout / 100;
+
+        // Offset for this specific MS within the range
+        uint256 ms_offset = (
+            uint256(participant1)
+            + uint256(participant2)
+            + uint256(monitoring_service_address)
+        ) % range_length;
+
+        return best_case_block + ms_offset;
+    }
+
     /// @notice Called after a monitored channel is settled in order for MS to claim the reward
     /// Can be called once per settled channel by everyone on behalf of MS
-    /// @param token_network_address Address of the Token Network in which the channel
+    /// @param token_network_address Address of the Token Network in which the channel exists
     /// @param closing_participant Address of the participant of the channel that called close
     /// @param non_closing_participant The other participant of the channel
     function claimReward(
@@ -230,19 +295,23 @@ contract MonitoringService is Utils {
         // Only allowed to claim, if channel is settled
         // Channel is settled if it's data has been deleted
         TokenNetwork.ChannelState channel_state;
-        (, channel_state) = token_network.getChannelInfo(
+        uint256 settle_block_number;
+        (settle_block_number, channel_state) = token_network.getChannelInfo(
             channel_identifier,
             closing_participant,
             non_closing_participant
         );
-        require(channel_state == TokenNetwork.ChannelState.Removed);
+        require(channel_state == TokenNetwork.ChannelState.Closed ||
+            channel_state == TokenNetwork.ChannelState.Settled ||
+            channel_state == TokenNetwork.ChannelState.Removed);
+        require(settle_block_number < block.number);
 
         Reward storage reward = rewards[reward_identifier];
 
         // Make sure that the Reward exists
         require(reward.reward_sender_address != address(0x0));
 
-        // Add reward to the monitoring services' balance
+        // Add reward to the monitoring service's balance
         require(user_deposit.transfer(
             reward.reward_sender_address,
             reward.monitoring_service_address,
@@ -257,6 +326,8 @@ contract MonitoringService is Utils {
 
         // delete storage
         delete rewards[reward_identifier];
+
+        return true;
     }
 
     function recoverAddressFromRewardProof(
@@ -264,22 +335,48 @@ contract MonitoringService is Utils {
         uint256 reward_amount,
         address token_network_address,
         uint256 chain_id,
+        address monitoring_service_contract_address,
         uint256 nonce,
         bytes memory signature
     )
-        pure
         internal
+        pure
         returns (address signature_address)
     {
         bytes32 message_hash = keccak256(abi.encodePacked(
-            "\x19Ethereum Signed Message:\n148",
+            "\x19Ethereum Signed Message:\n200",
+            monitoring_service_contract_address,
+            chain_id,
+            uint256(MessageTypeId.MSReward),
             channel_identifier,
             reward_amount,
             token_network_address,
-            chain_id,
             nonce
         ));
 
         signature_address = ECVerify.ecverify(message_hash, signature);
     }
 }
+
+
+// MIT License
+
+// Copyright (c) 2018
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.

@@ -1,4 +1,4 @@
-pragma solidity ^0.5.2;
+pragma solidity 0.5.4;
 
 import "raiden/TokenNetwork.sol";
 
@@ -10,15 +10,17 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         uint256 _settlement_timeout_min,
         uint256 _settlement_timeout_max
     )
+        public
         TokenNetwork(
             _token_address,
             _secret_registry,
             _chain_id,
             _settlement_timeout_min,
             _settlement_timeout_max,
-            msg.sender
+            msg.sender,
+            MAX_SAFE_UINT256,
+            MAX_SAFE_UINT256
         )
-        public
     {
 
     }
@@ -66,8 +68,8 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         uint256 participant2_transferred_amount,
         uint256 participant2_locked_amount
     )
-        view
         public
+        view
         returns (uint256)
     {
 
@@ -102,8 +104,8 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         uint256 locked_amount,
         bytes32 locksroot
     )
-        view
         public
+        view
         returns (bool)
     {
         uint256 channel_identifier;
@@ -122,8 +124,8 @@ contract TokenNetworkInternalStorageTest is TokenNetwork {
         address participant1,
         address participant2
     )
-        view
         public
+        view
         returns (uint256 total_available_deposit)
     {
         uint256 channel_identifier = getChannelIdentifier(participant1,
@@ -152,7 +154,9 @@ contract TokenNetworkSignatureTest is TokenNetwork {
             _chain_id,
             _settlement_timeout_min,
             _settlement_timeout_max,
-            msg.sender
+            msg.sender,
+            MAX_SAFE_UINT256,
+            MAX_SAFE_UINT256
         )
         public
     {
@@ -166,8 +170,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         bytes32 additional_hash,
         bytes memory signature
     )
-        view
         public
+        view
         returns (address signature_address)
     {
         return recoverAddressFromBalanceProof(
@@ -187,8 +191,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         bytes memory closing_signature,
         bytes memory non_closing_signature
     )
-        view
         public
+        view
         returns (address signature_address)
     {
         return recoverAddressFromBalanceProofUpdateMessage(
@@ -223,14 +227,14 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         );
     } */
 
-    /* function recoverAddressFromWithdrawMessagePublic(
+    function recoverAddressFromWithdrawMessagePublic(
         uint256 channel_identifier,
         address participant,
         uint256 amount_to_withdraw,
-        bytes signature
+        bytes memory signature
     )
-        view
         public
+        view
         returns (address signature_address)
     {
         return recoverAddressFromWithdrawMessage(
@@ -239,7 +243,7 @@ contract TokenNetworkSignatureTest is TokenNetwork {
             amount_to_withdraw,
             signature
         );
-    } */
+    }
 }
 
 contract TokenNetworkUtilsTest is TokenNetwork {
@@ -256,27 +260,29 @@ contract TokenNetworkUtilsTest is TokenNetwork {
             _chain_id,
             _settlement_timeout_min,
             _settlement_timeout_max,
-            msg.sender
+            msg.sender,
+            MAX_SAFE_UINT256,
+            MAX_SAFE_UINT256
         )
         public
     {
 
     }
 
-    function getMerkleRootAndUnlockedAmountPublic(bytes memory merkle_tree_leaves)
-        view
+    function getHashAndUnlockedAmountPublic(bytes memory locks)
         public
+        view
         returns (bytes32, uint256)
     {
-        return getMerkleRootAndUnlockedAmount(merkle_tree_leaves);
+        return getHashAndUnlockedAmount(locks);
     }
 
-    function getLockDataFromMerkleTreePublic(bytes memory merkle_tree_leaves, uint256 offset)
-        view
+    function getLockedAmountFromLockPublic(bytes memory locks, uint256 offset)
         public
-        returns (bytes32, uint256)
+        view
+        returns (uint256)
     {
-        return getLockDataFromMerkleTree(merkle_tree_leaves, offset);
+        return getLockedAmountFromLock(locks, offset);
     }
 
     function minPublic(uint256 a, uint256 b) view public returns (uint256)
