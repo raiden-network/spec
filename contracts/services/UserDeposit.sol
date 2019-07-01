@@ -1,17 +1,17 @@
-pragma solidity ^0.5.2;
+pragma solidity 0.5.4;
 
 import "raiden/Token.sol";
 import "raiden/Utils.sol";
 
 contract UserDeposit is Utils {
-    string constant public contract_version = "0.5.0";
     uint constant public withdraw_delay = 100;  // time before withdraw is allowed in blocks
 
     // Token to be used for the deposit
     Token public token;
 
-    // Trusted contract (can execute `transfer`)
+    // Trusted contracts (can execute `transfer`)
     address public msc_address;
+    address public one_to_n_address;
 
     // Total amount of tokens that have been deposited. This is monotonous and
     // doing a transfer or withdrawing tokens will not decrease total_deposit!
@@ -19,6 +19,11 @@ contract UserDeposit is Utils {
     // Current user's balance, ignoring planned withdraws
     mapping(address => uint256) public balances;
     mapping(address => WithdrawPlan) public withdraw_plans;
+
+    // The sum of all balances
+    uint256 public whole_balance = 0;
+    // Deposit limit for this whole contract
+    uint256 public whole_balance_limit;
 
     /*
      *  Structs
@@ -40,7 +45,7 @@ contract UserDeposit is Utils {
      */
 
     modifier canTransfer() {
-        require(msg.sender == msc_address);
+        require(msg.sender == msc_address || msg.sender == one_to_n_address);
         _;
     }
 
@@ -50,7 +55,7 @@ contract UserDeposit is Utils {
 
     /// @notice Set the default values for the smart contract
     /// @param _token_address The address of the token to use for rewards
-    constructor(address _token_address)
+    constructor(address _token_address, uint256 _whole_balance_limit)
         public
     {
         // check token contract
@@ -58,21 +63,30 @@ contract UserDeposit is Utils {
         require(contractExists(_token_address));
         token = Token(_token_address);
         require(token.totalSupply() > 0); // Check if the contract is indeed a token contract
+        // check and set the whole balance limit
+        require(_whole_balance_limit > 0);
+        whole_balance_limit = _whole_balance_limit;
     }
 
     /// @notice Specify trusted contracts. This has to be done outside of the
     /// constructor to avoid cyclic dependencies.
     /// @param _msc_address Address of the MonitoringService contract
-    function init(address _msc_address)
+    /// @param _one_to_n_address Address of the OneToN contract
+    function init(address _msc_address, address _one_to_n_address)
         external
     {
-        // prevent changes of trusted contract after initialization
-        require(msc_address == address(0x0));
+        // prevent changes of trusted contracts after initialization
+        require(msc_address == address(0x0) && one_to_n_address == address(0x0));
 
         // check monitoring service contract
         require(_msc_address != address(0x0));
         require(contractExists(_msc_address));
         msc_address = _msc_address;
+
+        // check one to n contract
+        require(_one_to_n_address != address(0x0));
+        require(contractExists(_one_to_n_address));
+        one_to_n_address = _one_to_n_address;
     }
 
     /// @notice Deposit tokens. The amount of transferred tokens will be
@@ -92,6 +106,15 @@ contract UserDeposit is Utils {
 
         balances[beneficiary] += added_deposit;
         total_deposit[beneficiary] += added_deposit;
+
+        // Update whole_balance, but take care against overflows.
+        require(whole_balance + added_deposit >= whole_balance);
+        whole_balance += added_deposit;
+
+        // Decline deposit if the whole balance is bigger than the limit.
+        require(whole_balance <= whole_balance_limit);
+
+        // Actual transfer.
         require(token.transferFrom(msg.sender, address(this), added_deposit));
     }
 
@@ -152,10 +175,15 @@ contract UserDeposit is Utils {
         require(withdraw_plan.withdraw_block <= block.number);
         uint256 withdrawable = min(amount, balances[msg.sender]);
         balances[msg.sender] -= withdrawable;
-        require(token.transfer(msg.sender, withdrawable));
+
+        // Update whole_balance, but take care against underflows.
+        require(whole_balance - withdrawable <= whole_balance);
+        whole_balance -= withdrawable;
 
         emit BalanceReduced(msg.sender, balances[msg.sender]);
         delete withdraw_plans[msg.sender];
+
+        require(token.transfer(msg.sender, withdrawable));
     }
 
     /// @notice The owner's balance with planned withdrawals deducted
@@ -163,6 +191,7 @@ contract UserDeposit is Utils {
     /// @return The remaining balance after planned withdrawals
     function effectiveBalance(address owner)
         external
+        view
         returns (uint256 remaining_balance)
     {
         WithdrawPlan storage withdraw_plan = withdraw_plans[owner];
@@ -177,3 +206,26 @@ contract UserDeposit is Utils {
         return a > b ? b : a;
     }
 }
+
+
+// MIT License
+
+// Copyright (c) 2018
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
