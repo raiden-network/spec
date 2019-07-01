@@ -156,9 +156,9 @@ expiration_block).
 
                ecdsa_recoverable(
                    privkey,
-                   sha3_keccak("\x19Ethereum Signed Message:\n156"
-                               || sender || receiver || amount
-                               || expiration_block || one_to_n_address || chain_id)
+                   sha3_keccak("\x19Ethereum Signed Message:\n188"
+                               || one_to_n_address || chain_id || uint256(5)
+                               || sender || receiver || amount || expiration_block)
                )
 
           You can use ``raiden_contracts.utils.sign_one_to_n_iou`` to generate such a signature.
