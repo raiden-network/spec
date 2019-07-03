@@ -231,7 +231,7 @@ Non cancellable, Non expirable.
 Invariants
 ^^^^^^^^^^
 
-- The :term:`balance proof` must contain the hash of pending lock list with the corresponding lock removed (and only this lock).
+- The :term:`balance proof` must contain the hash of the new list of pending locks, from which the unlocked lock has been removed.
 - This message is only sent after the corresponding partner has sent a :ref:`Reveal Secret message <reveal-secret-message>`.
 - The :term:`nonce` is increased by ``1`` with respect to the previous :term:`balance proof`
 - The :term:`locked amount` must decrease and the :term:`transferred amount` must increase by the amount held in the unlocked lock.
@@ -325,7 +325,7 @@ For the simplest Alice - Bob example:
 - Alice sends the ``RevealSecret`` to Bob and at this point she must assume the transfer is complete.
 - Bob receives the secret and at this point has effectively secured the transfer of ``n`` tokens to his side.
 - Bob sends a ``RevealSecret`` message back to Alice to inform her that the secret is known and acts as a request for off-chain synchronization.
-- Finally Alice sends an ``Unlock`` message to Bob. This acts also as a synchronization message informing Bob that the lock will be removed from the pending lock list and that the transferred_amount and locksroot values are updated.
+- Finally Alice sends an ``Unlock`` message to Bob. This acts also as a synchronization message informing Bob that the lock will be removed from the list of pending locks and that the transferred_amount and locksroot values are updated.
 
 **Mediated Transfer - Best Case Scenario**
 
@@ -345,6 +345,6 @@ In case a Raiden node goes offline or does not send the final balance proof to i
 
 **Limit to number of simultaneously pending transfers**
 
-The number of simultaneously pending transfers per channel is limited. The client will not initiate, mediate or accept a further pending transfer if the limit is reached. This is to avoid the risk of not being able to unlock the transfers, as the gas cost for this operation grows with the size of the pending lock list and thus the number of pending transfers.
+The number of simultaneously pending transfers per channel is limited. The client will not initiate, mediate or accept a further pending transfer if the limit is reached. This is to avoid the risk of not being able to unlock the transfers, as the gas cost for this operation grows with the number of the pending locks and thus the number of pending transfers.
 
 The limit is currently set to 160. It is a rounded value that ensures the gas cost of unlocking will be less than 40% of Ethereum's traditional pi-million (3141592) block gas limit.
