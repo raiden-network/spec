@@ -37,7 +37,7 @@ Fields
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  locked_amount           | uint256    | Current locked amount                                                          |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-|  locksroot               | bytes32    | Root of the merkle tree of lock hashes (see below)                             |
+|  locksroot               | bytes32    | Hash of the pending locks encoded and concatenated                             |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 | token_network_identifier | address    | Address of the TokenNetwork contract                                           |
 +--------------------------+------------+--------------------------------------------------------------------------------+
@@ -50,13 +50,6 @@ Fields
 |  chain_id                | uint256    | Chain identifier as defined in EIP155                                          |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 
-
-Merkle Tree
------------
-
-A binary tree composed of the hash of the locks. For each payment channel, each participant keeps track of two Merkle trees: one for the hashlocks that have been sent out to the partner, and the other for the hashlocks that have been received from the partner. Conceptually, each direction of a payment channel has one Merkle tree, and each participant has a copy of it. Only the sender of the hashlocks can change the Merkle tree of this direction.
-
-The root of the tree is the value used in the :term:`balance proof`. The tree is changed by the ``LockedTransfer``, ``RemoveExpiredLock`` and ``Unlock`` message types. The sender of these messages applies the change to its copy of the tree and computes the root hash of the new tree. The receiver applies the same change to its copy of the tree and checks the root hash of the new tree against the root hash in the messages.
 
 HashTimeLock
 ------------
@@ -92,7 +85,7 @@ Messages
 Locked Transfer
 -----------------
 
-Cancellable and expirable :term:`transfer`. Sent by a node when a transfer is being initiated, this message adds a new lock to the corresponding merkle tree of the sending participant node.
+Cancellable and expirable :term:`transfer`. Sent by a node when a transfer is being initiated, this message adds a new lock to the list of pending locks from the sending participant node.
 
 Invariants
 ^^^^^^^^^^
@@ -238,7 +231,7 @@ Non cancellable, Non expirable.
 Invariants
 ^^^^^^^^^^
 
-- The :term:`balance proof` merkle tree must have the corresponding lock removed (and only this lock).
+- The :term:`balance proof` must contain the hash of the new list of pending locks, from which the unlocked lock has been removed.
 - This message is only sent after the corresponding partner has sent a :ref:`Reveal Secret message <reveal-secret-message>`.
 - The :term:`nonce` is increased by ``1`` with respect to the previous :term:`balance proof`
 - The :term:`locked amount` must decrease and the :term:`transferred amount` must increase by the amount held in the unlocked lock.
@@ -332,7 +325,7 @@ For the simplest Alice - Bob example:
 - Alice sends the ``RevealSecret`` to Bob and at this point she must assume the transfer is complete.
 - Bob receives the secret and at this point has effectively secured the transfer of ``n`` tokens to his side.
 - Bob sends a ``RevealSecret`` message back to Alice to inform her that the secret is known and acts as a request for off-chain synchronization.
-- Finally Alice sends an ``Unlock`` message to Bob. This acts also as a synchronization message informing Bob that the lock will be removed from the merkle tree and that the transferred_amount and locksroot values are updated.
+- Finally Alice sends an ``Unlock`` message to Bob. This acts also as a synchronization message informing Bob that the lock will be removed from the list of pending locks and that the transferred_amount and locksroot values are updated.
 
 **Mediated Transfer - Best Case Scenario**
 
@@ -352,6 +345,6 @@ In case a Raiden node goes offline or does not send the final balance proof to i
 
 **Limit to number of simultaneously pending transfers**
 
-The number of simultaneously pending transfers per channel is limited. The client will not initiate, mediate or accept a further pending transfer if the limit is reached. This is to avoid the risk of not being able to unlock the transfers, as the gas cost for this operation grows with the size of the Merkle tree and thus the number of pending transfers.
+The number of simultaneously pending transfers per channel is limited. The client will not initiate, mediate or accept a further pending transfer if the limit is reached. This is to avoid the risk of not being able to unlock the transfers, as the gas cost for this operation grows with the number of the pending locks and thus the number of pending transfers.
 
 The limit is currently set to 160. It is a rounded value that ensures the gas cost of unlocking will be less than 40% of Ethereum's traditional pi-million (3141592) block gas limit.

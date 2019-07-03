@@ -57,9 +57,8 @@ Raiden Terminology
    lock expiration
        The lock expiration is the highest block_number until which the transfer can be settled.
 
-   merkletree root
    locksroot
-       The root of the merkle tree which holds the hashes of all the locks in the channel.
+       The hash of the pending locks. To compute this, encode all pending locks in binary, and hash the concatenation using ``sha3_keccak``.
 
    lockhash
        The hash of a lock.  ``sha3_keccack(lock)``
