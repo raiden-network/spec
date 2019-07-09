@@ -241,9 +241,9 @@ Reward Proof
 
 ::
 
-    ecdsa_recoverable(privkey, sha3_keccak("\x19Ethereum Signed Message:\n200"
+    ecdsa_recoverable(privkey, sha3_keccak("\x19Ethereum Signed Message:\n181"
         || monitoring_service_contract_address || chain_id || MessageTypeId.MSReward
-        || channel_identifier || reward_amount || token_network_address || nonce ))
+        || non_closing_signature || reward_amount ))
 
 
 Fields
@@ -254,7 +254,7 @@ Fields
 +=======================+============+============================================================================================+
 | signature_prefix      | string     | ``\x19Ethereum Signed Message:\n``                                                         |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
-| message_length        | string     | ``200`` = length of message = ``5 * 32 + 2 * 20``                                          |
+| message_length        | string     | ``181`` = length of message = ``20 + 32 + 32 + 65 + 32``                                   |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 | monitoring_service    | address    | Address of the monitoring service contract in which the reward can be claimed              |
 | _contract_address     |            |                                                                                            |
@@ -264,13 +264,9 @@ Fields
 | MessageTypeId.MSReward| uint256    | A constant with the value of 6 used to make sure that no other messages accidentally share |
 |                       |            | the same signature.                                                                        |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
-| channel_identifier    | uint256    | Channel identifier inside the TokenNetwork contract                                        |
+| non_closing_signature | bytes      | Signature of the Onchain Balance Proof by the client                                       |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 | reward_amount         | uint256    | Rewards received for updating the channel                                                  |
-+-----------------------+------------+--------------------------------------------------------------------------------------------+
-| token_network_address | address    | Address of the TokenNetwork contract                                                       |
-+-----------------------+------------+--------------------------------------------------------------------------------------------+
-| nonce                 | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1                    |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 | signature             | bytes      | Elliptic Curve 256k1 signature on the above data from participant paying the reward        |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
