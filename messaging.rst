@@ -159,14 +159,12 @@ Lock Expired
 
 Message used to inform partner that the :term:`lock` has expired. Sent by the :term:`initiator` to the :term:`mediator` or :term:`target` when the following conditions are met:
 
-1. once the current confirmed block reached the lock's expiry block number.
-   confirmed block is calculated to be `current_block_number + NUMBER_OF_CONFIRMATION_BLOCKS`.
-2. For the lock expired message to be sent, the :term:`initiator` waits until the `expiration + NUMBER_OF_CONFIRMATIONS * 2` is reached.
-3. For the :term:`mediator` or :term:`target`, the lock expired is accepted once the current `expiration + NUMBER_OF_CONFIRMATION`
-
-Invariants
+Preconditions
 ^^^^^^^^^^
-
+- once the current confirmed block reached the lock's expiry block number.
+  confirmed block is calculated to be `current_block_number + NUMBER_OF_CONFIRMATION_BLOCKS`.
+- For the lock expired message to be sent, the :term:`initiator` waits until the `expiration + NUMBER_OF_CONFIRMATIONS * 2` is reached.
+- For the :term:`mediator` or :term:`target`, the lock expired is accepted once the current `expiration + NUMBER_OF_CONFIRMATION`
 - The :term:`initiator` or :term:`mediator` must wait until the lock removal block is reached.
 - The :term:`initiator`, :term:`mediator` or :term:`target` must not have registered the secret on-chain before expiring the lock.
 - The :term:`mediator` or :term:`target`
@@ -175,8 +173,8 @@ Invariants
 - The :term:`locked amount` must decrease, the new value should be to the old value minus the lock's amount.
 - The :term:`transferred amount` must not change.
 
-Fields
-^^^^^^
+Message Fields
+^^^^^^^^^^^^^^
 
 +-----------------------+----------------------+------------------------------------------------------------+
 | Field Name            | Field Type           |  Description                                               |
