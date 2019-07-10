@@ -152,6 +152,63 @@ This should correspond to `the packed format of LockedTransfer <https://github.c
 
 The sender of the message should be computable from ``signature`` so is not included in the message.
 
+.. _lock-expired-message:
+
+Lock Expired
+--------------
+
+Message used to inform partner that the :term:`lock` has expired. Sent by the :term:`initiator` to the :term:`mediator` or :term:`target` when the following conditions are met:
+
+1. once the current confirmed block reached the lock's expiry block number.
+   confirmed block is calculated to be `current_block_number + NUMBER_OF_CONFIRMATION_BLOCKS`.
+2. For the lock expired message to be sent, the :term:`initiator` waits until the `expiration + NUMBER_OF_CONFIRMATIONS * 2` is reached.
+3. For the :term:`mediator` or :term:`target`, the lock expired is accepted once the current `expiration + NUMBER_OF_CONFIRMATION`
+
+Invariants
+^^^^^^^^^^
+
+- The :term:`initiator` or :term:`mediator` must wait until the lock removal block is reached.
+- The :term:`initiator`, :term:`mediator` or :term:`target` must not have registered the secret on-chain before expiring the lock.
+- The :term:`mediator` or :term:`target`
+- The :term:`nonce` is increased by ``1`` in respect to the previous :term:`balance proof`
+- The :term:`locksroot` must change, the new value must be equal to the root of a new tree after the expired lock is removed.
+- The :term:`locked amount` must decrease, the new value should be to the old value minus the lock's amount.
+- The :term:`transferred amount` must not change.
+
+Fields
+^^^^^^
+
++-----------------------+----------------------+------------------------------------------------------------+
+| Field Name            | Field Type           |  Description                                               |
++=======================+======================+============================================================+
+|  command_id           | one byte             | Value 7 indicating ``LockedTransfer``                      |
++-----------------------+----------------------+------------------------------------------------------------+
+|  pad                  | three bytes          | Contents ignored                                           |
++-----------------------+----------------------+------------------------------------------------------------+
+|  nonce                | uint64               | See `Offchain Balance Proof`_                              |
++-----------------------+----------------------+------------------------------------------------------------+
+|  chain_id             | uint256              | See `Offchain Balance Proof`_                              |
++-----------------------+----------------------+------------------------------------------------------------+
+|  message_identifier   | uint64               | An ID for ``Delivered`` and ``Processed`` acknowledgments  |
++-----------------------+----------------------+------------------------------------------------------------+
+|  token_network_address| address              | See ``token_network_id`` in `Offchain Balance Proof`_      |
++-----------------------+----------------------+------------------------------------------------------------+
+|  channel_identifier   | uint256              | See `Offchain Balance Proof`_                              |
++-----------------------+----------------------+------------------------------------------------------------+
+|  recipient            | address              | Destination for this hop of the transfer                   |
++-----------------------+----------------------+------------------------------------------------------------+
+|  locksroot            | bytes32              | See `Offchain Balance Proof`_                              |
++-----------------------+----------------------+------------------------------------------------------------+
+|  secrethash           | bytes32              | See `HashTimeLock`_                                        |
++-----------------------+----------------------+------------------------------------------------------------+
+|  transferred_amount   | uint256              | See `Offchain Balance Proof`_                              |
++-----------------------+----------------------+------------------------------------------------------------+
+|  locked_amount        | uint256              | See `Offchain Balance Proof`_                              |
++-----------------------+----------------------+------------------------------------------------------------+
+|  signature            | 65 bytes             | Computed as in `Offchain Balance Proof`_                   |
++-----------------------+----------------------+------------------------------------------------------------+
+
+
 .. _secret-request-message:
 
 Secret Request
