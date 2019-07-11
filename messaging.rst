@@ -276,6 +276,40 @@ This should match `the Secret message in encoding/messages file <https://github.
 |                      |                        | is the hash of the whole message                           |
 +----------------------+------------------------+------------------------------------------------------------+
 
+.. _withdraw-request-message:
+
+Withdraw Request
+-------------
+
+Message used by the a channel participant node to request the other participant signature on a new increased ``total_withdraw`` value.
+
+Fields
+^^^^^^
+
++-------------------------------+---------------+----------------------------------------------------------------+
+| Field Name                    | Field Type    |  Description                                                   |
++===============================+===============+================================================================+
+|  cmdid                        | one byte      | Value 11 (indicating ``Reveal Secret``)                        |
++-------------------------------+---------------+----------------------------------------------------------------+
+|  chain identifier             | uint256       | See :ref:`balance-proof-offchain                               |
++-------------------------------+--------------------------------------------------------------------------------+
+|  channel identifier           | uint256       | See :ref:`balance-proof-offchain`                              |
++-------------------------------+---------------+--------+-------------------------------------------------------+
+|  token network address        | address       | See :ref:`balance-proof-offchain`                              |
++-------------------------------+---------------+--------+-------------------------------------------------------+
+|  message identifier           | uint64        | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
++-------------------------------+---------------+----------------------------------------------------------------+
+|  participant                  | address       | The address of the withdraw requesting node                    |
++-------------------------------+---------------+----------------------------------------------------------------+
+|  total_withdraw               | uint256       | The new monotonic ``total_withdraw`` value                     |
++-------------------------------+---------------+----------------------------------------------------------------+
+|  expiration                   | uint256       | The block number at which withdraw request is no longer        |
+|                               |               |  usable on-chain.                                              |
++-------------------------------+---------------+----------------------------------------------------------------+
+|  nonce                        | uint64        | See :ref:`balance-proof-offchain`                              |
++-------------------------------+---------------+----------------------------------------------------------------+
+|  signature                    | bytes         | Elliptic Curve 256k1 signature                                 |
++-------------------------------+---------------+----------------------------------------------------------------+
 
 Specification
 =============
