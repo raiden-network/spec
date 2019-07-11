@@ -283,6 +283,18 @@ Withdraw Request
 
 Message used by the a channel participant node to request the other participant signature on a new increased ``total_withdraw`` value.
 
+Preconditions
+^^^^^^^^^^^^^
+
+- The channel for which the withdraw is requested should be open.
+- The ``total_withdraw`` value should only ever increase.
+- The participant's channel balance should be larger or equal to ``withdraw_amount``,
+  which is calculated using ``new_total_withdraw - previous_total_withdraw``.
+- The new total_withdraw value should not cause an overflow.
+- The message should be sent by one of the channel participants.
+- The :term:`nonce` is increased by ``1`` with respect to the previous :term:`nonce`
+- The ``signature`` must be from the :term:`sender` of the request.
+
 Fields
 ^^^^^^
 
@@ -292,11 +304,11 @@ Fields
 |  cmdid                        | one byte      | Value 11 (indicating ``Reveal Secret``)                        |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  chain identifier             | uint256       | See :ref:`balance-proof-offchain                               |
-+-------------------------------+--------------------------------------------------------------------------------+
++-------------------------------+---------------+----------------------------------------------------------------+
 |  channel identifier           | uint256       | See :ref:`balance-proof-offchain`                              |
-+-------------------------------+---------------+--------+-------------------------------------------------------+
++-------------------------------+---------------+----------------------------------------------------------------+
 |  token network address        | address       | See :ref:`balance-proof-offchain`                              |
-+-------------------------------+---------------+--------+-------------------------------------------------------+
++-------------------------------+---------------+----------------------------------------------------------------+
 |  message identifier           | uint64        | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  participant                  | address       | The address of the withdraw requesting node                    |
@@ -318,6 +330,19 @@ Withdraw Confirmation
 
 Message used by the :ref:`withdraw-request-message` receiver to confirm the request after validating it's input.
 
+Preconditions
+^^^^^^^^^^^^^
+
+- The channel for which the withdraw is confirmed should be open.
+- The received confirmation should map to a previously sent request.
+- The block at which withdraw expires should not have been reached.
+- The participant's channel balance should still be larger or equal to ``withdraw_amount``.
+- The new total_withdraw value should not cause an overflow.
+- The message should be sent by one of the channel participants.
+- The :term:`nonce` is increased by ``1`` with respect to the previous :term:`nonce`
+- The ``signature`` must be from the :term:`sender` of the request.
+
+
 Fields
 ^^^^^^
 
@@ -327,11 +352,11 @@ Fields
 |  cmdid                        | one byte      | Value 11 (indicating ``Reveal Secret``)                        |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  chain identifier             | uint256       | See :ref:`balance-proof-offchain                               |
-+-------------------------------+--------------------------------------------------------------------------------+
++-------------------------------+---------------+----------------------------------------------------------------+
 |  channel identifier           | uint256       | See :ref:`balance-proof-offchain`                              |
-+-------------------------------+---------------+--------+-------------------------------------------------------+
++-------------------------------+---------------+----------------------------------------------------------------+
 |  token network address        | address       | See :ref:`balance-proof-offchain`                              |
-+-------------------------------+---------------+--------+-------------------------------------------------------+
++-------------------------------+---------------+----------------------------------------------------------------+
 |  message identifier           | uint64        | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  participant                  | address       | The address of the withdraw requesting node                    |
@@ -353,6 +378,18 @@ Withdraw Expired
 
 Message used by the withdraw-requesting node to inform the partner that the earliest-requested, non-confirmed withdraw has expired.
 
+Preconditions
+^^^^^^^^^^^^^
+
+- The channel for which the withdraw is confirmed should be open.
+- The sender waits ``expiration_block + NUMBER_OF_CONFIRMATION * 2`` until the message is sent.
+- The receiver should only accept the expiration message if the block at which the withdraw expires is confirmed.
+- The received withdraw expiration should map to an existing withdraw state.
+- The message should be sent by one of the channel participants.
+- The :term:`nonce` is increased by ``1`` with respect to the previous :term:`nonce`
+- The ``signature`` must be from the :term:`sender` of the request.
+
+
 Fields
 ^^^^^^
 
@@ -362,11 +399,11 @@ Fields
 |  cmdid                        | one byte      | Value 11 (indicating ``Reveal Secret``)                        |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  chain identifier             | uint256       | See :ref:`balance-proof-offchain                               |
-+-------------------------------+--------------------------------------------------------------------------------+
++-------------------------------+---------------+----------------------------------------------------------------+
 |  channel identifier           | uint256       | See :ref:`balance-proof-offchain`                              |
-+-------------------------------+---------------+--------+-------------------------------------------------------+
++-------------------------------+---------------+----------------------------------------------------------------+
 |  token network address        | address       | See :ref:`balance-proof-offchain`                              |
-+-------------------------------+---------------+--------+-------------------------------------------------------+
++-------------------------------+---------------+----------------------------------------------------------------+
 |  message identifier           | uint64        | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  participant                  | address       | The address of the withdraw requesting node                    |
