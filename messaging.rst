@@ -288,11 +288,12 @@ Preconditions
 
 - The channel for which the withdraw is requested should be open.
 - The ``total_withdraw`` value should only ever increase.
-- The participant's channel balance should be larger or equal to ``withdraw_amount``,
+- The participant's channel unlocked balance should be larger or equal to ``withdraw_amount``,
   which is calculated using ``new_total_withdraw - previous_total_withdraw``.
-- The new total_withdraw value should not cause an overflow.
+- The new total_withdraw value should not cause an underflow or overflow.
 - The message should be sent by one of the channel participants.
-- The :term:`nonce` is increased by ``1`` with respect to the previous :term:`nonce`
+- The :term:`nonce` is increased by ``1`` with respect to the previous :term:`nonce`.
+- The message sender address should be the same as ``participant``.
 - The ``signature`` must be from the :term:`sender` of the request.
 
 Fields
@@ -337,7 +338,7 @@ Preconditions
 - The received confirmation should map to a previously sent request.
 - The block at which withdraw expires should not have been reached.
 - The participant's channel balance should still be larger or equal to ``withdraw_amount``.
-- The new total_withdraw value should not cause an overflow.
+- The new total_withdraw value should not cause an underflow or overflow.
 - The message should be sent by one of the channel participants.
 - The :term:`nonce` is increased by ``1`` with respect to the previous :term:`nonce`
 - The ``signature`` must be from the :term:`sender` of the request.
