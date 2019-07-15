@@ -341,14 +341,14 @@ Message used by the a channel participant node to request the other participant 
 Preconditions
 ^^^^^^^^^^^^^
 
-- The channel for which the withdraw is requested should be open.
-- The ``total_withdraw`` value should only ever increase.
-- The participant's channel unlocked balance should be larger or equal to ``withdraw_amount``,
+- The channel for which the withdraw is requested must be open.
+- The ``total_withdraw`` value must only ever increase.
+- The participant's channel unlocked balance must be larger or equal to ``withdraw_amount``,
   which is calculated using ``new_total_withdraw - previous_total_withdraw``.
-- The new total_withdraw value should not cause an underflow or overflow.
-- The message should be sent by one of the channel participants.
+- The new total_withdraw value must not cause an underflow or overflow.
+- The message must be sent by one of the channel participants.
 - The :term:`nonce` is increased by ``1`` with respect to the previous :term:`nonce`.
-- The message sender address should be the same as ``participant``.
+- The message sender address must be the same as ``participant``.
 - The ``signature`` must be from the :term:`sender` of the request.
 
 Fields
