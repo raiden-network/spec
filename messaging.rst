@@ -358,13 +358,8 @@ For a Locked Transfer to be considered valid there are the following conditions.
 - (PC6) :term:`locked amount` must increase by exactly :term:`amount` [#PC6]_
 - (PC7) :term:`amount` must be smaller than the current :term:`capacity` [#PC7]_
 
-.. [#PC6] If the :term:`locked amount` is increased by more, then funds may get locked in the channel. If the
-``locked_amount`` is increased by less, then the recipient will reject the message as it may mean it received the funds
-with an on-chain unlock. The initiator will stipulate the fees based on the available routes and incorporate it in the
-lock's amount. Note that with permissive routing it is not possible to predetermine the exact `fee` amount, as the
-initiator does not know which nodes are available, thus an estimated value is used..
-.. [#PC7] If the amount is higher then the recipient will reject it, as it means he will be spending money it does not
-own.
+.. [#PC6] If the :term:`locked amount` is increased by more, then funds may get locked in the channel. If the :term:`locked amount` is increased by less, then the recipient will reject the message as it may mean it received the funds with an on-chain unlock. The initiator will stipulate the fees based on the available routes and incorporate it in the lock's amount. Note that with permissive routing it is not possible to predetermine the exact `fee` amount, as the initiator does not know which nodes are available, thus an estimated value is used.
+.. [#PC7] If the amount is higher then the recipient will reject it, as it means he will be spending money it does not own.
 
 Example Data
 """"""""""""
