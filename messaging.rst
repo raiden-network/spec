@@ -131,17 +131,17 @@ The message that will be sent from A -> B over the matrix transport would look l
         "transferred_amount": 0,
         "locked_amount": 10,
         "recipient": "0x2A915FDA69746F515b46C520eD511401d5CCD5e2",
-        "locksroot": "0x607e890c54e5ba67cd483bedae3ba9da9bf2ef2fbf237b9fb39a723b2296077b",
+        "locksroot": "0x7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644",
         "lock": {
             "type": "Lock",
             "amount": 10,
-            "expiration": 1,
+            "expiration": 8155044,
             "secrethash": "0x59cad5948673622c1d64e2322488bf01619f7ff45789741b15a9f782ce9290a8"
         },
         "target": "0x811957b07304d335B271feeBF46754696694b09e",
         "initiator": "0x540B51eDc5900B8012091cc7c83caf2cb243aa86",
         "fee": 0,
-        "signature": "0x33b336f151f9790f40287655bd412a043be83a03d0136ef5e002229dd04d5b4c2b505b65911251b2a2eb428403de394064bdae0cd8d4a3bb47a10b1a0d924b921c"
+        "signature": "0x4c9baebbaefa9a5ae6589c7764204303edc27c6186bc9ad94267fd1e9be2d3f74ddbbdb6fd0c332d6bb9943a54aa756ab3f787852a7b1ae977e5316b1b0377891c"
     }
 
 1. Message Structure
@@ -219,7 +219,7 @@ The field is a required part of the process to create the message signature.
 +-----------------------+-----------------------------------------------------------------------------------+
 | payment_identifier    | 1                                                                                 |
 +-----------------------+-----------------------------------------------------------------------------------+
-| expiration            | 1                                                                                 |
+| expiration            | 8155044                                                                           |
 +-----------------------+-----------------------------------------------------------------------------------+
 | token_network_address | 0xe82ae5475589b828D3644e1B56546F93cD27d1a4                                        |
 +-----------------------+-----------------------------------------------------------------------------------+
@@ -233,7 +233,7 @@ The field is a required part of the process to create the message signature.
 +-----------------------+-----------------------------------------------------------------------------------+
 | initiator             | 0x540B51eDc5900B8012091cc7c83caf2cb243aa86                                        |
 +-----------------------+-----------------------------------------------------------------------------------+
-| locksroot             | 0x607e890c54e5ba67cd483bedae3ba9da9bf2ef2fbf237b9fb39a723b2296077b                |
+| locksroot             | 0x7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644                |
 +-----------------------+-----------------------------------------------------------------------------------+
 | secrethash            | 0x59cad5948673622c1d64e2322488bf01619f7ff45789741b15a9f782ce9290a8                |
 +-----------------------+-----------------------------------------------------------------------------------+
@@ -252,7 +252,7 @@ To generate the ``additional_hash`` we can start by packing the ``message_struct
 
     packed_message_data = pack(message_structure)
 
-    0x0700000000000000000000010000000000000000000000000000000000000000000000000000000000000151000000000001e24000000000000000010000000000000000000000000000000000000000000000000000000000000001e82ae5475589b828d3644e1b56546f93cd27d1a4c778417e063141139fce010982780140aa0cd5ab000000000000000000000000000000000000000000000000000000000000053a2a915fda69746f515b46c520ed511401d5ccd5e2811957b07304d335b271feebf46754696694b09e540b51edc5900b8012091cc7c83caf2cb243aa86607e890c54e5ba67cd483bedae3ba9da9bf2ef2fbf237b9fb39a723b2296077b59cad5948673622c1d64e2322488bf01619f7ff45789741b15a9f782ce9290a80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000
+    0x0700000000000000000000010000000000000000000000000000000000000000000000000000000000000151000000000001e240000000000000000100000000000000000000000000000000000000000000000000000000007c6fa4e82ae5475589b828d3644e1b56546f93cd27d1a4c778417e063141139fce010982780140aa0cd5ab000000000000000000000000000000000000000000000000000000000000053a2a915fda69746f515b46c520ed511401d5ccd5e2811957b07304d335b271feebf46754696694b09e540b51edc5900b8012091cc7c83caf2cb243aa867b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f64459cad5948673622c1d64e2322488bf01619f7ff45789741b15a9f782ce9290a80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000
 
 After creating the packed form of the data we can use ``keccak256`` to create the ``additional_hash``. 
 
@@ -260,7 +260,7 @@ After creating the packed form of the data we can use ``keccak256`` to create th
 
     additional_hash = keccak256(packed_message_data)
 
-    0x219f8ba12d6dd5c4076af98d9b608ab10351294d4433fde115fbd23243b48306
+    0xaeba3609fa01beca6b0b54f49780f301d59a8994bc0b383b2571eee0e6dacad4
 
 3. Balance Hash
 ^^^^^^^^^^^^^^^
@@ -277,7 +277,7 @@ You can see the structure of the balance_data below
 +-----------------------+----------------------------------------------------------------------+
 | locked_amount         | 10                                                                   |
 +-----------------------+----------------------------------------------------------------------+
-| locksroot             | 0x607e890c54e5ba67cd483bedae3ba9da9bf2ef2fbf237b9fb39a723b2296077b   |
+| locksroot             | 0x7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644   |
 +-----------------------+----------------------------------------------------------------------+
 
 In order to create the `balance_hash` you first need to pack the `balance_data`:
@@ -286,7 +286,7 @@ In order to create the `balance_hash` you first need to pack the `balance_data`:
 
     packed_balance = pack(balance_data)
 
-    0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a607e890c54e5ba67cd483bedae3ba9da9bf2ef2fbf237b9fb39a723b2296077b
+    0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644
 
 Add then use the `keccak256` hash function on the packed form.
 
@@ -294,7 +294,7 @@ Add then use the `keccak256` hash function on the packed form.
 
     balance_hash = keccak256(packed_balance)
 
-    0x1d9479b298eb0a60edaf962f4cf092465456ad7a0265dfe28a0fe3a2a8ecef4e
+    0x2bc27bf596b1f55496848b46edce26b7b7b8b8561fc6783c49b8b5d6a26fc0e1
 
 
 4. Balance Proof
@@ -315,11 +315,11 @@ A `balance_proof` contains the following fields:
 +-----------------------+----------------------------------------------------------------------+
 | channel_identifier    | 1338                                                                 |
 +-----------------------+----------------------------------------------------------------------+
-| balance_hash          | 0x1d9479b298eb0a60edaf962f4cf092465456ad7a0265dfe28a0fe3a2a8ecef4e   |
+| balance_hash          | 0x2bc27bf596b1f55496848b46edce26b7b7b8b8561fc6783c49b8b5d6a26fc0e1   |
 +-----------------------+----------------------------------------------------------------------+
 | nonce                 | 1                                                                    |
 +-----------------------+----------------------------------------------------------------------+
-| additional_hash       | 0x219f8ba12d6dd5c4076af98d9b608ab10351294d4433fde115fbd23243b48306   |
+| additional_hash       | 0xaeba3609fa01beca6b0b54f49780f301d59a8994bc0b383b2571eee0e6dacad4   |
 +-----------------------+----------------------------------------------------------------------+
 
 The ``additional_hash`` and the ``balance_hash`` were calculated in the previous steps and we can now use them in the
@@ -331,7 +331,7 @@ In order to create the ``singature` of the ``LockedTransfer`` we first need to p
 
     packed_balance_proof = pack(balance_proof)
 
-    0xe82ae5475589b828d3644e1b56546f93cd27d1a400000000000000000000000000000000000000000000000000000000000001510000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000053a1d9479b298eb0a60edaf962f4cf092465456ad7a0265dfe28a0fe3a2a8ecef4e0000000000000000000000000000000000000000000000000000000000000001219f8ba12d6dd5c4076af98d9b608ab10351294d4433fde115fbd23243b48306
+    0xe82ae5475589b828d3644e1b56546f93cd27d1a400000000000000000000000000000000000000000000000000000000000001510000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000053a2bc27bf596b1f55496848b46edce26b7b7b8b8561fc6783c49b8b5d6a26fc0e10000000000000000000000000000000000000000000000000000000000000001aeba3609fa01beca6b0b54f49780f301d59a8994bc0b383b2571eee0e6dacad4
 
 5. Signature
 ^^^^^^^^^^^^
@@ -342,7 +342,7 @@ After getting the packed form of the ``balance_proof`` we have to sign it in ord
 
     signature = eth_sign(privkey=private_key, data=packed_balance_proof)
 
-    0x33b336f151f9790f40287655bd412a043be83a03d0136ef5e002229dd04d5b4c2b505b65911251b2a2eb428403de394064bdae0cd8d4a3bb47a10b1a0d924b921c
+    0x4c9baebbaefa9a5ae6589c7764204303edc27c6186bc9ad94267fd1e9be2d3f74ddbbdb6fd0c332d6bb9943a54aa756ab3f787852a7b1ae977e5316b1b0377891c
 
 Preconditions for LockedTransfer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
