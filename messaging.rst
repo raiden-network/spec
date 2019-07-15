@@ -85,21 +85,21 @@ Messages
 Locked Transfer
 -----------------
 
-A LockedTransfer is a message used to reserve tokens for a mediated transfer.
+A Locked Transfer is a message used to reserve tokens for a mediated transfer.
 
-``LockedTransfer`` message
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Locked Transfer message
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``LockedTransfer`` is encoded as a JSON message and sent via our Matrix transport layer. The
-message is always sent to the next mediating node, altered and (the information) forwarded until ``target`` is reached.
+The Locked Transfer is encoded as a JSON message and sent via our Matrix transport layer. The
+message is always sent to the next mediating node, altered and (the information) forwarded until the **target** is reached.
 
-In order to create a valid, signed JSON message,
+In order to create a valid, signed JSON message, five consecutive steps are conducted.
 
-1. ``message_structure`` is packed
-2. Packed message is hashed to create the ``additional_hash``
-3. ``balance_data`` is created, packed and hashed to get ``balance_hash``
-4. ``additional_hash`` and ``balance_hash`` is used to create the ``balance_proof``
-5. ``balance_proof`` is packed and the signed to get the signature, that equals signed, packed ``balance_proof``
+1. Packing of the message structure of Locked Transfer to create the packed message
+2. Hashing of packed message to create the :term:``additional hash``
+3. Creating, packing and hashing of ``balance_data`` to get the ``balance_hash``
+4. Creating the ``balance_proof`` out of ``additional_hash`` and ``balance_hash``
+5. Packing the ``balance_proof`` and signing it to get the signature of the Locked Transfer
 
 Let's assume that there is a network:
 
@@ -112,8 +112,8 @@ Where **A** has a channel with **B** and **B** has a channel with **C**.
 A <---> B <---> C
 
 If **A** wants to send 10 wei of a Token(0xc778417e063141139fce010982780140aa0cd5ab) to **C** he has to first
-send a LockedTransfer to **B** (``recipient``) where **C** is specified as the ``target``. After receiving the message,
-**B** has to send a new LockedTransfer message to **C**.
+send a LockedTransfer to **B** (**recipient**) where **C** is specified as the **target**. After receiving the message,
+**B** has to send a new Locked Transfer message to **C**.
 
 The message that will be sent from A -> B over the matrix transport would look like this.
 
@@ -147,17 +147,17 @@ The message that will be sent from A -> B over the matrix transport would look l
 1. Message Structure
 ^^^^^^^^^^^^^^^^^^^^
 
-We define the following structure of message fields ``message_structure`` of LockedTransfer. There is a function
-``pack(message)`` that takes the ``message_structure`` and returns a byte array. Out of this ``message_structure`` the
+We define the following structure of message fields **message structure** of the Locked Transfer. There is a function
+**pack(message)** that takes the **message structure** and returns a byte array. Out of this **message structure** the
 necessary JSON can be created.
 
 
-The message format corresponds to the packed format of LockedTransfer (INSERT LINK TO FUNCTION -> AUGUSTO).
+The message format corresponds to the packed format of LockedTransfer.
 
 +-----------------------+----------------------+------------------------------------------------------------+
 | Field Name            | Size (Type)          |  Description                                               |
 +=======================+======================+============================================================+
-|  command_id           | 1 Byte               | Value 7 indicating ``LockedTransfer``                      |
+|  command_id           | 1 Byte               | Value 7 indicates Locked Transfer                          |
 +-----------------------+----------------------+------------------------------------------------------------+
 |  pad                  | 3 Bytes              | Contents ignored                                           |
 +-----------------------+----------------------+------------------------------------------------------------+
@@ -199,10 +199,7 @@ The message format corresponds to the packed format of LockedTransfer (INSERT LI
 2. Additional Hash
 ^^^^^^^^^^^^^^^^^^
 
-We will build our ``message_structure`` using the data in the JSON message that was presented above.
-This will be used to generate the a field called ``additional_hash``. 
-
-The field is a required part of the process to create the message signature.
+We will build our **message structure** using the data in the JSON message that was presented above.
 
 +-----------------------+-----------------------------------------------------------------------------------+
 | Field                 | Data                                                                              |
@@ -246,7 +243,11 @@ The field is a required part of the process to create the message signature.
 | fee                   | 0                                                                                 |
 +-----------------------+-----------------------------------------------------------------------------------+
 
-To generate the ``additional_hash`` we can start by packing the ``message_structure`` data.
+This will be used to generate the the data field called ``additional_hash``.
+
+The ``additional_hash`` is a required part of the process to create the message signature.
+
+To generate the ``additional_hash`` we can start by packing the **message structure**.
 
 .. code-block:: 
 
@@ -265,10 +266,10 @@ After creating the packed form of the data we can use ``keccak256`` to create th
 3. Balance Hash
 ^^^^^^^^^^^^^^^
 
-Before we generate the message signature another hash need to be created. This is the ``balance_hash`` that is 
+Before we generate the message signature another hash needs to be created. This is the ``balance_hash`` that is
 generated using the ``balance_data``:
 
-You can see the structure of the balance_data below
+You can see the structure of the ``balance_data`` below - using our example data:
 
 +-----------------------+----------------------------------------------------------------------+
 | Field                 | Data                                                                 |
@@ -280,7 +281,7 @@ You can see the structure of the balance_data below
 | locksroot             | 0x7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644   |
 +-----------------------+----------------------------------------------------------------------+
 
-In order to create the `balance_hash` you first need to pack the `balance_data`:
+In order to create the ``balance_hash`` you first need to pack the ``balance_data``:
 
 .. code-block:: 
 
@@ -288,7 +289,7 @@ In order to create the `balance_hash` you first need to pack the `balance_data`:
 
     0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644
 
-Add then use the `keccak256` hash function on the packed form.
+Add then use the ``keccak256`` hash function on the packed form.
 
 .. code-block::
 
@@ -300,9 +301,9 @@ Add then use the `keccak256` hash function on the packed form.
 4. Balance Proof
 ^^^^^^^^^^^^^^^^
 
-The signature of a ``LockedTransfer`` is creating by signing the packed form of a ``balance_proof``.
+The signature of a Locked Transfer is created by signing the packed form of a ``balance_proof``.
 
-A `balance_proof` contains the following fields:
+A ``balance_proof`` contains the following fields - using our example data:
 
 +-----------------------+----------------------------------------------------------------------+
 | Field                 | Data                                                                 |
@@ -325,7 +326,7 @@ A `balance_proof` contains the following fields:
 The ``additional_hash`` and the ``balance_hash`` were calculated in the previous steps and we can now use them in the
 ``balance_proof``.
 
-In order to create the ``singature` of the ``LockedTransfer`` we first need to pack the ``balance_proof``:
+In order to create the ``singature`` of the Locked Transfer we first need to pack the ``balance_proof``:
 
 .. code-block:: 
 
@@ -347,25 +348,18 @@ After getting the packed form of the ``balance_proof`` we have to sign it in ord
 Preconditions for LockedTransfer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For a ``LockedTransfer`` to be considered valid there are the following conditions. The message will be rejected otherwise:
+For a Locked Transfer to be considered valid there are the following conditions. The message will be rejected otherwise:
 
-- (PC1) :term:`nonce` is increased by ``1`` with respect to the previous balance changing message in that direction, e.g.
-:term:`balance proof` (RECHECK WITH AUGUSTO AND  SPECIFY BETTER)
+- (PC1) :term:`nonce` is increased by ``1`` with respect to the previous balance changing message in that direction
 - (PC2) :term:`chain id`, :term:`token network` address, and :term:`channel identifier` refers to an existing and open channel
 - (PC3) :term:`expiration` must be greater than the current block number
-- (PC4) :term:`locksroot` must be equal to the hash of a new list of all currently pending locks, always the latest one
-appended at last position
+- (PC4) :term:`locksroot` must be equal to the hash of a new list of all currently pending locks, always the latest one appended at last position
 - (PC5) :term:`transferred amount` must not change compared to the last :term:`balance proof`
 - (PC6) :term:`locked amount` must increase by exactly :term:`amount` [#PC6]_
 - (PC7) :term:`amount` must be smaller than the current :term:`capacity` [#PC7]_
 
-.. [#PC6] If the :term:`locked amount` is increased by more, then funds may get locked in the channel. If the
-``locked_amount`` is increased by less, then the recipient will reject the message as it may mean it received the funds
-with an on-chain unlock. The initiator will stipulate the fees based on the available routes and incorporate it in the
-lock's amount. Note that with permissive routing it is not possible to predetermine the exact `fee` amount, as the
-initiator does not know which nodes are available, thus an estimated value is used..
-.. [#PC7] If the amount is higher then the recipient will reject it, as it means he will be spending money it does not
-own.
+.. [#PC6] If the :term:`locked amount` is increased by more, then funds may get locked in the channel. If the :term:`locked amount` is increased by less, then the recipient will reject the message as it may mean it received the funds with an on-chain unlock. The initiator will stipulate the fees based on the available routes and incorporate it in the lock's amount. Note that with permissive routing it is not possible to predetermine the exact `fee` amount, as the initiator does not know which nodes are available, thus an estimated value is used.
+.. [#PC7] If the amount is higher then the recipient will reject it, as it means he will be spending money it does not own.
 
 Example Data
 """"""""""""
