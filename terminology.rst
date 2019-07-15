@@ -191,3 +191,9 @@ Raiden Terminology
 
    Payment Receipt
        TBD
+
+   amount
+        Number of tokens that is referred to in a specific message, e.g. amount in :term:`locked transfer` means number of tokens to be added to the already locked tokens as part of a transfer
+
+   expiration
+        Specific block after which the lock in the :term:`locked transfer` expires

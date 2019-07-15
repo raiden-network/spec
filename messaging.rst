@@ -85,70 +85,303 @@ Messages
 Locked Transfer
 -----------------
 
-Cancellable and expirable :term:`transfer`. Sent by a node when a transfer is being initiated, this message adds a new lock to the list of pending locks from the sending participant node.
+A LockedTransfer is a message used to reserve tokens for a mediated transfer.
 
-Invariants
-^^^^^^^^^^
+``LockedTransfer`` message
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Only valid if all the following hold:
+The ``LockedTransfer`` is encoded as a JSON message and sent via our Matrix transport layer. The
+message is always sent to the next mediating node, altered and (the information) forwarded until ``target`` is reached.
 
-- There is a channel which matches the given :term:`chain id`, :term:`token network` address, and :term:`channel identifier`.
-- The corresponding channel is in the open state.
-- The :term:`nonce` is increased by ``1`` in respect to the previous :term:`balance proof`
-- The :term:`locksroot` must change, the new value must be equal to the root of a new tree, which has all the previous locks plus the lock provided in the message.
-- The :term:`locked amount` must increase, the new value is equal to the old value plus the lock's amount.
-- The lock's amount must be smaller then the participant's :term:`capacity`.
-- The lock expiration must be greater than the current block number.
-- The :term:`transferred amount` must not change.
+In order to create a valid, signed JSON message,
 
-Fields
-^^^^^^
+1. ``message_structure`` is packed
+2. Packed message is hashed to create the ``additional_hash``
+3. ``balance_data`` is created, packed and hashed to get ``balance_hash``
+4. ``additional_hash`` and ``balance_hash`` is used to create the ``balance_proof``
+5. ``balance_proof`` is packed and the signed to get the signature, that equals signed, packed ``balance_proof``
 
-This should correspond to `the packed format of LockedTransfer <https://github.com/raiden-network/raiden/blob/d504ed25b85eea5738fd3d2149bd8392a2b02226/raiden/encoding/messages.py#L164>`_.
+Let's assume that there is a network:
+
+- [A] `0x540B51eDc5900B8012091cc7c83caf2cb243aa86`  
+- [B] `0x2A915FDA69746F515b46C520eD511401d5CCD5e2`
+- [C] `0x811957b07304d335B271feeBF46754696694b09e`
+
+Where **A** has a channel with **B** and **B** has a channel with **C**.
+
+A <---> B <---> C
+
+If **A** wants to send 10 wei of a Token(0xc778417e063141139fce010982780140aa0cd5ab) to **C** he has to first
+send a LockedTransfer to **B** (``recipient``) where **C** is specified as the ``target``. After receiving the message,
+**B** has to send a new LockedTransfer message to **C**.
+
+The message that will be sent from A -> B over the matrix transport would look like this.
+
+.. code-block:: json
+
+    {
+        "type": "LockedTransfer",
+        "chain_id": 337,
+        "message_identifier": 123456,
+        "payment_identifier": 1,
+        "nonce": 1,
+        "token_network_address": "0xe82ae5475589b828D3644e1B56546F93cD27d1a4",
+        "token": "0xc778417E063141139Fce010982780140Aa0cD5Ab",
+        "channel_identifier": 1338,
+        "transferred_amount": 0,
+        "locked_amount": 10,
+        "recipient": "0x2A915FDA69746F515b46C520eD511401d5CCD5e2",
+        "locksroot": "0x7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644",
+        "lock": {
+            "type": "Lock",
+            "amount": 10,
+            "expiration": 8155044,
+            "secrethash": "0x59cad5948673622c1d64e2322488bf01619f7ff45789741b15a9f782ce9290a8"
+        },
+        "target": "0x811957b07304d335B271feeBF46754696694b09e",
+        "initiator": "0x540B51eDc5900B8012091cc7c83caf2cb243aa86",
+        "fee": 0,
+        "signature": "0x4c9baebbaefa9a5ae6589c7764204303edc27c6186bc9ad94267fd1e9be2d3f74ddbbdb6fd0c332d6bb9943a54aa756ab3f787852a7b1ae977e5316b1b0377891c"
+    }
+
+1. Message Structure
+^^^^^^^^^^^^^^^^^^^^
+
+We define the following structure of message fields ``message_structure`` of LockedTransfer. There is a function
+``pack(message)`` that takes the ``message_structure`` and returns a byte array. Out of this ``message_structure`` the
+necessary JSON can be created.
+
+
+The message format corresponds to the packed format of LockedTransfer (INSERT LINK TO FUNCTION -> AUGUSTO).
 
 +-----------------------+----------------------+------------------------------------------------------------+
-| Field Name            | Field Type           |  Description                                               |
+| Field Name            | Size (Type)          |  Description                                               |
 +=======================+======================+============================================================+
-|  command_id           | one byte             | Value 7 indicating ``LockedTransfer``                      |
+|  command_id           | 1 Byte               | Value 7 indicating ``LockedTransfer``                      |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  pad                  | three bytes          | Contents ignored                                           |
+|  pad                  | 3 Bytes              | Contents ignored                                           |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  nonce                | uint64               | See `Offchain Balance Proof`_                              |
+|  nonce                | 8 Bytes (uint64)     | See `Offchain Balance Proof`_                              |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  chain_id             | uint256              | See `Offchain Balance Proof`_                              |
+|  chain_id             | 32 Bytes (uint256)   | See `Offchain Balance Proof`_                              |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  message_identifier   | uint64               | An ID for ``Delivered`` and ``Processed`` acknowledgments  |
+|  message_identifier   | 8 Bytes (uint64)     | An ID for ``Delivered`` and ``Processed`` acknowledgments  |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  payment_identifier   | uint64               | An identifier for the payment that the initiator specifies |
+|  payment_identifier   | 8 Bytes (uint64)     | An identifier for the payment that the initiator specifies |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  expiration           | uint256              | See `HashTimeLock`_                                        |
+|  expiration           | 32 Bytes (uint256)   | See `HashTimeLock`_                                        |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  token_network_address| address              | See ``token_network_id`` in `Offchain Balance Proof`_      |
+|  token_network_address| 20 Bytes (address)   | See ``token_network_id`` in `Offchain Balance Proof`_      |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  token                | address              | Address of the token contract                              |
+|  token                | 20 Bytes (address)   | Address of the token contract                              |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  channel_identifier   | uint256              | See `Offchain Balance Proof`_                              |
+|  channel_identifier   | 32 Bytes (uint256)   | See `Offchain Balance Proof`_                              |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  recipient            | address              | Destination for this hop of the transfer                   |
+|  recipient            | 20 Bytes (address)   | Destination for this hop of the transfer                   |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  target               | address              | Final destination of the payment                           |
+|  target               | 20 Bytes (address)   | Final destination of the payment                           |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  initiator            | address              | Initiator of the transfer and party who knows the secret   |
+|  initiator            | 20 Bytes (address)   | Initiator of the transfer and party who knows the secret   |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  locksroot            | bytes32              | See `Offchain Balance Proof`_                              |
+|  locksroot            | 32 Bytes (hash)      | See `Offchain Balance Proof`_                              |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  secrethash           | bytes32              | See `HashTimeLock`_                                        |
+|  secrethash           | 32 Bytes (hash)      | See `HashTimeLock`_                                        |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  transferred_amount   | uint256              | See `Offchain Balance Proof`_                              |
+|  transferred_amount   | 32 Bytes (uint256)   | See `Offchain Balance Proof`_                              |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  locked_amount        | uint256              | See `Offchain Balance Proof`_                              |
+|  locked_amount        | 32 Bytes (uint256)   | See `Offchain Balance Proof`_                              |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  amount               | uint256              | Transferred amount including fees.  See `HashTimeLock`_    |
+|  amount               | 32 Bytes (uint256)   | Transferred amount including fees. See `HashTimeLock`_     |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  fee                  | uint256              | Total available fee for remaining mediators                |
+|  fee                  | 32 Bytes (uint256)   | Total available fee for remaining mediators                |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  signature            | 65 bytes             | Computed as in `Offchain Balance Proof`_                   |
-+-----------------------+----------------------+------------------------------------------------------------+
+
+2. Additional Hash
+^^^^^^^^^^^^^^^^^^
+
+We will build our ``message_structure`` using the data in the JSON message that was presented above.
+This will be used to generate the a field called ``additional_hash``. 
+
+The field is a required part of the process to create the message signature.
+
++-----------------------+-----------------------------------------------------------------------------------+
+| Field                 | Data                                                                              |
++-----------------------+-----------------------------------------------------------------------------------+
+| command_id            | 7                                                                                 |
++-----------------------+-----------------------------------------------------------------------------------+
+| pad                   | three zero bytes                                                                  |
++-----------------------+-----------------------------------------------------------------------------------+
+| nonce                 | 1                                                                                 |
++-----------------------+-----------------------------------------------------------------------------------+
+| chain_id              | 337                                                                               |
++-----------------------+-----------------------------------------------------------------------------------+
+| message_identifier    | 123456                                                                            |
++-----------------------+-----------------------------------------------------------------------------------+
+| payment_identifier    | 1                                                                                 |
++-----------------------+-----------------------------------------------------------------------------------+
+| expiration            | 8155044                                                                           |
++-----------------------+-----------------------------------------------------------------------------------+
+| token_network_address | 0xe82ae5475589b828D3644e1B56546F93cD27d1a4                                        |
++-----------------------+-----------------------------------------------------------------------------------+
+| token                 | 0xc778417E063141139Fce010982780140Aa0cD5Ab                                        |
++-----------------------+-----------------------------------------------------------------------------------+
+| channel_identifier    | 1338                                                                              |
++-----------------------+-----------------------------------------------------------------------------------+
+| recipient             | 0x811957b07304d335B271feeBF46754696694b09e                                        |
++-----------------------+-----------------------------------------------------------------------------------+
+| target                | 0x811957b07304d335B271feeBF46754696694b09e                                        |
++-----------------------+-----------------------------------------------------------------------------------+
+| initiator             | 0x540B51eDc5900B8012091cc7c83caf2cb243aa86                                        |
++-----------------------+-----------------------------------------------------------------------------------+
+| locksroot             | 0x7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644                |
++-----------------------+-----------------------------------------------------------------------------------+
+| secrethash            | 0x59cad5948673622c1d64e2322488bf01619f7ff45789741b15a9f782ce9290a8                |
++-----------------------+-----------------------------------------------------------------------------------+
+| transferred_amount    | 0                                                                                 |
++-----------------------+-----------------------------------------------------------------------------------+
+| locked_amount         | 10                                                                                |
++-----------------------+-----------------------------------------------------------------------------------+
+| amount                | 10                                                                                |
++-----------------------+-----------------------------------------------------------------------------------+
+| fee                   | 0                                                                                 |
++-----------------------+-----------------------------------------------------------------------------------+
+
+To generate the ``additional_hash`` we can start by packing the ``message_structure`` data.
+
+.. code-block:: 
+
+    packed_message_data = pack(message_structure)
+
+    0x0700000000000000000000010000000000000000000000000000000000000000000000000000000000000151000000000001e240000000000000000100000000000000000000000000000000000000000000000000000000007c6fa4e82ae5475589b828d3644e1b56546f93cd27d1a4c778417e063141139fce010982780140aa0cd5ab000000000000000000000000000000000000000000000000000000000000053a2a915fda69746f515b46c520ed511401d5ccd5e2811957b07304d335b271feebf46754696694b09e540b51edc5900b8012091cc7c83caf2cb243aa867b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f64459cad5948673622c1d64e2322488bf01619f7ff45789741b15a9f782ce9290a80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000
+
+After creating the packed form of the data we can use ``keccak256`` to create the ``additional_hash``. 
+
+.. code-block:: 
+
+    additional_hash = keccak256(packed_message_data)
+
+    0xaeba3609fa01beca6b0b54f49780f301d59a8994bc0b383b2571eee0e6dacad4
+
+3. Balance Hash
+^^^^^^^^^^^^^^^
+
+Before we generate the message signature another hash need to be created. This is the ``balance_hash`` that is 
+generated using the ``balance_data``:
+
+You can see the structure of the balance_data below
+
++-----------------------+----------------------------------------------------------------------+
+| Field                 | Data                                                                 |
++-----------------------+----------------------------------------------------------------------+
+| transferred_amount    | 0                                                                    |
++-----------------------+----------------------------------------------------------------------+
+| locked_amount         | 10                                                                   |
++-----------------------+----------------------------------------------------------------------+
+| locksroot             | 0x7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644   |
++-----------------------+----------------------------------------------------------------------+
+
+In order to create the `balance_hash` you first need to pack the `balance_data`:
+
+.. code-block:: 
+
+    packed_balance = pack(balance_data)
+
+    0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644
+
+Add then use the `keccak256` hash function on the packed form.
+
+.. code-block::
+
+    balance_hash = keccak256(packed_balance)
+
+    0x2bc27bf596b1f55496848b46edce26b7b7b8b8561fc6783c49b8b5d6a26fc0e1
+
+
+4. Balance Proof
+^^^^^^^^^^^^^^^^
+
+The signature of a ``LockedTransfer`` is creating by signing the packed form of a ``balance_proof``.
+
+A `balance_proof` contains the following fields:
+
++-----------------------+----------------------------------------------------------------------+
+| Field                 | Data                                                                 |
++-----------------------+----------------------------------------------------------------------+
+| token_network_address | 0xe82ae5475589b828d3644e1b56546f93cd27d1a4                           |
++-----------------------+----------------------------------------------------------------------+
+| chain_id              | 337                                                                  |
++-----------------------+----------------------------------------------------------------------+
+| msg_type              | 1                                                                    |
++-----------------------+----------------------------------------------------------------------+
+| channel_identifier    | 1338                                                                 |
++-----------------------+----------------------------------------------------------------------+
+| balance_hash          | 0x2bc27bf596b1f55496848b46edce26b7b7b8b8561fc6783c49b8b5d6a26fc0e1   |
++-----------------------+----------------------------------------------------------------------+
+| nonce                 | 1                                                                    |
++-----------------------+----------------------------------------------------------------------+
+| additional_hash       | 0xaeba3609fa01beca6b0b54f49780f301d59a8994bc0b383b2571eee0e6dacad4   |
++-----------------------+----------------------------------------------------------------------+
+
+The ``additional_hash`` and the ``balance_hash`` were calculated in the previous steps and we can now use them in the
+``balance_proof``.
+
+In order to create the ``singature` of the ``LockedTransfer`` we first need to pack the ``balance_proof``:
+
+.. code-block:: 
+
+    packed_balance_proof = pack(balance_proof)
+
+    0xe82ae5475589b828d3644e1b56546f93cd27d1a400000000000000000000000000000000000000000000000000000000000001510000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000053a2bc27bf596b1f55496848b46edce26b7b7b8b8561fc6783c49b8b5d6a26fc0e10000000000000000000000000000000000000000000000000000000000000001aeba3609fa01beca6b0b54f49780f301d59a8994bc0b383b2571eee0e6dacad4
+
+5. Signature
+^^^^^^^^^^^^
+
+After getting the packed form of the ``balance_proof`` we have to sign it in order to generate the message signature.
+
+.. code-block:: 
+
+    signature = eth_sign(privkey=private_key, data=packed_balance_proof)
+
+    0x4c9baebbaefa9a5ae6589c7764204303edc27c6186bc9ad94267fd1e9be2d3f74ddbbdb6fd0c332d6bb9943a54aa756ab3f787852a7b1ae977e5316b1b0377891c
+
+Preconditions for LockedTransfer
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For a ``LockedTransfer`` to be considered valid there are the following conditions. The message will be rejected otherwise:
+
+- (PC1) :term:`nonce` is increased by ``1`` with respect to the previous balance changing message in that direction, e.g.
+:term:`balance proof` (RECHECK WITH AUGUSTO AND  SPECIFY BETTER)
+- (PC2) :term:`chain id`, :term:`token network` address, and :term:`channel identifier` refers to an existing and open channel
+- (PC3) :term:`expiration` must be greater than the current block number
+- (PC4) :term:`locksroot` must be equal to the hash of a new list of all currently pending locks, always the latest one
+appended at last position
+- (PC5) :term:`transferred amount` must not change compared to the last :term:`balance proof`
+- (PC6) :term:`locked amount` must increase by exactly :term:`amount` [#PC6]_
+- (PC7) :term:`amount` must be smaller than the current :term:`capacity` [#PC7]_
+
+.. [#PC6] If the :term:`locked amount` is increased by more, then funds may get locked in the channel. If the
+``locked_amount`` is increased by less, then the recipient will reject the message as it may mean it received the funds
+with an on-chain unlock. The initiator will stipulate the fees based on the available routes and incorporate it in the
+lock's amount. Note that with permissive routing it is not possible to predetermine the exact `fee` amount, as the
+initiator does not know which nodes are available, thus an estimated value is used..
+.. [#PC7] If the amount is higher then the recipient will reject it, as it means he will be spending money it does not
+own.
+
+Example Data
+""""""""""""
+
+All the examples are made using three predifined accounts, so that you can replicate the results and verify:
+
++----+--------------------------------------------+------------------------------------------------------------------+
+| No | Address                                    | Private Key                                                      |
++----+--------------------------------------------+------------------------------------------------------------------+
+| 1  | 0x540B51eDc5900B8012091cc7c83caf2cb243aa86 | 377261472824796f2c4f6a73753136587b5624777a4537503b39324a227e227d |
++----+--------------------------------------------+------------------------------------------------------------------+
+| 2  | 0x811957b07304d335B271feeBF46754696694b09e | 7c250a70410d7245412f6d576b614d275f0b277953433250777323204940540c |
++----+--------------------------------------------+------------------------------------------------------------------+
+| 3  | 0x2A915FDA69746F515b46C520eD511401d5CCD5e2 | 2e20593e0b5923294a6d6f3223604433382b782b736e3d63233c2d3a2d357041 |
++----+--------------------------------------------+------------------------------------------------------------------+
+
 
 The sender of the message should be computable from ``signature`` so is not included in the message.
 
