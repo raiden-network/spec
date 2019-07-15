@@ -377,6 +377,13 @@ Fields
 |  nonce                        | uint64        | See :ref:`balance-proof-offchain`                              |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  signature                    | bytes         | Elliptic Curve 256k1 signature                                 |
+|                               |               | Signed data:                                                   |
+|                               |               | - Chain identifier                                             |
+|                               |               | - Message type, 3 for withdraw                                 |
+|                               |               | - Channel identifier                                           |
+|                               |               | - Participant (address of the withdraw requesting node)        |
+|                               |               | - Total withdraw                                               |
+|                               |               | - Expiration block number                                      |
 +-------------------------------+---------------+----------------------------------------------------------------+
 
 .. _withdraw-confirmation-message:
@@ -425,6 +432,7 @@ Fields
 |  nonce                        | uint64        | See :ref:`balance-proof-offchain`                              |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  signature                    | bytes         | Elliptic Curve 256k1 signature                                 |
+|                               |               | Signed data: see :ref:`withdraw-request-message`               |
 +-------------------------------+---------------+----------------------------------------------------------------+
 
 .. _withdraw-expired-message:
@@ -472,6 +480,7 @@ Fields
 |  nonce                        | uint64        | See :ref:`balance-proof-offchain`                              |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  signature                    | bytes         | Elliptic Curve 256k1 signature                                 |
+|                               |               | Signed data: see :ref:`withdraw-request-message`               |
 +-------------------------------+---------------+----------------------------------------------------------------+
 
 Specification
