@@ -185,7 +185,7 @@ Raiden Terminology
    Participants
        The two nodes participating in a :term:`Payment Channel` are called the channel's participants.
 
-   Additional Hash
+   additional hash
    additional_hash
        Hash of additional data (in addition to a balance proof itself) used on the Raiden protocol (and potentially in the future also the application layer). Currently this is the hash of the offchain message that contains the balance proof. In the future, for example, some form of payment metadata can be hashed in.
 
