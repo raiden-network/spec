@@ -372,7 +372,7 @@ The sender of the message should be computable from ``signature`` so is not incl
 Lock Expired
 --------------
 
-Message used to inform partner that the :term:`lock` has expired. Sent by the :term:`initiator` to the :term:`mediator` or :term:`target` when the following conditions are met:
+Message used to inform partner that the :term:`Hash Time Lock` has expired. Sent by the :term:`initiator` to the :term:`mediator` or :term:`target` when the following conditions are met:
 
 Preconditions
 ^^^^^^^^^^^^^^^^
