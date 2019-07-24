@@ -60,7 +60,7 @@ Invariants
 - Expiration must be larger than the current block number and smaller than the channel’s settlement period.
 
 Hash
-^^^^
+^^^^^^
 
 - ``keccak256(expiration || amount || secrethash)``
 
@@ -375,7 +375,7 @@ Lock Expired
 Message used to inform partner that the :term:`lock` has expired. Sent by the :term:`initiator` to the :term:`mediator` or :term:`target` when the following conditions are met:
 
 Preconditions
-^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 - once the current confirmed block reached the lock's expiry block number.
   confirmed block is calculated to be `current_block_number + NUMBER_OF_CONFIRMATION_BLOCKS`.
 - For the lock expired message to be sent, the :term:`initiator` waits until the `expiration + NUMBER_OF_CONFIRMATIONS * 2` is reached.
@@ -549,7 +549,7 @@ This should match `the Secret message in encoding/messages file <https://github.
 .. _withdraw-request-message:
 
 Withdraw Request
--------------
+--------------------
 
 Message used by the a channel participant node to request the other participant signature on a new increased ``total_withdraw`` value.
 
@@ -604,7 +604,7 @@ Fields
 .. _withdraw-confirmation-message:
 
 Withdraw Confirmation
--------------
+------------------------
 
 Message used by the :ref:`withdraw-request-message` receiver to confirm the request after validating it's input.
 
@@ -653,7 +653,7 @@ Fields
 .. _withdraw-expired-message:
 
 Withdraw Expired
--------------
+-------------------
 
 Message used by the withdraw-requesting node to inform the partner that the earliest-requested, non-confirmed withdraw has expired.
 
