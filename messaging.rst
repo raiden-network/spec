@@ -60,7 +60,7 @@ Invariants
 - Expiration must be larger than the current block number and smaller than the channel’s settlement period.
 
 Hash
-^^^^
+^^^^^^
 
 - ``keccak256(expiration || amount || secrethash)``
 
@@ -247,17 +247,13 @@ This will be used to generate the the data field called ``additional_hash``.
 
 The ``additional_hash`` is a required part of the process to create the message signature.
 
-To generate the ``additional_hash`` we can start by packing the **message structure**.
-
-.. code-block:: 
+To generate the ``additional_hash`` we can start by packing the **message structure**::
 
     packed_message_data = pack(message_structure)
 
     0x0700000000000000000000010000000000000000000000000000000000000000000000000000000000000151000000000001e240000000000000000100000000000000000000000000000000000000000000000000000000007c6fa4e82ae5475589b828d3644e1b56546f93cd27d1a4c778417e063141139fce010982780140aa0cd5ab000000000000000000000000000000000000000000000000000000000000053a2a915fda69746f515b46c520ed511401d5ccd5e2811957b07304d335b271feebf46754696694b09e540b51edc5900b8012091cc7c83caf2cb243aa867b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f64459cad5948673622c1d64e2322488bf01619f7ff45789741b15a9f782ce9290a80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000
 
-After creating the packed form of the data we can use ``keccak256`` to create the ``additional_hash``. 
-
-.. code-block:: 
+After creating the packed form of the data we can use ``keccak256`` to create the ``additional_hash``. ::
 
     additional_hash = keccak256(packed_message_data)
 
@@ -281,17 +277,13 @@ You can see the structure of the ``balance_data`` below - using our example data
 | locksroot             | 0x7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644   |
 +-----------------------+----------------------------------------------------------------------+
 
-In order to create the ``balance_hash`` you first need to pack the ``balance_data``:
-
-.. code-block:: 
+In order to create the ``balance_hash`` you first need to pack the ``balance_data``::
 
     packed_balance = pack(balance_data)
 
     0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644
 
-Add then use the ``keccak256`` hash function on the packed form.
-
-.. code-block::
+Add then use the ``keccak256`` hash function on the packed form.::
 
     balance_hash = keccak256(packed_balance)
 
@@ -326,9 +318,7 @@ A ``balance_proof`` contains the following fields - using our example data:
 The ``additional_hash`` and the ``balance_hash`` were calculated in the previous steps and we can now use them in the
 ``balance_proof``.
 
-In order to create the ``singature`` of the Locked Transfer we first need to pack the ``balance_proof``:
-
-.. code-block:: 
+In order to create the ``singature`` of the Locked Transfer we first need to pack the ``balance_proof``::
 
     packed_balance_proof = pack(balance_proof)
 
@@ -337,9 +327,7 @@ In order to create the ``singature`` of the Locked Transfer we first need to pac
 5. Signature
 ^^^^^^^^^^^^
 
-After getting the packed form of the ``balance_proof`` we have to sign it in order to generate the message signature.
-
-.. code-block:: 
+After getting the packed form of the ``balance_proof`` we have to sign it in order to generate the message signature.::
 
     signature = eth_sign(privkey=private_key, data=packed_balance_proof)
 
@@ -384,10 +372,10 @@ The sender of the message should be computable from ``signature`` so is not incl
 Lock Expired
 --------------
 
-Message used to inform partner that the :term:`lock` has expired. Sent by the :term:`initiator` to the :term:`mediator` or :term:`target` when the following conditions are met:
+Message used to inform partner that the :term:`Hash Time Lock` has expired. Sent by the :term:`initiator` to the :term:`mediator` or :term:`target` when the following conditions are met:
 
 Preconditions
-^^^^^^^^^^
+^^^^^^^^^^^^^^^^
 - once the current confirmed block reached the lock's expiry block number.
   confirmed block is calculated to be `current_block_number + NUMBER_OF_CONFIRMATION_BLOCKS`.
 - For the lock expired message to be sent, the :term:`initiator` waits until the `expiration + NUMBER_OF_CONFIRMATIONS * 2` is reached.
@@ -561,7 +549,7 @@ This should match `the Secret message in encoding/messages file <https://github.
 .. _withdraw-request-message:
 
 Withdraw Request
--------------
+--------------------
 
 Message used by the a channel participant node to request the other participant signature on a new increased ``total_withdraw`` value.
 
@@ -586,7 +574,7 @@ Fields
 +===============================+===============+================================================================+
 |  cmdid                        | one byte      | Value 15 (indicating ``Withdraw Request``)                     |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  chain identifier             | uint256       | See :ref:`balance-proof-offchain                               |
+|  chain identifier             | uint256       | See :ref:`balance-proof-offchain`                              |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  channel identifier           | uint256       | See :ref:`balance-proof-offchain`                              |
 +-------------------------------+---------------+----------------------------------------------------------------+
@@ -616,7 +604,7 @@ Fields
 .. _withdraw-confirmation-message:
 
 Withdraw Confirmation
--------------
+------------------------
 
 Message used by the :ref:`withdraw-request-message` receiver to confirm the request after validating it's input.
 
@@ -641,7 +629,7 @@ Fields
 +===============================+===============+================================================================+
 |  cmdid                        | one byte      | Value 16 (indicating ``Withdraw Confirmation``)                |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  chain identifier             | uint256       | See :ref:`balance-proof-offchain                               |
+|  chain identifier             | uint256       | See :ref:`balance-proof-offchain`                              |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  channel identifier           | uint256       | See :ref:`balance-proof-offchain`                              |
 +-------------------------------+---------------+----------------------------------------------------------------+
@@ -665,7 +653,7 @@ Fields
 .. _withdraw-expired-message:
 
 Withdraw Expired
--------------
+-------------------
 
 Message used by the withdraw-requesting node to inform the partner that the earliest-requested, non-confirmed withdraw has expired.
 
@@ -689,7 +677,7 @@ Fields
 +===============================+===============+================================================================+
 |  cmdid                        | one byte      | Value 17 (indicating ``Withdraw Expired``)                     |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  chain identifier             | uint256       | See :ref:`balance-proof-offchain                               |
+|  chain identifier             | uint256       | See :ref:`balance-proof-offchain`                              |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  channel identifier           | uint256       | See :ref:`balance-proof-offchain`                              |
 +-------------------------------+---------------+----------------------------------------------------------------+
