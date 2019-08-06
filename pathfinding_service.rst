@@ -296,8 +296,6 @@ listen for the following events:
 - `ChannelOpenened`: Update the network to include the new channel
 - `ChannelClosed`: Remove the channel from the network
 
-Additionally it must listen to the `ChannelNewDeposit` event in order to learn
-about new deposits.
 
 Capacity Updates (Graph Weights)
 ---------------------------------------
