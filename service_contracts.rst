@@ -31,6 +31,25 @@ ServiceRegistry
 
 The ServiceRegistry provides a registry in which services have to register before becoming a full part of the Raiden services system. Services have to deposit RDN tokens in this contract for a successful registration. This avoids attacks using a large number of services and increases the incentive for service provider to not harm the Raiden ecosystem.
 
+Requirements
+------------
+
+- Need to stake for these slots by the Raiden Service Providers (RSPs), but there will be no slashing
+- RSPs must be allowed to withdraw the deposited stake after their registration ends
+- An "auction" mechanism that allows for competition over those slots
+- There must be a way for new RSPs to get a slot
+- We want an easy MVP to get real user feedback after our release
+- Need to provide a way of setting the minimal amount of deposits - the cost of becoming an RSP should be high enough to deter users from double-spending IOUs
+- We want to reduce the amount of work to be done, so try to avoid periodical deployments and / or coordination stakeholders
+- There must be a way for other smart contracts to check if an address is registered as a service provider
+- Avoid new implementations if possible
+- The deployer should be able to choose whether it wants to control the parameters
+
+Design
+------------
+
+
+
 
 UserDeposit
 ===========
