@@ -47,6 +47,9 @@ A pathfinding service must provide the following endpoints. The interface has to
 
 The examples provided for each of the endpoints is for communication with a REST endpoint.
 
+
+.. _pfs_api_paths:
+
 ``POST api/v1/<token_network_address>/paths``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -296,8 +299,6 @@ listen for the following events:
 - `ChannelOpenened`: Update the network to include the new channel
 - `ChannelClosed`: Remove the channel from the network
 
-Additionally it must listen to the `ChannelNewDeposit` event in order to learn
-about new deposits.
 
 Capacity Updates (Graph Weights)
 ---------------------------------------
@@ -354,6 +355,18 @@ All of this fields are required. The Pathfinding Service MUST perform verificati
 existence. A Pathfinding service SHOULD accept the message if and only if the sender of the message is same as the sender
 address recovered from the signature.
 
+
+Routing feedback
+================
+
+In order to improve the calculated routes, the PFS requires feedback about the routes it provides to Raiden clients. For that reason the routing feedback mechanism is introduced.
+
+When a client requests a route from a PFS (see :ref:`pfs_api_paths`), the PFS returns a *feedback token* together with the number of routes requested.
+This feedback token is a UUID in version 4. The client stores it together with the payment id and then initiates the payment. Whenever a particular
+route fails or the payment succeeds by using a certain route, this feedback is given to the PFS.
+
+While the individual feedback cannot be trusted by the PFS, it can use general trends to improve it's routing algorithm, e.g. lowering the precedence or removing channels
+from the routing table when payments including them often fail.
 
 Future Work
 ===========
