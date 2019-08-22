@@ -48,8 +48,92 @@ Requirements
 Design
 ------------
 
+In order to avoid periodical deployments, ServiceRegistry does not have a deadline for joining.  ServiceRegistry allows new deposits anytime.
+The required amount of deposit (called the price) changes over time so as to regulate the inflow of the deposits.
+The price movement depends only on the timing of incoming deposits.
+Upon receiving new deposit, the price jumps by some ratio (called the bump ratio).
+Otherwise the price decreases slowly following some exponential decay, dictated by the decay constant.
+
+Use cases
+------------
+
+- Somebody who wants to provide services registers themselves as a RSP.
+- Service smart contracts look up whether an Ethereum address is registered as a RSP.
+- A registered RSP posts a URL.
+- Users of services look up URLs of registered RSPs.
+- Users of services choose one of the registered RSPs randomly.
 
 
+States
+------------
+
+1. Before the deployment transaction, the address of ServiceRegistry has no code, and zero nonce.  The address might already control some ETH or tokens (which nobody can take out).
+2. During the deployment transaction, ServiceRegistry can be already called by other contracts that are invoked by the constructor of ServiceRegistry.
+3. After the deployment transaction a ServiceRegistry has the following entries in its state.
+
+   a. ``controller`` the address that can change some parameters of ServiceRegistry
+   b. ``set_price`` lastly recorded price
+   c. ``set_price_at`` the timestamp when ``set_price`` was recorded
+   d. ``decay_constant`` the number of seconds till the price decreases by roughly 1/2.7
+   e. ``min_price`` the minimum price, under which the price does not decay
+   f. ``price_bump_numerator`` and ``price_bump_denominator`` the ratio of the price dump when a deposit is made
+   g. ``registration_duration`` the duration in seconds of a service registration (or its extension)
+   h. ``deprecated`` non-zero value indicates that the controller has turned on the deprecation switch
+   i. ``token`` the address of the ERC20 token account with which registration deposits are made
+   j. ``service_valid_till`` the timestamp when the registration of every address expires (zero if the address has never made a deposit)
+   k. ``urls`` the URL that a registered account submitted
+   l. ``ever_mde_deposits`` the list of addresses that have ever made deposits
+
+Deployment
+------------
+
+Anybody (with enough ETH to cover the gas costs) can deploy a ServiceRegistry smart contract.
+
+The deployer chooses
+
+   * the token for registration
+   * the controller
+   * the initial price
+   * the price bump ratio
+   * the decay constant
+   * the minimum price
+
+The other entries start empty.
+
+Deposit
+------------
+
+Anybody can register themselves as a service (with enough ETH to cover the gas costs, and with enough tokens).  The registration runs for the registration duration.  If they are already registered their registration extends by the registration duration.
+
+Before calling ``deposit()``, the service provider candidate must have called ``approve()`` function on the ERC20 token smart contract, so that the ServiceRegistry can send tokens.  The approval must cover the current price.
+
+The current price might be higher than what the service provider candidate has seen because another party might have made a deposit meanwhile.  The service provider candidate must set a limit amount, indicating the biggest amount of tokens it's willing to deposit.  If the current price is bigger than the limit amount, the service provider candidate still pays the gas costs in ETH, but its tokens stay.
+
+If the service provider candidate approved more than the current price (both in the ERC20 token smart contract and in the limit amount parameter), its tokens are transferred into a newly created Deposit smart contract. The ServiceRegistry smart contract records the new deadline of the service provider's registration. The new deposits cannot be withdrawn until this deadline. After the deadline, the registered service provider can withdraw the deposit. The address of the newly created Deposit contract can be seen as the fourth parameter of ``RegisteredService(msg.sender, valid_till, amount, depo)``.  Extension of an existing registration does not affect the deposits made in the past. In other words, the old deposits can be withdrawn after the originally scheduled deadline.
+
+In case the deposit is made successfully, the ServiceRegistry contract remembers the amount as ``set_price``, and the current timestamp as ``set_price_at``.
+
+Setting a URL
+-------------
+
+A registered service provider can set a URL (with enough ETH to cover the gas costs).  If it has already set a URL, the new URL overwrites the old URL.
+
+Setting the Deprecation Switch
+------------------------------
+
+The controller can at any time turn on the deprecation switch.  Once the deprecation switch is on, it cannot be turned off, no new deposits can be made, and the already made deposits can immediately be withdrawn.
+
+Changing Parameters
+-------------------
+
+The controller can at any time change the parameters
+
+* the price bump ratio
+* the decay constant
+* the minimum price
+* the registration duration
+
+When the parameters are changed, the ServiceRegistry contract calculates and records the current price using the old parameters. From then on, the price changes according to the new parameters.
 
 UserDeposit
 ===========
@@ -192,7 +276,8 @@ table above for parameters) and uses the UDC to transfer ``amount`` from
 ``hash(receiver, sender, expiration_block) => expiration_block`` to make
 sure that each IOU can only be claimed once. To make claims more gas
 efficient, multiple claims can be done in a single transaction and
-expired claims can be removed from the storage.
+expired claims can be removed from the storage. ``receiver`` has to be
+registered in the ServiceRegistry, or otherwise the claiming fails.
 
 Expiration
 ----------
@@ -253,7 +338,7 @@ MonitoringService
 =================
 
 The :ref:`MS` submits an up-to-date :term:`balance proof` on behalf of users who are offline when a channel is closed to prevent them from losing tokens. This could be done without a dedicated contract by calling `TokenNetwork.updateNonClosingBalanceProof <update-channel>` but then the MS would not be able to claim a reward for its work.
-To handle the rewards, the MonitoringService contract provides two functions. One for wrapping `updateNonClosingBalanceProof` and creating the reward and another one for claiming the reward after the settlement:
+To handle the rewards, the MonitoringService contract provides two functions. One for wrapping `updateNonClosingBalanceProof` and creating the reward and another one for claiming the reward after the settlement. The wrapper of `updateNonClosingBalanceProof` only works for service providers that are registered in ServiceRegistry:
 
 .. autosolcontract:: MonitoringService
     :members: monitor, claimReward
