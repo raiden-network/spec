@@ -147,7 +147,7 @@ Fields
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 | chain_id              | uint256    | Chain identifier as defined in EIP155                                                      |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
-| message_type_id       | uint256    | ``2`` = message type identifier                                                            |
+| message_type_id       | uint256    | ``1`` (if closing) or ``2`` (if updating)                                                           |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 |  channel_identifier   | uint256    | Channel identifier inside the TokenNetwork contract                                        |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
@@ -162,6 +162,9 @@ Fields
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 |  signature            | bytes      | Elliptic Curve 256k1 signature on the above data from the non-closing participant          |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
+
+The same message ID ``1`` is used for Balance Proof Update and Balance Proof messages.  This is not a problem because these messages have different lengths.
+
 
 .. _withdraw-proof:
 
