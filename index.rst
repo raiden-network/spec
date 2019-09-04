@@ -9,6 +9,7 @@ This is a tentative specification for the `Raiden Network <http://raiden.network
    :caption: Contents:
 
    messaging
+   mediated_transfer
    transport
    smart_contracts
    service_contracts
