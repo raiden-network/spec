@@ -493,11 +493,14 @@ Allows a channel participant to close the channel. The channel cannot be settled
 
     function closeChannel(
         uint256 channel_identifier,
-        address partner,
+        address non_closing_participant,
+        address closing_participant,
+        // The next four arguments form a balance proof.
         bytes32 balance_hash,
         uint256 nonce,
         bytes32 additional_hash,
-        bytes signature
+        bytes memory non_closing_signature,
+        bytes memory closing_signature
     )
         public
 
@@ -514,7 +517,8 @@ Allows a channel participant to close the channel. The channel cannot be settled
     - ``locksroot``: Hash of all pending locks for the partner.
 - ``nonce``: Strictly monotonic value used to order transfers.
 - ``additional_hash``: Computed from the message. Used for message authentication.
-- ``signature``: Elliptic Curve 256k1 signature of the channel partner on the :term:`balance proof` data.
+- ``non_closing_signature``: Elliptic Curve 256k1 signature of the channel partner on the :term:`balance proof` data.
+- ``closing_signature``: Elliptic Curve 256k1 signature of the closing party on the :term:`balance proof update` data.
 - ``closing_participant``: Ethereum address of the channel participant who calls this contract function.
 
 .. Note::
@@ -523,6 +527,8 @@ Allows a channel participant to close the channel. The channel cannot be settled
     A participant ``MUST`` be able to set his partner's balance proof on-chain, in order to be used in the settlement algorithm.
 
     Only a valid signed :term:`balance proof` from the channel ``partner`` ``MUST`` be accepted. This :term:`balance proof` sets the amount of tokens owed to the ``participant`` by the channel ``partner``.
+
+    Only a valid signed :term:`balance proof update` from the channel ``participant`` ``MUST`` be accepted. This signature on the :term:`balance proof update` (with message ID being ``1``) shows the intention of the ``participant`` to close the channel.
 
     A ``participant`` ``MUST`` be able to close a channel regardless of his ``partner``'s availability (online/offline status).
 
