@@ -506,7 +506,7 @@ Allows a channel participant to close the channel. The channel cannot be settled
 
 ::
 
-    event ChannelClosed(uint256 indexed channel_identifier, address indexed closing_participant);
+    event ChannelClosed(uint256 indexed channel_identifier, address indexed closing_participant, uint256 indexed nonce, bytes32 balance_hash);
 
 - ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
 - ``partner``: Channel partner of the participant who calls the function.
@@ -557,7 +557,8 @@ Called after a channel has been closed. Can be called by any Ethereum address an
     event NonClosingBalanceProofUpdated(
         uint256 indexed channel_identifier,
         address indexed closing_participant,
-        uint256 nonce
+        uint256 indexed nonce,
+        bytes32 balance_hash
     );
 
 - ``channel_identifier``: Channel identifier assigned by the current contract.
