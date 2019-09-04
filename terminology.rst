@@ -74,6 +74,9 @@ Raiden Terminology
    BP
        Signed data required by the :term:`Payment Channel` to prove the balance of one of the parties. Different formats exist for offchain communication and onchain communication.  See the :ref:`onchain balance proof definition <balance-proof-onchain>` and :ref:`offchain balance proof definition <balance-proof-offchain>`.
 
+   balance proof update
+       Signed balance proof with a countersignature.  Depending on the message ID, a balance proof update message either shows the second signer's intention to close the channel (with a ``closeChannel()`` call) or submit the balance proof during the settlement period (with an ``updateNonClosingBalanceProof()`` call).
+
    withdraw proof
    Participant Withdraw Proof
        Signed data required by the :term:`Payment Channel` to allow a participant to withdraw tokens. See the :ref:`message definition <withdraw-proof>`.
