@@ -4,7 +4,29 @@ Raiden Messages Specification
 Overview
 ========
 
-This is the specification document for the messages used in the Raiden protocol.
+This is the specification of the messages used in the Raiden protocol.
+
+All messages are encoded in a JSON format and sent via our Matrix transport layer. There are
+data structures which reappear in different messages:
+The :ref:`offchain balance proof <balance-proof-offchain>`
+and the :ref:`hash time lock <hash-time-lock>`.
+
+A :term:`mediated transfer` begins with a :ref:`LockedTransfer message <locked-transfer-message>`.
+
+We will explain the assembly of a ``LockedTransfer`` message step-by-step below.
+The further messages within the transfer are based on it:
+
+- :ref:`SecretRequest <secret-request-message>`,
+  its reply :ref:`RevealSecret <reveal-secret-message>`, and
+  finally the :ref:`Unlock <unlock-message>` messages that complete the transfer.
+- The :ref:`LockExpired <lock-expired-message>` message in case the transfer is not completed in time.
+
+Further messages in the protocol are:
+
+- The :ref:`Processed <processed-message>` that is sent to confirm received messages, and
+- The withdraw-related messages :ref:`WithdrawRequest <withdraw-request-message>`,
+  :ref:`WithdrawConfirmation <withdraw-confirmation-message>` and
+  :ref:`WithdrawExpired <withdraw-expired-message>`.
 
 Data Structures
 ===============
@@ -50,6 +72,8 @@ Fields
 |  chain_id                | uint256    | Chain identifier as defined in EIP155                                          |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 
+
+.. _hash-time-lock:
 
 HashTimeLock
 ------------
@@ -697,6 +721,14 @@ Fields
 |  signature                    | bytes         | Elliptic Curve 256k1 signature                                 |
 |                               |               | Signed data: see :ref:`withdraw-request-message`               |
 +-------------------------------+---------------+----------------------------------------------------------------+
+
+.. _processed-message:
+
+Processed message
+-----------------
+
+TODO
+
 
 Specification
 =============
