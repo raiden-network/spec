@@ -475,7 +475,7 @@ Allows a channel participant to withdraw tokens from a channel without closing i
 - ``total_withdraw``: Total amount of tokens that are marked as withdrawn from the channel during the channel lifecycle.
 - ``participant_signature``: Elliptic Curve 256k1 signature of the channel ``participant`` on the :term:`withdraw proof` data.
 - ``partner_signature``: Elliptic Curve 256k1 signature of the channel ``partner`` on the :term:`withdraw proof` data.
-- ``expiration_block``: the block number when the withdraw message becomes no longer valid.
+- ``expiration_block``: The first block number when the withdraw message is no longer valid.
 
 .. Note::
     A ``participant`` ``MUST NOT`` be able to withdraw tokens from the channel without his ``partner``'s signature.
