@@ -163,6 +163,13 @@ Fields
 |  signature            | bytes      | Elliptic Curve 256k1 signature on the above data from the non-closing participant          |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 
+Importance of message type IDs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The different values of ``message_type_id`` convey how the second signer intends to use the balance proof.  Funds can be lost if a malicious party gets a Balance Proof Update message with ``message_type_id == 1``. Once the malicious party submits the Balance Proof Update message to TokenNetwork, TokenNetwork considers the submitted balance proof final, even if the message was originally signed a long time ago.
+
+A Balance Proof Update message with ``message_type_id == 2`` can be shared with third parties (like Monitoring Services) or shown publicly. TokenNetwork contract waits during the settlement window for Balance Proof Update messages with ``message_type_id == 2`` and chooses the latest one.
+
 The same message ID ``1`` is used for Balance Proof Update and Balance Proof messages.  This is not a problem because these messages have different lengths.
 
 
