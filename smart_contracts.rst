@@ -712,6 +712,23 @@ Unlocks all pending transfers by providing all pending transfers data. The hash 
     ``unlock`` must be called after ``settleChannel`` because it needs the ``locksroot`` from the latest :term:`balance proof` in order to guarantee that all locks have either been unlocked or have expired.
 
 
+.. _turn_on_deprecation_switch:
+
+**Turning on the deprecation switch**
+
+Allows the deprecation executor to turn on the deprecation switch. After this no channels accept new deposits, and no new channel can be opened.
+
+::
+
+    function deprecate() public
+
+::
+
+    event DeprecationSwitch(bool new_value);
+
+- ``new_value``: If true, the deprecation switch has been turned on. If false, the deprecation has been turned off (this can never happen currently).
+
+
 SecretRegistry Contract
 -----------------------
 
