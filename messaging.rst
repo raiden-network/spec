@@ -68,7 +68,7 @@ Fields
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  locksroot               | bytes32    | Hash of the pending locks encoded and concatenated                             |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-| token_network_identifier | address    | Address of the TokenNetwork contract                                           |
+| token_network_address    | address    | Address of the TokenNetwork contract                                           |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  channel_identifier      | uint256    | Channel identifier inside the TokenNetwork contract                            |
 +--------------------------+------------+--------------------------------------------------------------------------------+
@@ -524,8 +524,6 @@ This should match `the encoding implementation <https://github.com/raiden-networ
 
 Unlock
 ------
-
-.. Note:: At the current (15/02/2018) Raiden implementation as of commit ``cccfa572298aac8b14897ee9677e88b2b55c9a29`` this message is known in the codebase as ``Secret``.
 
 Non cancellable, Non expirable.
 
