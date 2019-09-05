@@ -609,7 +609,9 @@ Settles the channel by transferring the amount of tokens each participant is owe
     event ChannelSettled(
         uint256 indexed channel_identifier,
         uint256 participant1_amount,
-        uint256 participant2_amount
+        bytes32 participant1_locksroot,
+        uint256 participant2_amount,
+        bytes32 participant2_locksroot
     );
 
 - ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
