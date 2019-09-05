@@ -448,9 +448,6 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 
 **Withdraw tokens from a channel**
 
-.. Warning::
-    ``setTotalWithdraw`` function is currently commented out and is not available.
-
 Allows a channel participant to withdraw tokens from a channel without closing it. Can be called by anyone. Can only be called once per each signed withdraw proof.
 
 ::
