@@ -678,8 +678,8 @@ Unlocks all pending transfers by providing all pending transfers data. The hash 
 
     function unlock(
         uint256 channel_identifier,
-        address participant,
-        address partner,
+        address receiver,
+        address sender,
         bytes pending_locks
     )
         public
@@ -688,22 +688,22 @@ Unlocks all pending transfers by providing all pending transfers data. The hash 
 
     event ChannelUnlocked(
         uint256 indexed channel_identifier,
-        address indexed participant,
-        address indexed partner,
+        address indexed receiver,
+        address indexed sender,
         bytes32 locksroot,
         uint256 unlocked_amount,
         uint256 returned_tokens
     );
 
 - ``channel_identifier``: :term:`Channel identifier` assigned by the current contract.
-- ``participant``: Ethereum address of the channel participant who will receive the unlocked tokens that correspond to the pending transfers that have a revealed secret.
-- ``partner``: Ethereum address of the channel participant that pays the amount of tokens that correspond to the pending transfers that have a revealed secret. This address will receive the rest of the tokens that correspond to the pending transfers that have not finalized and do not have a revelead secret.
+- ``receiver``: Ethereum address of the channel participant who will receive the unlocked tokens that correspond to the pending transfers that have a revealed secret.
+- ``sender``: Ethereum address of the channel participant that pays the amount of tokens that correspond to the pending transfers that have a revealed secret. This address will receive the rest of the tokens that correspond to the pending transfers that have not finalized and do not have a revelead secret.
 - ``pending_locks``: The data representing pending transfers. It contains tightly packed data for each transfer, consisting of ``expiration_block``, ``locked_amount``, ``secrethash``.
 - ``expiration_block``: The absolute block number at which the lock expires.
-- ``locked_amount``: The number of tokens being transferred from ``partner`` to ``participant`` in a pending transfer.
+- ``locked_amount``: The number of tokens being transferred from ``sender`` to ``receiver`` in a pending transfer.
 - ``secrethash``: A hashed secret, ``sha3_keccack(secret)``.
-- ``unlocked_amount``: The total amount of unlocked tokens that the ``partner`` owes to the channel ``participant``.
-- ``returned_tokens``: The total amount of unlocked tokens that return to the ``partner`` because the secret was not revealed, therefore the mediating transfer did not occur.
+- ``unlocked_amount``: The total amount of unlocked tokens that the ``sender`` owes to the channel ``receiver``.
+- ``returned_tokens``: The total amount of unlocked tokens that return to the ``sender`` because the secret was not revealed, therefore the mediating transfer did not occur.
 
 .. Note::
     Anyone can unlock a transfer on behalf of a channel participant.
