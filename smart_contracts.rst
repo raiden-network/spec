@@ -273,14 +273,22 @@ Deploy a new ``TokenNetwork`` contract and add its address in the registry.
 
 ::
 
-    function createERC20TokenNetwork(address token_address) public
+    function createERC20TokenNetwork(
+        address _token_address,
+        uint256 _channel_participant_deposit_limit,
+        uint256 _token_network_deposit_limit
+    )
+        external
+        returns (address token_network_address)
 
 ::
 
-    event TokenNetworkCreated(address token_address, address token_network_address)
+    event TokenNetworkCreated(address indexed token_address, address indexed token_network_address);
 
-- ``token_address``: address of the Token contract.
-- ``token_network_address``: address of the newly deployed ``TokenNetwork`` contract.
+- ``token_address``: Address of the Token contract.
+- ``token_network_address``: Address of the newly deployed ``TokenNetwork`` contract.
+- ``_channel_participant_deposit_limit``: The limit on the amount of tokens that a participant of a channel can deposit.
+- ``_token_network_deposit_limit``: The limit on the total deposit made into the new TokenNetwork contract.
 - ``settlement_timeout_min``: Minimum settlement timeout to be used in every ``TokenNetwork``
 - ``settlement_timeout_max``: Maximum settlement timeout to be used in every ``TokenNetwork``
 
