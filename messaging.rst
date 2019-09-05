@@ -93,6 +93,10 @@ Fields
 HashTimeLock
 ------------
 
+This data structure describes a :term:`hash time lock` with which a transfer is secured. The
+``locked_amount`` can be unlocked with the secret matching ``secrethash`` until ``expiration``
+is reached.
+
 Invariants
 ^^^^^^^^^^
 
@@ -384,24 +388,6 @@ For a Locked Transfer to be considered valid there are the following conditions.
 .. [#PC6] If the :term:`locked amount` is increased by more, then funds may get locked in the channel. If the :term:`locked amount` is increased by less, then the recipient will reject the message as it may mean it received the funds with an on-chain unlock. The initiator will stipulate the fees based on the available routes and incorporate it in the lock's amount. Note that with permissive routing it is not possible to predetermine the exact `fee` amount, as the initiator does not know which nodes are available, thus an estimated value is used.
 .. [#PC7] If the amount is higher then the recipient will reject it, as it means he will be spending money it does not own.
 
-Example Data
-""""""""""""
-
-All the examples are made using three predefined accounts, so that you can replicate the results and verify:
-
-+----+--------------------------------------------+------------------------------------------------------------------+
-| No | Address                                    | Private Key                                                      |
-+----+--------------------------------------------+------------------------------------------------------------------+
-| 1  | 0x540B51eDc5900B8012091cc7c83caf2cb243aa86 | 377261472824796f2c4f6a73753136587b5624777a4537503b39324a227e227d |
-+----+--------------------------------------------+------------------------------------------------------------------+
-| 2  | 0x811957b07304d335B271feeBF46754696694b09e | 7c250a70410d7245412f6d576b614d275f0b277953433250777323204940540c |
-+----+--------------------------------------------+------------------------------------------------------------------+
-| 3  | 0x2A915FDA69746F515b46C520eD511401d5CCD5e2 | 2e20593e0b5923294a6d6f3223604433382b782b736e3d63233c2d3a2d357041 |
-+----+--------------------------------------------+------------------------------------------------------------------+
-
-
-The sender of the message should be computable from ``signature`` so is not included in the message.
-
 .. _lock-expired-message:
 
 Lock Expired
@@ -411,13 +397,13 @@ Message used to inform partner that the :term:`Hash Time Lock` has expired. Sent
 
 Preconditions
 ^^^^^^^^^^^^^^^^
-- once the current confirmed block reached the lock's expiry block number.
-  confirmed block is calculated to be `current_block_number + NUMBER_OF_CONFIRMATION_BLOCKS`.
-- For the lock expired message to be sent, the :term:`initiator` waits until the `expiration + NUMBER_OF_CONFIRMATIONS * 2` is reached.
-- For the :term:`mediator` or :term:`target`, the lock expired is accepted once the current `expiration + NUMBER_OF_CONFIRMATION`
+- The current block reached the lock's expiry block number plus `NUMBER_OF_BLOCK_CONFIRMATIONS`.
+- For the lock expired message to be sent, the :term:`initiator` waits until the
+  `expiration + NUMBER_OF_BLOCK_CONFIRMATIONS * 2` is reached.
+- For the :term:`mediator` or :term:`target`, the lock expired is accepted once the current
+  `expiration + NUMBER_OF_BLOCK_CONFIRMATIONS` is reached.
 - The :term:`initiator` or :term:`mediator` must wait until the lock removal block is reached.
 - The :term:`initiator`, :term:`mediator` or :term:`target` must not have registered the secret on-chain before expiring the lock.
-- The :term:`mediator` or :term:`target`
 - The :term:`nonce` is increased by ``1`` in respect to the previous :term:`balance proof`
 - The :term:`locksroot` must change, the new value must be equal to the root of a new tree after the expired lock is removed.
 - The :term:`locked amount` must decrease, the new value should be to the old value minus the lock's amount.
@@ -429,7 +415,7 @@ Message Fields
 +-----------------------+----------------------+------------------------------------------------------------+
 | Field Name            | Field Type           |  Description                                               |
 +=======================+======================+============================================================+
-|  command_id           | one byte             | Value 7 indicating ``LockedTransfer``                      |
+|  command_id           | one byte             | Value 13 indicating ``LockExpired``                        |
 +-----------------------+----------------------+------------------------------------------------------------+
 |  pad                  | three bytes          | Contents ignored                                           |
 +-----------------------+----------------------+------------------------------------------------------------+
@@ -467,14 +453,13 @@ Message used to request the :term:`secret` that unlocks a lock. Sent by the paym
 Invariants
 ^^^^^^^^^^
 
-- The :term:`initiator` must have initiated a payment to the :term:`target` with the same ``payment_identifier``, ``lock_secrethash``, ``payment_amount`` and ``expiration``.
+- The :term:`initiator` must have initiated a payment to the :term:`target` with the same ``payment_identifier`` and
+  :term:`Hash Time Lock`
 - The :term:`target` must have received a :term:`Locked Transfer` for the payment.
 - The ``signature`` must be from the :term:`target`.
 
 Fields
 ^^^^^^
-
-This should match `the encoding implementation <https://github.com/raiden-network/raiden/blob/16384b555b63c69aef8c2a575afc7a67610eb2bc/raiden/encoding/messages.py#L99>`_.
 
 +----------------------+---------------+------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                               |
@@ -507,8 +492,6 @@ Message used by the nodes to inform others that the :term:`secret` is known. Use
 Fields
 ^^^^^^
 
-This should match `the encoding implementation <https://github.com/raiden-network/raiden/blob/8ead49a8ee688691c98828a879d93f822f60ae53/raiden/encoding/messages.py#L132>`__.
-
 +----------------------+---------------+------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                               |
 +======================+===============+============================================================+
@@ -516,7 +499,7 @@ This should match `the encoding implementation <https://github.com/raiden-networ
 +----------------------+---------------+------------------------------------------------------------+
 |  pad                 | three bytes   | Ignored                                                    |
 +----------------------+---------------+------------------------------------------------------------+
-|  message identifier  | uint64        | An ID use in ``Delivered`` and ``Processed``               |
+|  message_identifier  | uint64        | An ID use in ``Delivered`` and ``Processed``               |
 |                      |               | acknowledgments                                            |
 +----------------------+---------------+------------------------------------------------------------+
 |  lock_secret         | bytes32       | The secret that unlocks the lock                           |
@@ -543,21 +526,19 @@ Invariants
 Fields
 ^^^^^^
 
-This should match `the Secret message in encoding/messages file <https://github.com/raiden-network/raiden/blob/a19a6c853b55f13725f2545c77b0475cbcc86807/raiden/encoding/messages.py#L113>`_.
-
 +----------------------+------------------------+------------------------------------------------------------+
 | Field Name           | Field Type             |  Description                                               |
 +======================+========================+============================================================+
-|  command id          | one byte               | Value 4 indicating Unlock                                  |
+|  cmdid               | one byte               | Value 4 indicating Unlock                                  |
 +----------------------+------------------------+------------------------------------------------------------+
-|  padding             | three bytes            | Ignored                                                    |
+|  pad                 | three bytes            | Ignored                                                    |
 +----------------------+------------------------+------------------------------------------------------------+
-|  chain identifier    | uint256                | See :ref:`balance-proof-offchain`                          |
+|  chain_identifier    | uint256                | See :ref:`balance-proof-offchain`                          |
 +----------------------+------------------------+------------------------------------------------------------+
-|  message identifier  | uint64                 | An ID used in ``Delivered`` and ``Processed``              |
+|  message_identifier  | uint64                 | An ID used in ``Delivered`` and ``Processed``              |
 |                      |                        | acknowledgments                                            |
 +----------------------+------------------------+------------------------------------------------------------+
-|  payment identifier  | uint64                 | An identifier for the :term:`Payment` chosen by the        |
+|  payment_identifier  | uint64                 | An identifier for the :term:`Payment` chosen by the        |
 |                      |                        | :term:`Initiator`                                          |
 +----------------------+------------------------+------------------------------------------------------------+
 | token network        | address                | See :ref:`balance-proof-offchain`                          |
@@ -567,7 +548,7 @@ This should match `the Secret message in encoding/messages file <https://github.
 +----------------------+------------------------+------------------------------------------------------------+
 |  nonce               | uint64                 | See :ref:`balance-proof-offchain`                          |
 +----------------------+------------------------+------------------------------------------------------------+
-|  channel identifier  | uint256                | See :ref:`balance-proof-offchain`                          |
+|  channel_identifier  | uint256                | See :ref:`balance-proof-offchain`                          |
 +----------------------+------------------------+------------------------------------------------------------+
 |  transferred amount  | uint256                | See :ref:`balance-proof-offchain`                          |
 +----------------------+------------------------+------------------------------------------------------------+
@@ -639,7 +620,7 @@ Fields
 Withdraw Confirmation
 ------------------------
 
-Message used by the :ref:`withdraw-request-message` receiver to confirm the request after validating it's input.
+Message used by the :ref:`withdraw-request-message` receiver to confirm the request after validating its input.
 
 Preconditions
 ^^^^^^^^^^^^^
@@ -731,9 +712,51 @@ Fields
 |                               |               | Signed data: see :ref:`withdraw-request-message`               |
 +-------------------------------+---------------+----------------------------------------------------------------+
 
-.. _processed-message:
+.. _processed-delivered-message:
 
-Processed
-----------
+Processed/Delivered
+--------------------
 
-TODO
+The ``Processed`` and ``Delivered`` message is sent to let other parties in a transfer know that
+a message has been processed/received.
+
+Fields
+^^^^^^
++-------------------------------+---------------+----------------------------------------------------------------+
+| Field Name                    | Field Type    |  Description                                                   |
++===============================+===============+================================================================+
+|  cmdid                        | one byte      | Value 0 for ``Processed``, 12 for ``Delivered``                |
++-------------------------------+---------------+----------------------------------------------------------------+
+|  pad                          | 3 bytes       | ignored                                                        |
++-------------------------------+---------------+----------------------------------------------------------------+
+|  message_identifier           | uint64        | The identifier of the message that has been processed.         |
++-------------------------------+---------------+----------------------------------------------------------------+
+
+References
+==========
+
+Locked transfer example
+-----------------------
+
+All the examples in the :ref:`locked transfer <locked-transfer-message>` section are made using
+three predefined accounts, so that you can replicate the results and verify:
+
++----+--------------------------------------------+------------------------------------------------------------------+
+| No | Address                                    | Private Key                                                      |
++----+--------------------------------------------+------------------------------------------------------------------+
+| 1  | 0x540B51eDc5900B8012091cc7c83caf2cb243aa86 | 377261472824796f2c4f6a73753136587b5624777a4537503b39324a227e227d |
++----+--------------------------------------------+------------------------------------------------------------------+
+| 2  | 0x811957b07304d335B271feeBF46754696694b09e | 7c250a70410d7245412f6d576b614d275f0b277953433250777323204940540c |
++----+--------------------------------------------+------------------------------------------------------------------+
+| 3  | 0x2A915FDA69746F515b46C520eD511401d5CCD5e2 | 2e20593e0b5923294a6d6f3223604433382b782b736e3d63233c2d3a2d357041 |
++----+--------------------------------------------+------------------------------------------------------------------+
+
+The sender of the message should be computable from ``signature`` so is not included in the message.
+
+Message fromat specifications
+-----------------------------
+
+All the tables in the fields sections of the message spec should match the
+`reference implementation <https://github.com/raiden-network/raiden/tree/develop/raiden/messages>`__.
+For example, the packing of a :ref:`locked transfer <locked-transfer-message>` message can be found
+`here <https://github.com/raiden-network/raiden/blob/c8cc0adcfd160339ed662d46a5434e0bee1da18e/raiden/messages/transfers.py#L408>`__.
