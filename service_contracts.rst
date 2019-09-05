@@ -85,9 +85,7 @@ During and after the deployment, a ServiceRegistry has the following entries in 
 Deployment
 ------------
 
-Anybody (with enough ETH to cover the gas costs) can deploy a ServiceRegistry smart contract.
-
-The deployer chooses
+The deployer of a ServiceRegistry instance chooses
 
    * the token for registration
    * the controller
