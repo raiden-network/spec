@@ -39,7 +39,7 @@ Requirements
 - An "auction" mechanism that allows for competition over those slots
 - There must be a way for new RSPs to get a slot
 - We want an easy MVP to get real user feedback after our release
-- Need to provide a way of setting the minimal amount of deposits - the cost of becoming an RSP should be high enough to deter users from double-spending IOUs
+- Need to provide a way of setting the minimal deposit amount - the cost of becoming an RSP should be high enough to deter users from double-spending IOUs
 - We want to reduce the amount of work to be done, so try to avoid periodical deployments and / or coordination stakeholders
 - There must be a way for other smart contracts to check if an address is registered as a service provider
 - Avoid new implementations if possible
