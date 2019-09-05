@@ -736,7 +736,7 @@ Getters
     function getSecretRevealBlockHeight(bytes32 secrethash) public view returns (uint256)
 
 - ``secret``: The preimage used to derive a secrethash. Currently, ``registerSecret()`` fails if the ``secret`` is zero.
-- ``secrethash``: ``keccak256(secret)``.
+- ``secrethash``: ``sha256(secret)``.
 
 
 EndpointRegistry Contract
