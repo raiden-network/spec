@@ -82,7 +82,7 @@ States
    i. ``token`` the address of the ERC20 token account with which registration deposits are made
    j. ``service_valid_till`` the timestamp when the registration of every address expires (zero if the address has never made a deposit)
    k. ``urls`` the URL that a registered account submitted
-   l. ``ever_mde_deposits`` the list of addresses that have ever made deposits
+   l. ``ever_made_deposits`` the list of addresses that have ever made deposits
 
 Deployment
 ------------
