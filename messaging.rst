@@ -46,6 +46,9 @@ Offchain Balance Proof
 Data required by the smart contracts to update the payment channel end of the participant that signed the balance proof.
 Messages into smart contracts contain a shorter form called :ref:`Onchain Balance Proof <balance-proof-onchain>`.
 
+The offchain balance proof consists of the :term:`balance data`, the channel's :term:`canonical identifier`, the
+signature, the additional hash and a nonce.
+
 The signature must be valid and is defined as:
 
 ::
@@ -78,6 +81,11 @@ Fields
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  chain_id                | uint256    | Chain identifier as defined in EIP155                                          |
 +--------------------------+------------+--------------------------------------------------------------------------------+
+
+- The ``channel_identifier``, ``token_network_address`` and ``chain_id`` together are a
+  globally unique identifier of the channel, also known as the :term:`canonical identifier`.
+
+- The :term:`balance data` consists of ``transferred_amount``, ``locked_amount`` and ``locksroot``.
 
 
 .. _hash-time-lock:
@@ -116,25 +124,26 @@ Messages
 Locked Transfer
 -----------------
 
-A Locked Transfer is a message used to reserve tokens for a mediated transfer.
+A Locked Transfer is a message used to reserve tokens for a mediated transfer to another node
+called the **target**.
 
 Locked Transfer message
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The Locked Transfer is encoded as a JSON message and sent via our Matrix transport layer. The
-message is always sent to the next mediating node, altered and (the information) forwarded until the **target** is reached.
+The message is always sent to the next mediating node, altered and forwarded until the
+**target** is reached.
 
 In order to create a valid, signed JSON message, five consecutive steps are conducted.
 
 1. Packing of the message structure of Locked Transfer to create the packed message
-2. Hashing of packed message to create the :term:``additional hash``
-3. Creating, packing and hashing of ``balance_data`` to get the ``balance_hash``
+2. Hashing of packed message to create the :term:`additional hash`
+3. Creating, packing and hashing of the :term:`balance data` to get the ``balance_hash``
 4. Creating the ``balance_proof`` out of ``additional_hash`` and ``balance_hash``
 5. Packing the ``balance_proof`` and signing it to get the signature of the Locked Transfer
 
 Let's assume that there is a network:
 
-- [A] `0x540B51eDc5900B8012091cc7c83caf2cb243aa86`  
+- [A] `0x540B51eDc5900B8012091cc7c83caf2cb243aa86`
 - [B] `0x2A915FDA69746F515b46C520eD511401d5CCD5e2`
 - [C] `0x811957b07304d335B271feeBF46754696694b09e`
 
@@ -293,10 +302,8 @@ After creating the packed form of the data we can use ``keccak256`` to create th
 3. Balance Hash
 ^^^^^^^^^^^^^^^
 
-Before we generate the message signature another hash needs to be created. This is the ``balance_hash`` that is
-generated using the ``balance_data``:
-
-You can see the structure of the ``balance_data`` below - using our example data:
+Before we generate the message signature another hash needs to be created. This is
+the ``balance_hash`` that is generated using the :term:`balance data`:
 
 +-----------------------+----------------------------------------------------------------------+
 | Field                 | Data                                                                 |
@@ -308,7 +315,7 @@ You can see the structure of the ``balance_data`` below - using our example data
 | locksroot             | 0x7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644   |
 +-----------------------+----------------------------------------------------------------------+
 
-In order to create the ``balance_hash`` you first need to pack the ``balance_data``::
+In order to create the ``balance_hash`` you first need to pack the :term:`balance data`::
 
     packed_balance = pack(balance_data)
 
@@ -326,7 +333,9 @@ Add then use the ``keccak256`` hash function on the packed form.::
 
 The signature of a Locked Transfer is created by signing the packed form of a ``balance_proof``.
 
-A ``balance_proof`` contains the following fields - using our example data:
+A ``balance_proof`` contains the following fields - using our example data. Notice that the fields
+are the same as in the :ref:`offchain balance proof <balance-proof-offchain>` datastructure, except
+there is no signature yet and the :term:`balance data` has been hashed into ``balance_hash``.
 
 +-----------------------+----------------------------------------------------------------------+
 | Field                 | Data                                                                 |
@@ -346,19 +355,14 @@ A ``balance_proof`` contains the following fields - using our example data:
 | additional_hash       | 0xaeba3609fa01beca6b0b54f49780f301d59a8994bc0b383b2571eee0e6dacad4   |
 +-----------------------+----------------------------------------------------------------------+
 
-The ``additional_hash`` and the ``balance_hash`` were calculated in the previous steps and we can now use them in the
-``balance_proof``.
+5. Signature
+^^^^^^^^^^^^
 
-In order to create the ``singature`` of the Locked Transfer we first need to pack the ``balance_proof``::
+Lastly we pack the ``balance_proof`` and sign it.::
 
     packed_balance_proof = pack(balance_proof)
 
     0xe82ae5475589b828d3644e1b56546f93cd27d1a400000000000000000000000000000000000000000000000000000000000001510000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000053a2bc27bf596b1f55496848b46edce26b7b7b8b8561fc6783c49b8b5d6a26fc0e10000000000000000000000000000000000000000000000000000000000000001aeba3609fa01beca6b0b54f49780f301d59a8994bc0b383b2571eee0e6dacad4
-
-5. Signature
-^^^^^^^^^^^^
-
-After getting the packed form of the ``balance_proof`` we have to sign it in order to generate the message signature.::
 
     signature = eth_sign(privkey=private_key, data=packed_balance_proof)
 
@@ -370,9 +374,9 @@ Preconditions for LockedTransfer
 For a Locked Transfer to be considered valid there are the following conditions. The message will be rejected otherwise:
 
 - (PC1) :term:`nonce` is increased by ``1`` with respect to the previous balance changing message in that direction
-- (PC2) :term:`chain id`, :term:`token network` address, and :term:`channel identifier` refers to an existing and open channel
+- (PC2) The :term:`canonical identifier` refers to an existing and open channel
 - (PC3) :term:`expiration` must be greater than the current block number
-- (PC4) :term:`locksroot` must be equal to the hash of a new list of all currently pending locks, always the latest one appended at last position
+- (PC4) :term:`locksroot` must be equal to the hash of a new list of all currently pending locks in chronological order
 - (PC5) :term:`transferred amount` must not change compared to the last :term:`balance proof`
 - (PC6) :term:`locked amount` must increase by exactly :term:`amount` [#PC6]_
 - (PC7) :term:`amount` must be smaller than the current :term:`capacity` [#PC7]_
@@ -383,7 +387,7 @@ For a Locked Transfer to be considered valid there are the following conditions.
 Example Data
 """"""""""""
 
-All the examples are made using three predifined accounts, so that you can replicate the results and verify:
+All the examples are made using three predefined accounts, so that you can replicate the results and verify:
 
 +----+--------------------------------------------+------------------------------------------------------------------+
 | No | Address                                    | Private Key                                                      |

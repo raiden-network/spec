@@ -13,6 +13,9 @@ Raiden Terminology
    channel identifier
        Identifier assigned by :term:`Token Network` to a :term:`Payment Channel`. Must be unique inside the :term:`Token Network` contract. See the :ref:`implementation definition <channel-identifier>`.
 
+   canonical identifier
+       The globally unique identifier of a channel, consisting of the :term:`channel identifier`, the chain identifier and the :term:`Token Network` address.
+
    Unidirectional Payment Channel
        Payment Channel where the roles of :term:`Initiator` and :term:`Target` are determined in the channel creation and cannot be changed.
 
@@ -65,6 +68,9 @@ Raiden Terminology
 
    locked amount
        Total amount of tokens locked in all currently pending :term:`HTL` transfers sent by a channel participant. This amount corresponds to the :term:`locksroot` of the HTL locks.
+
+   balance data
+       The data relevant to a channel's balance: :term:`locked amount`, :term:`transferred amount` and :term:`locksroot`.
 
    secrethash
        The hash of a :term:`secret`.  ``sha3_keccack(secret)``
