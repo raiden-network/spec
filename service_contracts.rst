@@ -67,9 +67,7 @@ Use cases
 States
 ------------
 
-1. Before the deployment transaction, the address of ServiceRegistry has no code, and zero nonce.  The address might already control some ETH or tokens (which nobody can take out).
-2. During the deployment transaction, ServiceRegistry can be already called by other contracts that are invoked by the constructor of ServiceRegistry.
-3. After the deployment transaction a ServiceRegistry has the following entries in its state.
+During and after the deployment, a ServiceRegistry has the following entries in its state.
 
    a. ``controller`` the address that can change some parameters of ServiceRegistry
    b. ``set_price`` last recorded price
