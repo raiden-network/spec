@@ -716,7 +716,7 @@ Unlocks all pending transfers by providing all pending transfers data. The hash 
 
 **Turning on the deprecation switch**
 
-Allows the deprecation executor to turn on the deprecation switch. After this no channels accept new deposits, and no new channel can be opened.
+Allows the deprecation executor to deprecate the contract. After this no channels accept new deposits, and no new channel can be opened.
 
 ::
 
