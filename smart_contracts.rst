@@ -739,41 +739,6 @@ Getters
 - ``secrethash``: ``keccak256(secret)``.
 
 
-EndpointRegistry Contract
--------------------------
-
-This contract is a registry which maps a Raiden node's Ethereum address to its endpoint ``host:port``. It is only used when starting the Raiden client with the UDP transport layer (the current default is the Matrix-based transport).
-For the UDP transport, the Raiden node must register its Ethereum address in this registry, so its endpoint can be found by other nodes in order to send the Raiden protocol messages.
-
-.. _register-endpoint:
-
-**Register endpoint**
-
-Registers the Ethereum address to the given endpoint. The Ethereum address saved in the registry is the address that sends the transaction (contract uses ``msg.sender``).
-
-::
-
-    function registerEndpoint(string endpoint) public
-
-- ``endpoint``: String in the format ``127.0.0.1:38647``.
-
-.. _find-endpoint:
-
-**Find endpoint**
-
-Finds the endpoint if given a registered Ethereum address.
-
-::
-
-    function findEndpointByAddress(address eth_address)
-        public
-        view
-        returns (string endpoint)
-
-- ``endpoint``: String in the format ``127.0.0.1:38647``.
-- ``eth_address``: The Raiden node's 20 byte Ethereum address.
-
-
 TokenNetwork Channel Protocol Overview
 ======================================
 
