@@ -72,7 +72,7 @@ States
 3. After the deployment transaction a ServiceRegistry has the following entries in its state.
 
    a. ``controller`` the address that can change some parameters of ServiceRegistry
-   b. ``set_price`` lastly recorded price
+   b. ``set_price`` last recorded price
    c. ``set_price_at`` the timestamp when ``set_price`` was recorded
    d. ``decay_constant`` the number of seconds till the price decreases by roughly 1/2.7
    e. ``min_price`` the minimum price, under which the price does not decay
