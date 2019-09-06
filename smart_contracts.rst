@@ -287,8 +287,8 @@ Deploy a new ``TokenNetwork`` contract and add its address in the registry.
 
 - ``token_address``: Address of the Token contract.
 - ``token_network_address``: Address of the newly deployed ``TokenNetwork`` contract.
-- ``_channel_participant_deposit_limit``: The limit on the amount of tokens that a participant of a channel can deposit.
-- ``_token_network_deposit_limit``: The limit on the total deposit made into the new TokenNetwork contract.
+- ``_channel_participant_deposit_limit``: The limit of the amount of tokens that a participant of a channel can deposit.
+- ``_token_network_deposit_limit``: The limit of the total deposit made into the new TokenNetwork contract.
 - ``settlement_timeout_min``: Minimum settlement timeout to be used in every ``TokenNetwork``
 - ``settlement_timeout_max``: Maximum settlement timeout to be used in every ``TokenNetwork``
 
@@ -314,8 +314,8 @@ Provides the interface to interact with payment channels. The channels can only 
 - ``uint256 public chain_id`` The chain_id where this TokenNetwork is deployed.
 - ``uint256 public settlement_timeout_min`` The shortest allowed settlement period (in nubmer of blocks).
 - ``uint256 public settlement_timeout_max`` The longest allowed settlement period (in number of blocks).
-- ``uint256 public channel_participant_deposit_limit`` The limit on total deposits per participant par channel.
-- ``uint256 public token_network_deposit_limit`` The limit on total deposits that this TokenNetwork can take.
+- ``uint256 public channel_participant_deposit_limit`` The limit of total deposits per participant per channel.
+- ``uint256 public token_network_deposit_limit`` The limit of total deposits that this TokenNetwork can take.
 
 **Getters**
 
