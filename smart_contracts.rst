@@ -309,9 +309,13 @@ Provides the interface to interact with payment channels. The channels can only 
 
 **Attributes**
 
-- ``Token public token``
-- ``SecretRegistry public secret_registry;``
-- ``uint256 public chain_id``
+- ``Token public token`` ERC20 Token contract whose tokens this TokenNetwork deals with.
+- ``SecretRegistry public secret_registry`` Address of SecretRegistry used for hashtimelocks in this TokenNetwork.
+- ``uint256 public chain_id`` The chain_id where this TokenNetwork is deployed.
+- ``uint256 public settlement_timeout_min`` The shortest allowed settlement period (in nubmer of blocks).
+- ``uint256 public settlement_timeout_max`` The longest allowed settlement period (in number of blocks).
+- ``uint256 public channel_participant_deposit_limit`` The limit on total deposits per participant par channel.
+- ``uint256 public token_network_deposit_limit`` The limit on total deposits that this TokenNetwork can take.
 
 **Getters**
 
