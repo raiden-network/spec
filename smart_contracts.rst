@@ -272,10 +272,10 @@ This contract creates and remembers a TokenNetwork contract for an ERC20 Token. 
 
 Attributes:
 
-- ``address public secret_registry_address``
-- ``uint256 public chain_id``
-- ``uint256 public settlement_timeout_min``
-- ``uint256 public settlement_timeout_max``
+- ``address public secret_registry_address`` The SecretRegistry to be used by all TokenNetworks in this registry.
+- ``uint256 public chain_id`` The chain ID of the blockchain where this contract is deployed.
+- ``uint256 public settlement_timeout_min`` The shortest settlement period that channel openers can choose (in number of blocks).
+- ``uint256 public settlement_timeout_max`` The longest settlement period that channel openers can choose (in number of blocks).
 - ``uint256 public max_token_network`` The maximum number of tokens that can be registered.
 
 **Register a token**
