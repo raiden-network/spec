@@ -276,6 +276,7 @@ Attributes:
 - ``uint256 public chain_id``
 - ``uint256 public settlement_timeout_min``
 - ``uint256 public settlement_timeout_max``
+- ``uint256 public max_token_network`` The maximum number of tokens that can be registered.
 
 **Register a token**
 
