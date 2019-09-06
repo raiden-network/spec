@@ -306,6 +306,8 @@ Deploy a new ``TokenNetwork`` contract and add its address in the registry.
 .. Note::
     It also provides the ``SecretRegistry`` contract address to the ``TokenNetwork`` constructor.
 
+.. _token-network-contract:
+
 TokenNetwork Contract
 ---------------------
 

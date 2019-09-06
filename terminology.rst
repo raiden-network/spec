@@ -14,7 +14,7 @@ Raiden Terminology
        Identifier assigned by :term:`Token Network` to a :term:`Payment Channel`. Must be unique inside the :term:`Token Network` contract. See the :ref:`implementation definition <channel-identifier>`.
 
    canonical identifier
-       The globally unique identifier of a channel, consisting of the :term:`channel identifier`, the chain identifier and the :term:`Token Network` address.
+       The globally unique identifier of a channel, consisting of the :term:`channel identifier`, the :term:`token network address` and the :term:`chain id`.
 
    Unidirectional Payment Channel
        Payment Channel where the roles of :term:`Initiator` and :term:`Target` are determined in the channel creation and cannot be changed.
@@ -30,6 +30,12 @@ Raiden Terminology
 
    Token Network
        A network of payment channels for a given Token.
+
+   Token Network Address
+       The ethereum address on which the :ref:`contract <token-network-contract>`
+       representing a :term:`token network` is deployed.
+       It serves as the identifier of the token network and as part of the
+       :term:`canonical identifier` of channels within the token network.
 
    Raiden Network
        A collection of :term:`Token networks <Token Network>`.
@@ -206,3 +212,17 @@ Raiden Terminology
 
    expiration
         Specific block after which the lock in the :term:`locked transfer` expires
+
+   offchain message
+        A message that is only sent between Raiden nodes, with no information that could be
+        forwarded to a contract - for example, a ``Processed`` message.
+
+   onchain message
+        A message that is sent between Raiden nodes but could as well be forwarded to a contract.
+        Notice that a message does not have to be published on a contract to be considered an
+        onchain message - It only has to be of a type that allows sending it to a contract in
+        total, e. g. ``WithdrawRequest``.
+
+   envelope message
+        A message that partly consists of information which may be forwarded to a contract later,
+        such as a :term:`balance proof`. An example is the ``LockedTransfer`` message.

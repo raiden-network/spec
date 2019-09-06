@@ -7,8 +7,15 @@ Overview
 This is the specification of the messages used in the Raiden protocol.
 
 There are data structures which reappear in different messages:
+
 - The :ref:`offchain balance proof <balance-proof-offchain>`
 - and the :ref:`hash time lock <hash-time-lock>`.
+
+Messages sent between raiden nodes can be divided in three groups:
+
+- An :term:`offchain message` is only sent between nodes and contain no state that could be of interest for the contracts.
+- An :term:`envelope message` partly consists of data that could be sent to a contract.
+- An :term:`onchain message`, which can (but does not have to) be sent in total to a contract.
 
 A :term:`mediated transfer` begins with a :ref:`LockedTransfer message <locked-transfer-message>`.
 
@@ -22,18 +29,33 @@ The further messages within the transfer are based on it:
 
 Further messages in the protocol are:
 
-- The :ref:`Processed <processed-delivered-message>` that is sent to confirm received messages, and
+- The :ref:`Processed and Delivered <processed-delivered-message>` messages to acknowledge received messages, and
 - The withdraw-related messages :ref:`WithdrawRequest <withdraw-request-message>`,
   :ref:`WithdrawConfirmation <withdraw-confirmation-message>` and
   :ref:`WithdrawExpired <withdraw-expired-message>`.
 
-Encoding and transport
-======================
+Encoding, signing and transport
+===============================
 
 All messages are encoded in a JSON format and sent via our Matrix transport layer.
 
 The encoding used by the transport layer is independent of this specification, as
 long as the signatures using the data are encoded in the EVM big endian format.
+
+Each :term:`offchain message` has a packed data format defined so it can be signed. The
+format always consists of the message type's 1-byte command id, three zero bytes for padding
+and then the respective data fields in a specified order. The following message types are
+offchain messages: ``Processed``, ``Delivered``,  ``SecretRequest``, ``RevealSecret``.
+
+Each :term:`envelope message` has a packed data format defined to compute the :term:`additional hash`
+from. The format always starts with the 1-byte command id, but no padding bytes. Envelope messages
+are: ``LockedTransfer``, ``Unlock`` and ``LockExpired``.
+
+Each :term:`onchain message` has a packed data format in which it can be sent to the contract.
+The format always starts with :term:`token network address`, the :term:`chain id` and a message type
+constant, which is an unsigned 256-bit integer. Onchain messages are: ``WithdrawRequest``,
+``WithdrawConfirmation`` and ``WithdrawExpired``.
+
 
 Data Structures
 ===============
