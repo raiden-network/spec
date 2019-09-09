@@ -7,8 +7,8 @@ Overview
 This is the specification of the messages used in the Raiden protocol.
 
 There are data structures which reappear in different messages:
-The :ref:`offchain balance proof <balance-proof-offchain>`
-and the :ref:`hash time lock <hash-time-lock>`.
+- The :ref:`offchain balance proof <balance-proof-offchain>`
+- and the :ref:`hash time lock <hash-time-lock>`.
 
 A :term:`mediated transfer` begins with a :ref:`LockedTransfer message <locked-transfer-message>`.
 
@@ -22,7 +22,7 @@ The further messages within the transfer are based on it:
 
 Further messages in the protocol are:
 
-- The :ref:`Processed <processed-message>` that is sent to confirm received messages, and
+- The :ref:`Processed <processed-delivered-message>` that is sent to confirm received messages, and
 - The withdraw-related messages :ref:`WithdrawRequest <withdraw-request-message>`,
   :ref:`WithdrawConfirmation <withdraw-confirmation-message>` and
   :ref:`WithdrawExpired <withdraw-expired-message>`.

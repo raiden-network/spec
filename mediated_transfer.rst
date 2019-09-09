@@ -4,18 +4,22 @@ Mediated transfers
 Overview
 ========
 
-The protocol supports mediated transfers. Nodes may use them to send payments.
-A :term:`Mediated transfer` may be cancelled and can expire until the initiator reveals the secret.
+Nodes can use a :term:`mediated transfer` to send payments to another node without opening a
+direct channel to it.
 
-A mediated transfer is done in two stages, possibly on a series of channels:
+A mediated transfer is done in two stages, usually through multiple channels:
 
-- Reserve token :term:`capacity` for a given payment, using a :ref:`locked transfer message <locked-transfer-message>`.
-- Use the reserved token amount to complete payments, using the :ref:`unlock message <unlock-message>`
+- **Allocation:** Reserve token :term:`capacity` for a given payment, using a
+  :ref:`locked transfer message <locked-transfer-message>`.
+- **Finalization:** Use the reserved token amount to complete payments, using the
+  :ref:`unlock message <unlock-message>`
+
+A mediated transfer may be cancelled and can expire until the initiator reveals the secret.
 
 Mediated Transfers
 ==================
 
-A :term:`Mediated Transfer` is a hash-time-locked transfer. Currently raiden supports only one type of lock. The lock has an amount that is being transferred, a :term:`secrethash` used to verify the secret that unlocks it, and a :term:`lock expiration` to determine its validity.
+A :term:`mediated transfer` is a hash-time-locked transfer. Currently raiden supports only one type of lock. The lock has an amount that is being transferred, a :term:`secrethash` used to verify the secret that unlocks it, and a :term:`lock expiration` to determine its validity.
 
 Mediated transfers have an :term:`initiator` and a :term:`target` and a number of mediators in between. The number of mediators can also be zero as these transfers can also be sent to a direct partner. Assuming ``N`` number of mediators, a mediated transfer will require ``10N + 16`` messages to complete. These are:
 
@@ -42,17 +46,17 @@ For the simplest Alice - Bob example:
 - Bob sends a ``RevealSecret`` message back to Alice to inform her that the secret is known and acts as a request for off-chain synchronization.
 - Finally Alice sends an ``Unlock`` message to Bob. This acts also as a synchronization message informing Bob that the lock will be removed from the list of pending locks and that the transferred_amount and locksroot values are updated.
 
-Mediated Transfer - Best Case Scenario
---------------------------------------
+Mediated Transfer - Happy Path Scenario
+---------------------------------------
 
-In the best case scenario, all Raiden nodes are online and send the final balance proofs off-chain.
+In the happy path scenario, all Raiden nodes are online and send the final balance proofs off-chain.
 
 .. image:: diagrams/RaidenClient_mediated_transfer_good.png
     :alt: Mediated Transfer Good Behaviour
     :width: 900px
 
-Mediated Transfer - Worst Case Scenario
----------------------------------------
+Mediated Transfer - Unhappy Path Scenario
+-----------------------------------------
 
 In case a Raiden node goes offline or does not send the final balance proof to its payee, then the payee can register the ``secret`` on-chain, in the ``SecretRegistry`` smart contract before the ``secret`` expires. This can be used to ``unlock`` the lock on-chain after the channel is settled.
 
