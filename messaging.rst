@@ -4,7 +4,36 @@ Raiden Messages Specification
 Overview
 ========
 
-This is the specification document for the messages used in the Raiden protocol.
+This is the specification of the messages used in the Raiden protocol.
+
+There are data structures which reappear in different messages:
+- The :ref:`offchain balance proof <balance-proof-offchain>`
+- and the :ref:`hash time lock <hash-time-lock>`.
+
+A :term:`mediated transfer` begins with a :ref:`LockedTransfer message <locked-transfer-message>`.
+
+We will explain the assembly of a ``LockedTransfer`` message step-by-step below.
+The further messages within the transfer are based on it:
+
+- :ref:`SecretRequest <secret-request-message>`,
+  its reply :ref:`RevealSecret <reveal-secret-message>`, and
+  finally the :ref:`Unlock <unlock-message>` messages that complete the transfer.
+- The :ref:`LockExpired <lock-expired-message>` message in case the transfer is not completed in time.
+
+Further messages in the protocol are:
+
+- The :ref:`Processed <processed-delivered-message>` that is sent to confirm received messages, and
+- The withdraw-related messages :ref:`WithdrawRequest <withdraw-request-message>`,
+  :ref:`WithdrawConfirmation <withdraw-confirmation-message>` and
+  :ref:`WithdrawExpired <withdraw-expired-message>`.
+
+Encoding and transport
+======================
+
+All messages are encoded in a JSON format and sent via our Matrix transport layer.
+
+The encoding used by the transport layer is independent of this specification, as
+long as the signatures using the data are encoded in the EVM big endian format.
 
 Data Structures
 ===============
@@ -16,6 +45,9 @@ Offchain Balance Proof
 
 Data required by the smart contracts to update the payment channel end of the participant that signed the balance proof.
 Messages into smart contracts contain a shorter form called :ref:`Onchain Balance Proof <balance-proof-onchain>`.
+
+The offchain balance proof consists of the :term:`balance data`, the channel's :term:`canonical identifier`, the
+signature, the additional hash and a nonce.
 
 The signature must be valid and is defined as:
 
@@ -39,7 +71,7 @@ Fields
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  locksroot               | bytes32    | Hash of the pending locks encoded and concatenated                             |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-| token_network_identifier | address    | Address of the TokenNetwork contract                                           |
+| token_network_address    | address    | Address of the TokenNetwork contract                                           |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  channel_identifier      | uint256    | Channel identifier inside the TokenNetwork contract                            |
 +--------------------------+------------+--------------------------------------------------------------------------------+
@@ -50,9 +82,20 @@ Fields
 |  chain_id                | uint256    | Chain identifier as defined in EIP155                                          |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 
+- The ``channel_identifier``, ``token_network_address`` and ``chain_id`` together are a
+  globally unique identifier of the channel, also known as the :term:`canonical identifier`.
+
+- The :term:`balance data` consists of ``transferred_amount``, ``locked_amount`` and ``locksroot``.
+
+
+.. _hash-time-lock:
 
 HashTimeLock
 ------------
+
+This data structure describes a :term:`hash time lock` with which a transfer is secured. The
+``locked_amount`` can be unlocked with the secret matching ``secrethash`` until ``expiration``
+is reached.
 
 Invariants
 ^^^^^^^^^^
@@ -85,25 +128,26 @@ Messages
 Locked Transfer
 -----------------
 
-A Locked Transfer is a message used to reserve tokens for a mediated transfer.
+A Locked Transfer is a message used to reserve tokens for a mediated transfer to another node
+called the **target**.
 
 Locked Transfer message
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The Locked Transfer is encoded as a JSON message and sent via our Matrix transport layer. The
-message is always sent to the next mediating node, altered and (the information) forwarded until the **target** is reached.
+The message is always sent to the next mediating node, altered and forwarded until the
+**target** is reached.
 
 In order to create a valid, signed JSON message, five consecutive steps are conducted.
 
 1. Packing of the message structure of Locked Transfer to create the packed message
-2. Hashing of packed message to create the :term:``additional hash``
-3. Creating, packing and hashing of ``balance_data`` to get the ``balance_hash``
+2. Hashing of packed message to create the :term:`additional hash`
+3. Creating, packing and hashing of the :term:`balance data` to get the ``balance_hash``
 4. Creating the ``balance_proof`` out of ``additional_hash`` and ``balance_hash``
 5. Packing the ``balance_proof`` and signing it to get the signature of the Locked Transfer
 
 Let's assume that there is a network:
 
-- [A] `0x540B51eDc5900B8012091cc7c83caf2cb243aa86`  
+- [A] `0x540B51eDc5900B8012091cc7c83caf2cb243aa86`
 - [B] `0x2A915FDA69746F515b46C520eD511401d5CCD5e2`
 - [C] `0x811957b07304d335B271feeBF46754696694b09e`
 
@@ -262,10 +306,8 @@ After creating the packed form of the data we can use ``keccak256`` to create th
 3. Balance Hash
 ^^^^^^^^^^^^^^^
 
-Before we generate the message signature another hash needs to be created. This is the ``balance_hash`` that is
-generated using the ``balance_data``:
-
-You can see the structure of the ``balance_data`` below - using our example data:
+Before we generate the message signature another hash needs to be created. This is
+the ``balance_hash`` that is generated using the :term:`balance data`:
 
 +-----------------------+----------------------------------------------------------------------+
 | Field                 | Data                                                                 |
@@ -277,7 +319,7 @@ You can see the structure of the ``balance_data`` below - using our example data
 | locksroot             | 0x7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644   |
 +-----------------------+----------------------------------------------------------------------+
 
-In order to create the ``balance_hash`` you first need to pack the ``balance_data``::
+In order to create the ``balance_hash`` you first need to pack the :term:`balance data`::
 
     packed_balance = pack(balance_data)
 
@@ -295,7 +337,9 @@ Add then use the ``keccak256`` hash function on the packed form.::
 
 The signature of a Locked Transfer is created by signing the packed form of a ``balance_proof``.
 
-A ``balance_proof`` contains the following fields - using our example data:
+A ``balance_proof`` contains the following fields - using our example data. Notice that the fields
+are the same as in the :ref:`offchain balance proof <balance-proof-offchain>` datastructure, except
+there is no signature yet and the :term:`balance data` has been hashed into ``balance_hash``.
 
 +-----------------------+----------------------------------------------------------------------+
 | Field                 | Data                                                                 |
@@ -315,19 +359,14 @@ A ``balance_proof`` contains the following fields - using our example data:
 | additional_hash       | 0xaeba3609fa01beca6b0b54f49780f301d59a8994bc0b383b2571eee0e6dacad4   |
 +-----------------------+----------------------------------------------------------------------+
 
-The ``additional_hash`` and the ``balance_hash`` were calculated in the previous steps and we can now use them in the
-``balance_proof``.
+5. Signature
+^^^^^^^^^^^^
 
-In order to create the ``singature`` of the Locked Transfer we first need to pack the ``balance_proof``::
+Lastly we pack the ``balance_proof`` and sign it.::
 
     packed_balance_proof = pack(balance_proof)
 
     0xe82ae5475589b828d3644e1b56546f93cd27d1a400000000000000000000000000000000000000000000000000000000000001510000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000053a2bc27bf596b1f55496848b46edce26b7b7b8b8561fc6783c49b8b5d6a26fc0e10000000000000000000000000000000000000000000000000000000000000001aeba3609fa01beca6b0b54f49780f301d59a8994bc0b383b2571eee0e6dacad4
-
-5. Signature
-^^^^^^^^^^^^
-
-After getting the packed form of the ``balance_proof`` we have to sign it in order to generate the message signature.::
 
     signature = eth_sign(privkey=private_key, data=packed_balance_proof)
 
@@ -339,33 +378,15 @@ Preconditions for LockedTransfer
 For a Locked Transfer to be considered valid there are the following conditions. The message will be rejected otherwise:
 
 - (PC1) :term:`nonce` is increased by ``1`` with respect to the previous balance changing message in that direction
-- (PC2) :term:`chain id`, :term:`token network` address, and :term:`channel identifier` refers to an existing and open channel
+- (PC2) The :term:`canonical identifier` refers to an existing and open channel
 - (PC3) :term:`expiration` must be greater than the current block number
-- (PC4) :term:`locksroot` must be equal to the hash of a new list of all currently pending locks, always the latest one appended at last position
+- (PC4) :term:`locksroot` must be equal to the hash of a new list of all currently pending locks in chronological order
 - (PC5) :term:`transferred amount` must not change compared to the last :term:`balance proof`
 - (PC6) :term:`locked amount` must increase by exactly :term:`amount` [#PC6]_
 - (PC7) :term:`amount` must be smaller than the current :term:`capacity` [#PC7]_
 
 .. [#PC6] If the :term:`locked amount` is increased by more, then funds may get locked in the channel. If the :term:`locked amount` is increased by less, then the recipient will reject the message as it may mean it received the funds with an on-chain unlock. The initiator will stipulate the fees based on the available routes and incorporate it in the lock's amount. Note that with permissive routing it is not possible to predetermine the exact `fee` amount, as the initiator does not know which nodes are available, thus an estimated value is used.
 .. [#PC7] If the amount is higher then the recipient will reject it, as it means he will be spending money it does not own.
-
-Example Data
-""""""""""""
-
-All the examples are made using three predifined accounts, so that you can replicate the results and verify:
-
-+----+--------------------------------------------+------------------------------------------------------------------+
-| No | Address                                    | Private Key                                                      |
-+----+--------------------------------------------+------------------------------------------------------------------+
-| 1  | 0x540B51eDc5900B8012091cc7c83caf2cb243aa86 | 377261472824796f2c4f6a73753136587b5624777a4537503b39324a227e227d |
-+----+--------------------------------------------+------------------------------------------------------------------+
-| 2  | 0x811957b07304d335B271feeBF46754696694b09e | 7c250a70410d7245412f6d576b614d275f0b277953433250777323204940540c |
-+----+--------------------------------------------+------------------------------------------------------------------+
-| 3  | 0x2A915FDA69746F515b46C520eD511401d5CCD5e2 | 2e20593e0b5923294a6d6f3223604433382b782b736e3d63233c2d3a2d357041 |
-+----+--------------------------------------------+------------------------------------------------------------------+
-
-
-The sender of the message should be computable from ``signature`` so is not included in the message.
 
 .. _lock-expired-message:
 
@@ -376,13 +397,13 @@ Message used to inform partner that the :term:`Hash Time Lock` has expired. Sent
 
 Preconditions
 ^^^^^^^^^^^^^^^^
-- once the current confirmed block reached the lock's expiry block number.
-  confirmed block is calculated to be `current_block_number + NUMBER_OF_CONFIRMATION_BLOCKS`.
-- For the lock expired message to be sent, the :term:`initiator` waits until the `expiration + NUMBER_OF_CONFIRMATIONS * 2` is reached.
-- For the :term:`mediator` or :term:`target`, the lock expired is accepted once the current `expiration + NUMBER_OF_CONFIRMATION`
+- The current block reached the lock's expiry block number plus `NUMBER_OF_BLOCK_CONFIRMATIONS`.
+- For the lock expired message to be sent, the :term:`initiator` waits until the
+  `expiration + NUMBER_OF_BLOCK_CONFIRMATIONS * 2` is reached.
+- For the :term:`mediator` or :term:`target`, the lock expired is accepted once the current
+  `expiration + NUMBER_OF_BLOCK_CONFIRMATIONS` is reached.
 - The :term:`initiator` or :term:`mediator` must wait until the lock removal block is reached.
 - The :term:`initiator`, :term:`mediator` or :term:`target` must not have registered the secret on-chain before expiring the lock.
-- The :term:`mediator` or :term:`target`
 - The :term:`nonce` is increased by ``1`` in respect to the previous :term:`balance proof`
 - The :term:`locksroot` must change, the new value must be equal to the root of a new tree after the expired lock is removed.
 - The :term:`locked amount` must decrease, the new value should be to the old value minus the lock's amount.
@@ -394,7 +415,7 @@ Message Fields
 +-----------------------+----------------------+------------------------------------------------------------+
 | Field Name            | Field Type           |  Description                                               |
 +=======================+======================+============================================================+
-|  command_id           | one byte             | Value 7 indicating ``LockedTransfer``                      |
+|  command_id           | one byte             | Value 13 indicating ``LockExpired``                        |
 +-----------------------+----------------------+------------------------------------------------------------+
 |  pad                  | three bytes          | Contents ignored                                           |
 +-----------------------+----------------------+------------------------------------------------------------+
@@ -432,14 +453,13 @@ Message used to request the :term:`secret` that unlocks a lock. Sent by the paym
 Invariants
 ^^^^^^^^^^
 
-- The :term:`initiator` must have initiated a payment to the :term:`target` with the same ``payment_identifier``, ``lock_secrethash``, ``payment_amount`` and ``expiration``.
+- The :term:`initiator` must have initiated a payment to the :term:`target` with the same ``payment_identifier`` and
+  :term:`Hash Time Lock`
 - The :term:`target` must have received a :term:`Locked Transfer` for the payment.
 - The ``signature`` must be from the :term:`target`.
 
 Fields
 ^^^^^^
-
-This should match `the encoding implementation <https://github.com/raiden-network/raiden/blob/16384b555b63c69aef8c2a575afc7a67610eb2bc/raiden/encoding/messages.py#L99>`_.
 
 +----------------------+---------------+------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                               |
@@ -472,8 +492,6 @@ Message used by the nodes to inform others that the :term:`secret` is known. Use
 Fields
 ^^^^^^
 
-This should match `the encoding implementation <https://github.com/raiden-network/raiden/blob/8ead49a8ee688691c98828a879d93f822f60ae53/raiden/encoding/messages.py#L132>`__.
-
 +----------------------+---------------+------------------------------------------------------------+
 | Field Name           | Field Type    |  Description                                               |
 +======================+===============+============================================================+
@@ -481,7 +499,7 @@ This should match `the encoding implementation <https://github.com/raiden-networ
 +----------------------+---------------+------------------------------------------------------------+
 |  pad                 | three bytes   | Ignored                                                    |
 +----------------------+---------------+------------------------------------------------------------+
-|  message identifier  | uint64        | An ID use in ``Delivered`` and ``Processed``               |
+|  message_identifier  | uint64        | An ID use in ``Delivered`` and ``Processed``               |
 |                      |               | acknowledgments                                            |
 +----------------------+---------------+------------------------------------------------------------+
 |  lock_secret         | bytes32       | The secret that unlocks the lock                           |
@@ -493,8 +511,6 @@ This should match `the encoding implementation <https://github.com/raiden-networ
 
 Unlock
 ------
-
-.. Note:: At the current (15/02/2018) Raiden implementation as of commit ``cccfa572298aac8b14897ee9677e88b2b55c9a29`` this message is known in the codebase as ``Secret``.
 
 Non cancellable, Non expirable.
 
@@ -510,21 +526,19 @@ Invariants
 Fields
 ^^^^^^
 
-This should match `the Secret message in encoding/messages file <https://github.com/raiden-network/raiden/blob/a19a6c853b55f13725f2545c77b0475cbcc86807/raiden/encoding/messages.py#L113>`_.
-
 +----------------------+------------------------+------------------------------------------------------------+
 | Field Name           | Field Type             |  Description                                               |
 +======================+========================+============================================================+
-|  command id          | one byte               | Value 4 indicating Unlock                                  |
+|  cmdid               | one byte               | Value 4 indicating Unlock                                  |
 +----------------------+------------------------+------------------------------------------------------------+
-|  padding             | three bytes            | Ignored                                                    |
+|  pad                 | three bytes            | Ignored                                                    |
 +----------------------+------------------------+------------------------------------------------------------+
-|  chain identifier    | uint256                | See :ref:`balance-proof-offchain`                          |
+|  chain_identifier    | uint256                | See :ref:`balance-proof-offchain`                          |
 +----------------------+------------------------+------------------------------------------------------------+
-|  message identifier  | uint64                 | An ID used in ``Delivered`` and ``Processed``              |
+|  message_identifier  | uint64                 | An ID used in ``Delivered`` and ``Processed``              |
 |                      |                        | acknowledgments                                            |
 +----------------------+------------------------+------------------------------------------------------------+
-|  payment identifier  | uint64                 | An identifier for the :term:`Payment` chosen by the        |
+|  payment_identifier  | uint64                 | An identifier for the :term:`Payment` chosen by the        |
 |                      |                        | :term:`Initiator`                                          |
 +----------------------+------------------------+------------------------------------------------------------+
 | token network        | address                | See :ref:`balance-proof-offchain`                          |
@@ -534,7 +548,7 @@ This should match `the Secret message in encoding/messages file <https://github.
 +----------------------+------------------------+------------------------------------------------------------+
 |  nonce               | uint64                 | See :ref:`balance-proof-offchain`                          |
 +----------------------+------------------------+------------------------------------------------------------+
-|  channel identifier  | uint256                | See :ref:`balance-proof-offchain`                          |
+|  channel_identifier  | uint256                | See :ref:`balance-proof-offchain`                          |
 +----------------------+------------------------+------------------------------------------------------------+
 |  transferred amount  | uint256                | See :ref:`balance-proof-offchain`                          |
 +----------------------+------------------------+------------------------------------------------------------+
@@ -606,7 +620,7 @@ Fields
 Withdraw Confirmation
 ------------------------
 
-Message used by the :ref:`withdraw-request-message` receiver to confirm the request after validating it's input.
+Message used by the :ref:`withdraw-request-message` receiver to confirm the request after validating its input.
 
 Preconditions
 ^^^^^^^^^^^^^
@@ -698,74 +712,51 @@ Fields
 |                               |               | Signed data: see :ref:`withdraw-request-message`               |
 +-------------------------------+---------------+----------------------------------------------------------------+
 
-Specification
-=============
+.. _processed-delivered-message:
 
-The encoding used by the transport layer is independent of this specification, as long as the signatures using the data are encoded in the EVM big endian format.
+Processed/Delivered
+--------------------
 
-Transfers
----------
+The ``Processed`` and ``Delivered`` message is sent to let other parties in a transfer know that
+a message has been processed/received.
 
-The protocol supports mediated transfers. A :term:`Mediated transfer` may be cancelled and can expire unless the initiator reveals the secret.
+Fields
+^^^^^^
++-------------------------------+---------------+----------------------------------------------------------------+
+| Field Name                    | Field Type    |  Description                                                   |
++===============================+===============+================================================================+
+|  cmdid                        | one byte      | Value 0 for ``Processed``, 12 for ``Delivered``                |
++-------------------------------+---------------+----------------------------------------------------------------+
+|  pad                          | 3 bytes       | ignored                                                        |
++-------------------------------+---------------+----------------------------------------------------------------+
+|  message_identifier           | uint64        | The identifier of the message that has been processed.         |
++-------------------------------+---------------+----------------------------------------------------------------+
 
-A mediated transfer is done in two stages, possibly on a series of channels:
+References
+==========
 
-- Reserve token :term:`capacity` for a given payment, using a :ref:`locked transfer message <locked-transfer-message>`.
-- Use the reserved token amount to complete payments, using the :ref:`unlock message <unlock-message>`
+Locked transfer example
+-----------------------
 
-Message Flow
-------------
+All the examples in the :ref:`locked transfer <locked-transfer-message>` section are made using
+three predefined accounts, so that you can replicate the results and verify:
 
-Nodes may use mediated transfers to send payments.
++----+--------------------------------------------+------------------------------------------------------------------+
+| No | Address                                    | Private Key                                                      |
++----+--------------------------------------------+------------------------------------------------------------------+
+| 1  | 0x540B51eDc5900B8012091cc7c83caf2cb243aa86 | 377261472824796f2c4f6a73753136587b5624777a4537503b39324a227e227d |
++----+--------------------------------------------+------------------------------------------------------------------+
+| 2  | 0x811957b07304d335B271feeBF46754696694b09e | 7c250a70410d7245412f6d576b614d275f0b277953433250777323204940540c |
++----+--------------------------------------------+------------------------------------------------------------------+
+| 3  | 0x2A915FDA69746F515b46C520eD511401d5CCD5e2 | 2e20593e0b5923294a6d6f3223604433382b782b736e3d63233c2d3a2d357041 |
++----+--------------------------------------------+------------------------------------------------------------------+
 
-Mediated Transfer
-^^^^^^^^^^^^^^^^^
+The sender of the message should be computable from ``signature`` so is not included in the message.
 
-A :term:`Mediated Transfer` is a hash-time-locked transfer. Currently raiden supports only one type of lock. The lock has an amount that is being transferred, a :term:`secrethash` used to verify the secret that unlocks it, and a :term:`lock expiration` to determine its validity.
+Message fromat specifications
+-----------------------------
 
-Mediated transfers have an :term:`initiator` and a :term:`target` and a number of mediators in between. The number of mediators can also be zero as these transfers can also be sent to a direct partner. Assuming ``N`` number of mediators, a mediated transfer will require ``10N + 16`` messages to complete. These are:
-
-- ``N + 1`` :term:`locked transfer` or :term:`refund transfer` messages
-- ``1`` :term:`secret request`
-- ``N + 2`` :term:`reveal secret`
-- ``N + 1`` :term:`unlock`
-- ``2N + 3`` processed (one for everything above)
-- ``5N + 8`` delivered
-
-For the simplest Alice - Bob example:
-
-- Alice wants to transfer ``n`` tokens to Bob.
-- Alice creates a new transfer with:
-    * transferred_amount = ``current_value``
-    * lock = ``Lock(n, hash(secret), expiration)``
-    * locked_amount = ``updated value containing the lock amount``
-    * locksroot = ``updated value containing the lock``
-    * nonce = ``current_value + 1``
-- Alice signs the transfer and sends it to Bob.
-- Bob requests the secret that can be used for withdrawing the transfer by sending a ``SecretRequest`` message.
-- Alice sends the ``RevealSecret`` to Bob and at this point she must assume the transfer is complete.
-- Bob receives the secret and at this point has effectively secured the transfer of ``n`` tokens to his side.
-- Bob sends a ``RevealSecret`` message back to Alice to inform her that the secret is known and acts as a request for off-chain synchronization.
-- Finally Alice sends an ``Unlock`` message to Bob. This acts also as a synchronization message informing Bob that the lock will be removed from the list of pending locks and that the transferred_amount and locksroot values are updated.
-
-**Mediated Transfer - Best Case Scenario**
-
-In the best case scenario, all Raiden nodes are online and send the final balance proofs off-chain.
-
-.. image:: diagrams/RaidenClient_mediated_transfer_good.png
-    :alt: Mediated Transfer Good Behaviour
-    :width: 900px
-
-**Mediated Transfer - Worst Case Scenario**
-
-In case a Raiden node goes offline or does not send the final balance proof to its payee, then the payee can register the ``secret`` on-chain, in the ``SecretRegistry`` smart contract before the ``secret`` expires. This can be used to ``unlock`` the lock on-chain after the channel is settled.
-
-.. image:: diagrams/RaidenClient_mediated_transfer_secret_reveal.png
-    :alt: Mediated Transfer Bad Behaviour
-    :width: 900px
-
-**Limit to number of simultaneously pending transfers**
-
-The number of simultaneously pending transfers per channel is limited. The client will not initiate, mediate or accept a further pending transfer if the limit is reached. This is to avoid the risk of not being able to unlock the transfers, as the gas cost for this operation grows with the number of the pending locks and thus the number of pending transfers.
-
-The limit is currently set to 160. It is a rounded value that ensures the gas cost of unlocking will be less than 40% of Ethereum's traditional pi-million (3141592) block gas limit.
+All the tables in the fields sections of the message spec should match the
+`reference implementation <https://github.com/raiden-network/raiden/tree/develop/raiden/messages>`__.
+For example, the packing of a :ref:`locked transfer <locked-transfer-message>` message can be found
+`here <https://github.com/raiden-network/raiden/blob/c8cc0adcfd160339ed662d46a5434e0bee1da18e/raiden/messages/transfers.py#L408>`__.
