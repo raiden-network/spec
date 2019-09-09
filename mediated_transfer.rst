@@ -30,21 +30,26 @@ Mediated transfers have an :term:`initiator` and a :term:`target` and a number o
 - ``2N + 3`` processed (one for everything above)
 - ``5N + 8`` delivered
 
-For the simplest Alice - Bob example:
+For a simple example with one mediator:
 
-- Alice wants to transfer ``n`` tokens to Bob.
+- Alice wants to transfer ``n`` tokens to Charlie, using Bob as a mediator.
 - Alice creates a new transfer with:
-    * transferred_amount = ``current_value``
-    * lock = ``Lock(n, hash(secret), expiration)``
-    * locked_amount = ``updated value containing the lock amount``
-    * locksroot = ``updated value containing the lock``
-    * nonce = ``current_value + 1``
+
+  - ``transferred_amount`` = previous ``transferred_amount``, unchanged
+  - ``lock`` = ``Lock(n, hash(secret), expiration)``
+  - ``locked_amount`` = previous ``locked_amount`` plus ``n``
+  - ``locksroot`` = updated value containing the new ``lock``
+  - ``nonce`` = previous ``nonce`` plus 1.
+
 - Alice signs the transfer and sends it to Bob.
-- Bob requests the secret that can be used for withdrawing the transfer by sending a ``SecretRequest`` message.
-- Alice sends the ``RevealSecret`` to Bob and at this point she must assume the transfer is complete.
-- Bob receives the secret and at this point has effectively secured the transfer of ``n`` tokens to his side.
-- Bob sends a ``RevealSecret`` message back to Alice to inform her that the secret is known and acts as a request for off-chain synchronization.
-- Finally Alice sends an ``Unlock`` message to Bob. This acts also as a synchronization message informing Bob that the lock will be removed from the list of pending locks and that the transferred_amount and locksroot values are updated.
+- Bob forwards the transfer to Charlie.
+- Charlie requests the secret that can be used for withdrawing the transfer by sending a ``SecretRequest`` message to Alice.
+- Alice sends the ``RevealSecret`` to Charlie and at this point she must assume the transfer is complete.
+- Charlie receives the secret and at this point has effectively secured the transfer of ``n`` tokens to his side.
+- Charlie sends a ``RevealSecret`` message to Bob to inform him that the secret is known and acts as a request for off-chain synchronization.
+- Bob sends an ``Unlock`` message to Charlie. This acts also as a synchronization message informing Charlie that the lock will be removed from the list of pending locks and that the ``transferred_amount`` and ``locksroot`` values are updated.
+- Bob sends a ``RevealSecret`` message to Alice.
+- Finally Alice sends an ``Unlock`` to Bob, completing the transfer.
 
 Mediated Transfer - Happy Path Scenario
 ---------------------------------------
