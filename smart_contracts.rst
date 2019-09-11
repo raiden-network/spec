@@ -61,7 +61,7 @@ Data structures
     - ``message_type_id`` has a different value depending on the type of message signed
 
     This is compatible with https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign and https://github.com/ethereum/EIPs/blob/master/EIPS/eip-191.md.
-    
+
     Message content is tightly packed as described here: https://solidity.readthedocs.io/en/v0.4.24/abi-spec.html#abi-packed-mode.
 
 
@@ -147,7 +147,7 @@ Fields
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 | chain_id              | uint256    | Chain identifier as defined in EIP155                                                      |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
-| message_type_id       | uint256    | ``1`` (if closing) or ``2`` (if updating)                                                           |
+| message_type_id       | uint256    | ``1`` (if closing) or ``2`` (if updating)                                                  |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 |  channel_identifier   | uint256    | Channel identifier inside the TokenNetwork contract                                        |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
