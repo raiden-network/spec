@@ -380,29 +380,32 @@ Invariants
 - The :term:`target` must have received a :term:`Locked Transfer` for the payment.
 - The ``signature`` must be from the :term:`target`.
 
-Fields
-^^^^^^
+Fields and signature
+^^^^^^^^^^^^^^^^^^^^
 
-+----------------------+---------------+------------------------------------------------------------+
-| Field Name           | Field Type    |  Description                                               |
-+======================+===============+============================================================+
-|  cmdid               | one byte      | Value 3 (indicating ``Secret Request``)                    |
-+----------------------+---------------+------------------------------------------------------------+
-|  pad                 | three bytes   | Ignored                                                    |
-+----------------------+---------------+------------------------------------------------------------+
-|  message identifier  | uint64        | An ID used in ``Delivered`` and ``Processed``              |
-|                      |               | acknowledgments                                            |
-+----------------------+---------------+------------------------------------------------------------+
-|  payment_identifier  | uint64        | An identifier for the payment chosen by the initiator      |
-+----------------------+---------------+------------------------------------------------------------+
-|  lock_secrethash     | bytes32       | Specifies which lock is being unlocked                     |
-+----------------------+---------------+------------------------------------------------------------+
-|  payment_amount      | uint256       | The amount received by the node once secret is revealed    |
-+----------------------+---------------+------------------------------------------------------------+
-|  expiration          | uint256       | See `HashTimeLock`_                                        |
-+----------------------+---------------+------------------------------------------------------------+
-|  signature           | bytes         | Elliptic Curve 256k1 signature                             |
-+----------------------+---------------+------------------------------------------------------------+
+``SecretRequest`` is a :term:`offchain message` with the following fields plus a ``signature``
+field:
+
++----------------------+-----------+----------------------------------------------------------+
+| Field Name           | Field Type|  Description                                             |
++======================+===========+==========================================================+
+|  cmdid               | uint8     | Value 3 (indicating ``Secret Request``),                 |
++----------------------+-----------+----------------------------------------------------------+
+|  (padding)           | bytes3    | three zero bytes                                         |
++----------------------+-----------+----------------------------------------------------------+
+|  message identifier  | uint64    | An ID used in ``Delivered`` and ``Processed``            |
+|                      |           | acknowledgments                                          |
++----------------------+-----------+----------------------------------------------------------+
+|  payment_identifier  | uint64    | An identifier for the payment chosen by the initiator    |
++----------------------+-----------+----------------------------------------------------------+
+|  lock_secrethash     | bytes32   | Specifies which lock is being unlocked                   |
++----------------------+-----------+----------------------------------------------------------+
+|  payment_amount      | uint256   | The amount received by the node once secret is revealed  |
++----------------------+-----------+----------------------------------------------------------+
+|  expiration          | uint256   | See `HashTimeLock`_                                      |
++----------------------+-----------+----------------------------------------------------------+
+
+The ``signature`` is obtained by signing the data packed in this format.
 
 .. _reveal-secret-message:
 
@@ -411,23 +414,25 @@ Reveal Secret
 
 Message used by the nodes to inform others that the :term:`secret` is known. Used to request an updated :term:`balance proof` with the :term:`transferred amount` increased and the lock removed.
 
-Fields
-^^^^^^
+Fields and signature
+^^^^^^^^^^^^^^^^^^^^
 
-+----------------------+---------------+------------------------------------------------------------+
-| Field Name           | Field Type    |  Description                                               |
-+======================+===============+============================================================+
-|  cmdid               | one byte      | Value 11 (indicating ``Reveal Secret``)                    |
-+----------------------+---------------+------------------------------------------------------------+
-|  pad                 | three bytes   | Ignored                                                    |
-+----------------------+---------------+------------------------------------------------------------+
-|  message_identifier  | uint64        | An ID use in ``Delivered`` and ``Processed``               |
-|                      |               | acknowledgments                                            |
-+----------------------+---------------+------------------------------------------------------------+
-|  lock_secret         | bytes32       | The secret that unlocks the lock                           |
-+----------------------+---------------+------------------------------------------------------------+
-|  signature           | bytes         | Elliptic Curve 256k1 signature                             |
-+----------------------+---------------+------------------------------------------------------------+
+``RevealSecret`` is a :term:`offchain message` with the following fields plus a ``signature`` field:
+
++----------------------+-----------+------------------------------------------------------------+
+| Field Name           | Field Type|  Description                                               |
++======================+===========+============================================================+
+|  cmdid               | uint8     | Value 11 (indicating ``Reveal Secret``)                    |
++----------------------+-----------+------------------------------------------------------------+
+|  (padding)           | bytes3    | three zero bytes.                                          |
++----------------------+-----------+------------------------------------------------------------+
+|  message_identifier  | uint64    | An ID use in ``Delivered`` and ``Processed``               |
+|                      |           | acknowledgments                                            |
++----------------------+-----------+------------------------------------------------------------+
+|  lock_secret         | bytes32   | The secret that unlocks the lock                           |
++----------------------+-----------+------------------------------------------------------------+
+
+The ``signature`` is obtained by signing the data packed in this format.
 
 .. _unlock-message:
 
@@ -636,20 +641,27 @@ Fields
 Processed/Delivered
 --------------------
 
-The ``Processed`` and ``Delivered`` message is sent to let other parties in a transfer know that
+The ``Processed`` and ``Delivered`` messages are sent to let other parties in a transfer know that
 a message has been processed/received.
 
-Fields
-^^^^^^
-+-------------------------------+---------------+----------------------------------------------------------------+
-| Field Name                    | Field Type    |  Description                                                   |
-+===============================+===============+================================================================+
-|  cmdid                        | one byte      | Value 0 for ``Processed``, 12 for ``Delivered``                |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  pad                          | 3 bytes       | ignored                                                        |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  message_identifier           | uint64        | The identifier of the message that has been processed.         |
-+-------------------------------+---------------+----------------------------------------------------------------+
+Fields and signature
+^^^^^^^^^^^^^^^^^^^^
+
+``Processed`` and ``Delivered`` are :term:`offchain messages <offchain message>` with the following
+fields plus a ``signature``:
+
++-------------------------------+-----------+----------------------------------------------------+
+| Field Name                    | Field Type|  Description                                       |
++===============================+===========+====================================================+
+|  cmdid                        | uint8     | Value 0 for ``Processed`` or 12 for ``Delivered``  |
++-------------------------------+-----------+----------------------------------------------------+
+|  (padding)                    | bytes3    | three zero bytes                                   |
++-------------------------------+-----------+----------------------------------------------------+
+|  message_identifier           | uint64    | The identifier of the processed/delivered message. |
++-------------------------------+-----------+----------------------------------------------------+
+
+The ``signature`` is obtained by signing the data packed in this format.
+
 
 References
 ==========
