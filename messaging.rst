@@ -504,19 +504,27 @@ Preconditions
 - The message sender address must be the same as ``participant``.
 - The ``signature`` must be from the :term:`sender` of the request.
 
-Fields
-^^^^^^
+Fields and signature
+^^^^^^^^^^^^^^^^^^^^
+
+``WithdrawRequest`` is an :term:`onchain message`. This is the format in which it is packed to
+compute the ``signature``, and in which it could be forwarded to a contract.
+
+In addition to the signed fields listed below, the message has:
+
+- a ``nonce`` field
+- a ``message_identifier`` used for ``Processed`` and ``Delivered`` acknowledgements.
 
 +-------------------------------+---------------+----------------------------------------------------------------+
 | Field Name                    | Field Type    |  Description                                                   |
 +===============================+===============+================================================================+
-|  cmdid                        | one byte      | Value 15 (indicating ``Withdraw Request``)                     |
+|  token network address        | address       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  chain identifier             | uint256       | See :ref:`balance-proof-offchain`                              |
+|  chain identifier             | uint256       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  channel identifier           | uint256       | See :ref:`balance-proof-offchain`                              |
+|  message type                 | uint256       | 3 for withdraw messages                                        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  token network address        | address       | See :ref:`balance-proof-offchain`                              |
+|  channel identifier           | uint256       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  message identifier           | uint64        | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
 +-------------------------------+---------------+----------------------------------------------------------------+
@@ -526,17 +534,6 @@ Fields
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  expiration                   | uint256       | The block number at which withdraw request is no longer        |
 |                               |               | usable on-chain.                                               |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  nonce                        | uint64        | See :ref:`balance-proof-offchain`                              |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  signature                    | bytes         | Elliptic Curve 256k1 signature                                 |
-|                               |               | Signed data:                                                   |
-|                               |               | - Chain identifier                                             |
-|                               |               | - Message type, 3 for withdraw                                 |
-|                               |               | - Channel identifier                                           |
-|                               |               | - Participant (address of the withdraw requesting node)        |
-|                               |               | - Total withdraw                                               |
-|                               |               | - Expiration block number                                      |
 +-------------------------------+---------------+----------------------------------------------------------------+
 
 .. _withdraw-confirmation-message:
@@ -562,18 +559,24 @@ Preconditions
 Fields
 ^^^^^^
 
+``WithdrawConfirmation`` is an :term:`onchain message`. This is the format in which it is packed to
+compute the ``signature``, and in which it could be forwarded to a contract.
+
+In addition to the signed fields listed below, the message has:
+
+- a ``nonce`` field
+- a ``message_identifier`` used for ``Processed`` and ``Delivered`` acknowledgements.
+
 +-------------------------------+---------------+----------------------------------------------------------------+
 | Field Name                    | Field Type    |  Description                                                   |
 +===============================+===============+================================================================+
-|  cmdid                        | one byte      | Value 16 (indicating ``Withdraw Confirmation``)                |
+|  token network address        | address       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  chain identifier             | uint256       | See :ref:`balance-proof-offchain`                              |
+|  chain identifier             | uint256       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  channel identifier           | uint256       | See :ref:`balance-proof-offchain`                              |
+|  message type                 | uint256       | 3 for withdraw messages                                        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  token network address        | address       | See :ref:`balance-proof-offchain`                              |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  message identifier           | uint64        | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
+|  channel identifier           | uint256       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  participant                  | address       | The address of the withdraw requesting node                    |
 +-------------------------------+---------------+----------------------------------------------------------------+
@@ -582,11 +585,6 @@ Fields
 |  expiration                   | uint256       | The block number at which withdraw request is no longer        |
 |                               |               | usable on-chain.                                               |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  nonce                        | uint64        | See :ref:`balance-proof-offchain`                              |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  signature                    | bytes         | Elliptic Curve 256k1 signature                                 |
-|                               |               | Signed data: see :ref:`withdraw-request-message`               |
-+-------------------------------+---------------+----------------------------------------------------------------+
 
 .. _withdraw-expired-message:
 
@@ -594,6 +592,7 @@ Withdraw Expired
 -------------------
 
 Message used by the withdraw-requesting node to inform the partner that the earliest-requested, non-confirmed withdraw has expired.
+It can also be used to cancel a withdraw.
 
 Preconditions
 ^^^^^^^^^^^^^
@@ -610,16 +609,24 @@ Preconditions
 Fields
 ^^^^^^
 
+``WithdrawExpired`` is an :term:`onchain message`. This is the format in which it is packed to
+compute the ``signature``, and in which it could be forwarded to a contract.
+
+In addition to the signed fields listed below, the message has:
+
+- a ``nonce`` field
+- a ``message_identifier`` used for ``Processed`` and ``Delivered`` acknowledgements.
+
 +-------------------------------+---------------+----------------------------------------------------------------+
 | Field Name                    | Field Type    |  Description                                                   |
 +===============================+===============+================================================================+
-|  cmdid                        | one byte      | Value 17 (indicating ``Withdraw Expired``)                     |
+|  token network address        | address       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  chain identifier             | uint256       | See :ref:`balance-proof-offchain`                              |
+|  chain identifier             | uint256       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  channel identifier           | uint256       | See :ref:`balance-proof-offchain`                              |
+|  message type                 | uint256       | 3 for withdraw messages                                        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  token network address        | address       | See :ref:`balance-proof-offchain`                              |
+|  channel identifier           | uint256       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  message identifier           | uint64        | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
 +-------------------------------+---------------+----------------------------------------------------------------+
@@ -627,13 +634,8 @@ Fields
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  total_withdraw               | uint256       | The new monotonic ``total_withdraw`` value                     |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  expiration                   | uint256       | The block number at which withdraw request is no longer        |
+|  expiration                   | uint256       | The block number at which the withdraw request is no longer    |
 |                               |               | usable on-chain.                                               |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  nonce                        | uint64        | See :ref:`balance-proof-offchain`                              |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  signature                    | bytes         | Elliptic Curve 256k1 signature                                 |
-|                               |               | Signed data: see :ref:`withdraw-request-message`               |
 +-------------------------------+---------------+----------------------------------------------------------------+
 
 .. _processed-delivered-message:
