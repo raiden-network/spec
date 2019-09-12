@@ -22,9 +22,9 @@ In this description a simple mediation node is assumed. The incoming channel (fo
                c
     --> a --> (M) --> b -->
 
-- ``a`` is the locked amount of the payer channel. This locked amount includes fees.
-- ``b`` is the locked amount of the payee channel. This locked amount includes fees for further hops.
-- ``c`` is a helper value for making the calculation of mediation fees simpler. It is not exposed to the user.
+- :math:`a` is the locked amount of the payer channel. This locked amount includes fees.
+- :math:`b` is the locked amount of the payee channel. This locked amount includes fees for further hops.
+- :math:`c` is a helper value for making the calculation of mediation fees simpler. It is not exposed to the user.
 
 
 In the calculation the different fees are used.
@@ -36,10 +36,10 @@ In the calculation the different fees are used.
 Converting per-hop proportional fees in per-channel proportional fees
 =====================================================================
 
-User usually think about mediation fees as a atomic actions, so it's easier to
-let them define a *per-hop* proportional mediation fee (called :math:`p`).
-However, this setting then needs to be converted into a *per-channel*
-proportional fee (called :math:`q`).
+User usually think about deducting mediation fees as an atomic action, so it's
+easier to let them define a *per-hop* proportional mediation fee (called
+:math:`p`). However, this setting then needs to be converted into a
+*per-channel* proportional fee (called :math:`q`).
 
 .. math::
 
@@ -103,7 +103,7 @@ From (1) follows:
 
 .. math::
 
-    {fee}_{in} = a - c = \frac{c + f + i}{1-q}
+    {fee}_{in} = a - c = \frac{c + f + i}{1-q} - c
 
 
 
