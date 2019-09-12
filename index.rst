@@ -13,6 +13,7 @@ This is a tentative specification for the `Raiden Network <http://raiden.network
    transport
    smart_contracts
    service_contracts
+   mediation_fees
    monitoring_service
    pathfinding_service
    mobile_wallet
