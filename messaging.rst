@@ -49,7 +49,7 @@ offchain messages: ``Processed``, ``Delivered``,  ``SecretRequest``, ``RevealSec
 
 Each :term:`envelope message` has a packed data format defined to compute the :term:`additional hash`
 from. The format always starts with the 1-byte command id, but no padding bytes. Envelope messages
-are: ``LockedTransfer``, ``Unlock`` and ``LockExpired``.
+are: ``LockedTransfer``, ``RefundTransfer``, ``Unlock`` and ``LockExpired``.
 
 Each :term:`onchain message` has a packed data format in which it can be sent to the contract.
 The format always starts with :term:`token network address`, the :term:`chain id` and a message type
@@ -310,6 +310,17 @@ For a Locked Transfer to be considered valid there are the following conditions.
 
 .. [#PC6] If the :term:`locked amount` is increased by more, then funds may get locked in the channel. If the :term:`locked amount` is increased by less, then the recipient will reject the message as it may mean it received the funds with an on-chain unlock. The initiator will stipulate the fees based on the available routes and incorporate it in the lock's amount. Note that with permissive routing it is not possible to predetermine the exact `fee` amount, as the initiator does not know which nodes are available, thus an estimated value is used.
 .. [#PC7] If the amount is higher then the recipient will reject it, as it means he will be spending money it does not own.
+
+.. _refund-transfer-message:
+
+Refund Transfer
+---------------
+
+``RefundTransfer`` is a :term:`envelope message` very similiar to
+:ref:`LockedTransfer <locked-transfer-message>`, with the following differences:
+- there is no ``metadata`` field
+- when computing the ``additional_hash``, there is thus no ``metadata_hash`` field at the end of the packed data, and
+- the command id is 8 instead of 7.
 
 .. _lock-expired-message:
 
