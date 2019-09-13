@@ -128,7 +128,7 @@ Here the same approximation approach is used for the imbalance fee. The approxim
 
 .. math::
 
-    {fee}_{in} \approx a - c = \frac{c + f + i(a')}{1-q} - c
+    {fee}_{in} = a - c \approx \frac{c + f + i(a')}{1-q} - c
 
 
 
