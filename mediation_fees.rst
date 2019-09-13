@@ -105,7 +105,7 @@ We approximate the solution by calculating :math:`b \approx b' = \frac{c - f}{1+
 
 .. math::
 
-    {fee}_{out} \approx c - b = c - \frac{c - f - i(b')}{1+q}
+    {fee}_{out} = c - b \approx c - \frac{c - f - i(b')}{1+q}
 
 Backward calculation (as in the PFS)
 ------------------------------------
