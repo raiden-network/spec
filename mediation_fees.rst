@@ -10,7 +10,6 @@ Mediation fees are used to incentivize people to mediate payments. There are (cu
 - Proportional fees
 - Imbalance penalty fees
 
-TODO: expand
 
 Nomenclature
 ============
@@ -43,7 +42,7 @@ easier to let them define a *per-hop* proportional mediation fee (called
 
 .. math::
 
-    b(1+p) = b + bq + qb(1+p)  \\
+    b(1+p) = b + bq + bq(1+p)  \\
     (1+p) = 1 + q + q(1+p)  \\
     q + q(1+p) = p \\
     q(2+p) = p \\
@@ -54,14 +53,27 @@ Fee calculation
 
 There are two fundamental formula to relate :math:`a`, :math:`b` and :math:`c`.
 
-1. :math:`a = c + aq + f + i`
+1. :math:`a = c + aq + f + i(a)`
 
-2. :math:`c = b + bq + f + i`
+2. :math:`c = b + bq + f + i(b)`
 
 The other fundamental relations are:
 
-- :math:`a = c + {fee}_{in}`
-- :math:`c = b + {fee}_{out}`
+- :math:`a - {fee}_{in} = c`
+- :math:`c - {fee}_{out} = b`
+
+The imbalance fee :math:`i(x)` is defined as follows, where :math:`t` is the total channel balance and :math:`IP(x)` is the imbalance penalty function.
+
+.. math::
+
+    i(x) = IP(t + x) - IP(t)
+
+
+.. note::
+
+    These equations only have symbolic solutions when no imbalance fees are used. With imbalance fees only approximate solutions are presented below. This means that forward and backwards fee calculations can differ slightly.
+
+
 
 Forward calculation (as in the client)
 --------------------------------------
@@ -72,21 +84,28 @@ From (1) follows:
 
 .. math::
 
-    {fee}_{in} = a - c = qa + f + i
+    {fee}_{in} = a - c = qa + f + i(a)
 
 From (2) follows:
 
 .. math::
 
-    c = b + bq + f + i \\
-    b = \frac{c - f - i}{1+q}
+    c = b + bq + f + i(b) \\
+    b = \frac{c - f - i(b)}{1+q}
 
 This leads to
 
 .. math::
 
-    {fee}_{out} = c - b = c - \frac{c - f - i}{1+q}
+    {fee}_{out} = c - b = c - \frac{c - f - i(b)}{1+q}
 
+Here one can see that the calculation depends on both :math:`b` and :math:`c`. This formula doesn't have a symbolic solution for arbitrary functions :math:`i(x)`.
+
+We approximate the solution by calculating :math:`b' = \frac{c - f}{1+q}` and than use that to solve for :math:`b` (which is the first iteration towards the solution):
+
+.. math::
+
+    {fee}_{out} \approx c - b = c - \frac{c - f - i(b')}{1+q}
 
 Backward calculation (as in the PFS)
 ------------------------------------
@@ -97,13 +116,19 @@ From (2) follows:
 
 .. math::
 
-    {fee}_{out} = c - b = bq + f + i
+    {fee}_{out} = c - b = bq + f + i(b)
 
 From (1) follows:
 
 .. math::
 
-    {fee}_{in} = a - c = \frac{c + f + i}{1-q} - c
+    {fee}_{in} = a - c = \frac{c + f + i(a)}{1-q} - c
+
+Here the same approximation approach is used for the imbalance fee. The approximation :math:`i(a')` with :math:`a' = \frac{c + f}{1+q}` is used in the symbolic solution.
+
+.. math::
+
+    {fee}_{in} \approx a - c = \frac{c + f + i(a')}{1-q} - c
 
 
 
