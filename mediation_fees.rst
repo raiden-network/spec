@@ -101,7 +101,7 @@ This leads to
 
 Here one can see that the calculation depends on both :math:`b` and :math:`c`. This formula doesn't have a symbolic solution for arbitrary functions :math:`i(x)`.
 
-We approximate the solution by calculating :math:`b' = \frac{c - f}{1+q}` and than use that to solve for :math:`b` (which is the first iteration towards the solution):
+We approximate the solution by calculating :math:`b \approx b' = \frac{c - f}{1+q}` and than use that to solve for :math:`b` (which is the first iteration towards the solution which assumes :math:`i = 0`):
 
 .. math::
 
