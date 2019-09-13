@@ -311,6 +311,8 @@ For a Locked Transfer to be considered valid there are the following conditions.
 .. [#PC6] If the :term:`locked amount` is increased by more, then funds may get locked in the channel. If the :term:`locked amount` is increased by less, then the recipient will reject the message as it may mean it received the funds with an on-chain unlock. The initiator will stipulate the fees based on the available routes and incorporate it in the lock's amount. Note that with permissive routing it is not possible to predetermine the exact `fee` amount, as the initiator does not know which nodes are available, thus an estimated value is used.
 .. [#PC7] If the amount is higher then the recipient will reject it, as it means he will be spending money it does not own.
 
+.. _locked-transfer-example:
+
 Example
 ^^^^^^^
 
@@ -534,6 +536,29 @@ field:
 +----------------------+-----------+----------------------------------------------------------+
 
 The ``signature`` is obtained by signing the data packed in this format.
+
+Example
+^^^^^^^
+
+In the above :ref:`example <locked-transfer-example>` of a mediated transfer, **C** will send a
+secret request to **A**. The data to sign would be::
+
+   cmdid = 0x03
+   padding = 0x000000
+   message_identifier = 8492128289064395926
+   payment_identifier = 1
+   secrethash = 0xd4683a22c1ce39824d931eedc68ea8fa5259ceb03528b1a22f7075863ef8baf0
+   amount = 50
+   expiration = 1288153
+
+In packed form::
+
+   0x0300000075da19af88baa4960000000000000001d4683a22c1ce39824d931eedc68ea8fa5259ceb03528b1a22f7075863ef8baf00000000000000000000000000000000000000000000000000000000000000032000000000000000000000000000000000000000000000000000000000013a7d9
+
+Signing this with **C**'s private key yields::
+
+   0xfc3c0cd04b339936bb0001a8aff196b767ed49d8eaa3a57e53121f7077584846390c843bc16a04fab8d6e9f9f80004663e183899441a4f7a4e1509e9cdada7351c
+
 
 .. _reveal-secret-message:
 
