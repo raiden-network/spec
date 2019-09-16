@@ -176,7 +176,7 @@ operations are performed using this connection.
 
 Event Filtering
 '''''''''''''''
-MS must filter events for each onchain channel that corresponds to the submitted balance proofs.
+MS must filter events for each on-chain channel that corresponds to the submitted balance proofs.
 On ``ChannelClosed`` and ``NonClosingBalanceProofUpdated`` events state the channel was closed with the Monitoring
 Service must call ``updateNonClosingBalanceProof`` with the respective latest balance proof provided by its client.
 On ``ChannelSettled`` event any state data for this channel MAY be deleted from the MS.
@@ -201,7 +201,7 @@ A Monitor Request consists of a the following fields:
 +==========================+============+================================================================================+
 |  balance_proof           | object     | Latest Blinded Balance Proof to be used by the monitor service                 |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-|  non_closing_signature   | string     | Signature of the Onchain Balance Proof by the client                           |
+|  non_closing_signature   | string     | Signature of the on-chain balance proof by the client                          |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 |  reward_amount           | uint256    | Offered reward in RDN                                                          |
 +--------------------------+------------+--------------------------------------------------------------------------------+
@@ -264,7 +264,7 @@ Fields
 | MessageTypeId.MSReward| uint256    | A constant with the value of 6 used to make sure that no other messages accidentally share |
 |                       |            | the same signature.                                                                        |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
-| non_closing_signature | bytes      | Signature of the Onchain Balance Proof by the client                                       |
+| non_closing_signature | bytes      | Signature of the on-chain balance proof by the client                                      |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 | reward_amount         | uint256    | Rewards received for updating the channel                                                  |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
@@ -272,5 +272,5 @@ Fields
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 
 
-__ https://raiden-network-specification.readthedocs.io/en/latest/smart_contracts.html#balance-proof-onchain
-__ https://raiden-network-specification.readthedocs.io/en/latest/smart_contracts.html#balance-proof-update-onchain
+__ https://raiden-network-specification.readthedocs.io/en/latest/smart_contracts.html#balance-proof-on-chain
+__ https://raiden-network-specification.readthedocs.io/en/latest/smart_contracts.html#balance-proof-update-on-chain

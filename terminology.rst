@@ -84,7 +84,7 @@ Raiden Terminology
    balance proof
    Participant Balance Proof
    BP
-       Signed data required by the :term:`Payment Channel` to prove the balance of one of the parties. Different formats exist for offchain communication and onchain communication.  See the :ref:`onchain balance proof definition <balance-proof-onchain>` and :ref:`offchain balance proof definition <balance-proof-offchain>`.
+       Signed data required by the :term:`Payment Channel` to prove the balance of one of the parties. Different formats exist for off-chain communication and on-chain communication.  See the :ref:`on-chain balance proof definition <balance-proof-on-chain>` and :ref:`off-chain balance proof definition <balance-proof-off-chain>`.
 
    balance proof update
        Signed balance proof with a countersignature.  Depending on the message ID, a balance proof update message either shows the second signer's intention to close the channel (with a ``closeChannel()`` call) or submit the balance proof during the settlement period (with an ``updateNonClosingBalanceProof()`` call).
@@ -130,11 +130,11 @@ Raiden Terminology
 
    Locked Transfer
    Locked Transfer message
-       An offchain Raiden message that reserves an amount of tokens for a specific :term:`Payment`. See :ref:`locked-transfer-message` for details.
+       A message that reserves an amount of tokens for a specific :term:`Payment`. See :ref:`locked-transfer-message` for details.
 
    Refund Transfer
    Refund Transfer message
-       An offchain Raiden message for a :term:`Transfer` seeking a rerouting. When a receiver of a :term:`Locked Transfer` message gives up reaching the target, they return a Refund Transfer message. The Refund Transfer message locks an amount of tokens in the direction opposite from the previous :term:`Locked Transfer` allowing the previous hop to retry with a different path.
+       A message for a :term:`Transfer` seeking a rerouting. When a receiver of a :term:`Locked Transfer` message gives up reaching the target, they return a Refund Transfer message. The Refund Transfer message locks an amount of tokens in the direction opposite from the previous :term:`Locked Transfer` allowing the previous hop to retry with a different path.
 
    Monitoring Service
    MS
@@ -147,7 +147,7 @@ Raiden Terminology
 
    Unlock
    Unlock message
-       An offchain Raiden message that contains a new :term:`balance proof` after a :term:`Hash Time Lock` is unlocked.  See :ref:`unlock-message` for details.
+       A message that contains a new :term:`balance proof` after a :term:`Hash Time Lock` is unlocked.  See :ref:`unlock-message` for details.
 
    Raiden Light Client
        A client that does not mediate payments.
@@ -176,11 +176,11 @@ Raiden Terminology
        The state of a channel after one channel participant closes the channel. During this period the other participant (or any delegate) is able to provide balance proofs by calling :ref:`updateNonClosingBalanceProof() <update-channel>`. This phase is limited for a number of blocks, after which the channel can be :ref:`settled <settle-channel>`. The length of the challenge period can be configured when each channel is opened.
 
    Secret Request
-       An offchain Raiden message from the target that asks for the :term:`secret` of the payment. See :ref:`secret-request-message` for details.
+       A message from the target that asks for the :term:`secret` of the payment. See :ref:`secret-request-message` for details.
 
    Reveal Secret
    Reveal Secret message
-       An offchain Raiden message that contains the secret that can open a :term:`Hash Time Lock`. See :ref:`reveal-secret-message` for details.
+       A message that contains the secret that can open a :term:`Hash Time Lock`. See :ref:`reveal-secret-message` for details.
 
    Reveal Timeout
           The number of blocks in a channel allowed for learning about a secret being revealed through the blockchain and acting on it.
@@ -202,7 +202,7 @@ Raiden Terminology
 
    additional hash
    additional_hash
-       Hash of additional data (in addition to a balance proof itself) used on the Raiden protocol (and potentially in the future also the application layer). Currently this is the hash of the offchain message that contains the balance proof. In the future, for example, some form of payment metadata can be hashed in.
+       Hash of additional data (in addition to a balance proof itself) used on the Raiden protocol (and potentially in the future also the application layer). Currently this is the hash of the off-chain message that contains the balance proof. In the future, for example, some form of payment metadata can be hashed in.
 
    Payment Receipt
        TBD
@@ -212,17 +212,3 @@ Raiden Terminology
 
    expiration
         Specific block after which the lock in the :term:`locked transfer` expires
-
-   offchain message
-        A message that is only sent between Raiden nodes, with no information that could be
-        forwarded to a contract - for example, a ``Processed`` message.
-
-   onchain message
-        A message that is sent between Raiden nodes but could as well be forwarded to a contract.
-        Notice that a message does not have to be published on a contract to be considered an
-        onchain message - It only has to be of a type that allows sending it to a contract in
-        total, e. g. ``WithdrawRequest``.
-
-   envelope message
-        A message that partly consists of information which may be forwarded to a contract later,
-        such as a :term:`balance proof`. An example is the ``LockedTransfer`` message.

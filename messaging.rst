@@ -8,14 +8,8 @@ This is the specification of the messages used in the Raiden protocol.
 
 There are data structures which reappear in different messages:
 
-- The :ref:`offchain balance proof <balance-proof-offchain>`
+- The :ref:`off-chain balance proof <balance-proof-off-chain>`
 - and the :ref:`hash time lock <hash-time-lock>`.
-
-Messages sent between raiden nodes can be divided in three groups:
-
-- An :term:`offchain message` is only sent between nodes and contain no state that could be of interest for the contracts.
-- An :term:`envelope message` partly consists of data that could be sent to a contract.
-- An :term:`onchain message`, which can (but does not have to) be sent in total to a contract.
 
 A :term:`mediated transfer` begins with a :ref:`LockedTransfer message <locked-transfer-message>`.
 
@@ -42,33 +36,43 @@ All messages are encoded in a JSON format and sent via our Matrix transport laye
 The encoding used by the transport layer is independent of this specification, as
 long as the signatures using the data are encoded in the EVM big endian format.
 
-Each :term:`offchain message` has a packed data format defined so it can be signed. The
-format always consists of the message type's 1-byte command id, three zero bytes for padding
-and then the respective data fields in a specified order. The following message types are
-offchain messages: ``Processed``, ``Delivered``,  ``SecretRequest``, ``RevealSecret``.
+.. _message-classes:
 
-Each :term:`envelope message` has a packed data format defined to compute the :term:`additional hash`
-from. The format always starts with the 1-byte command id, but no padding bytes. Envelope messages
-are: ``LockedTransfer``, ``RefundTransfer``, ``Unlock`` and ``LockExpired``.
+The messages of the protocol can be divided in three groups with different format/hashing/signing
+conventions:
 
-Each :term:`onchain message` has a packed data format in which it can be sent to the contract.
-The format always starts with :term:`token network address`, the :term:`chain id` and a message type
-constant, which is an unsigned 256-bit integer. Onchain messages are: ``WithdrawRequest``,
-``WithdrawConfirmation`` and ``WithdrawExpired``.
+- **Envelope messages**, which contain a balance proof which can be sent to a contract. The
+  balance proof in turn contains an :term:`additional hash`, which is a hash over the rest of
+  the message. Each envelope message has a defined packed data format to compute the additional
+  hash. The format always starts with the 1-byte command id. Envelope messages are:
+  ``LockedTransfer``, ``RefundTransfer``, ``Unlock`` and ``LockExpired``.
 
+- The second group is messages that will never result in on-chain transactions, as they contain
+  no information that could be forwarded to a contract. There are four types of such messages,
+  which we will call **internal messages**: ``SecretRequest``, ``RevealSecret``, ``Processed``
+  and ``Delivered``. Internal messages have a packed data format in which they are signed.
+  The format always starts with the message type's 1-byte command id, but unlike the packing
+  format in envelope messages described above, the command id is followed by a padding of three
+  zero bytes.
+
+- In addition there are the withdraw-related message types: ``WithdrawRequest``,
+  ``WithdrawConfirmation``, and ``WithdrawExpired``. They have a packed formats starting with the
+  :term:`token network address`, the :term:`chain id` and a message type constant, which is an
+  unsigned 256-bit integer. The signatures from ``WithdrawRequest`` and ``WithdrawConfirmation``
+  are used when withdrawing tokens in the ``TokenNetwork`` contract.
 
 Data Structures
 ===============
 
-.. _balance-proof-offchain:
+.. _balance-proof-off-chain:
 
-Offchain Balance Proof
-----------------------
+Off-chain Balance Proof
+-----------------------
 
 Data required by the smart contracts to update the payment channel end of the participant that signed the balance proof.
-Messages into smart contracts contain a shorter form called :ref:`Onchain Balance Proof <balance-proof-onchain>`.
+Messages into smart contracts contain a shorter form called :ref:`On-chain Balance Proof <balance-proof-on-chain>`.
 
-The offchain balance proof consists of the :term:`balance data`, the channel's :term:`canonical identifier`, the
+The off-chain balance proof consists of the :term:`balance data`, the channel's :term:`canonical identifier`, the
 signature, the additional hash and a nonce.
 
 The signature must be valid and is defined as:
@@ -167,7 +171,7 @@ In order to create a valid, signed JSON message, four consecutive steps are cond
 4. Pack and sign the ``balance_proof`` to get the signature of the Locked Transfer
 
 The ``LockedTransfer`` message consists of the fields of a :ref:`hash time lock <hash-time-lock>`,
-an :ref:`offchain balance proof <balance-proof-offchain>` and the following:
+an :ref:`off-chain balance proof <balance-proof-off-chain>` and the following:
 
 +-----------------------+------------+-----------------------------------------------------------+
 | Field Name            | Type       |  Description                                              |
@@ -224,9 +228,6 @@ The data will be packed as follows to compute the :term:`additional hash`:
 | metadata_hash                        | bytes32 |  32         |
 +--------------------------------------+---------+-------------+
 
-The computation of the ``metadata_hash`` as well as the exact format of the ``metadata`` itself
-are implementation specific.
-
 This will be used to generate the the data field called ``additional_hash``, which is a required
 part of the process to create the message signature. It is computed as the ``keccak256``-hash
 of the data structure given above::
@@ -265,7 +266,7 @@ In order to create the ``balance_hash`` you first need to pack the :term:`balanc
 The signature of a Locked Transfer is created by signing the packed form of a ``balance_proof``.
 
 A ``balance_proof`` contains the following fields - using our example data. Notice that the fields
-are the same as in the :ref:`offchain balance proof <balance-proof-offchain>` datastructure, except
+are the same as in the :ref:`off-chain balance proof <balance-proof-off-chain>` datastructure, except
 there is no signature yet and the :term:`balance data` has been hashed into ``balance_hash``.
 
 +--------------------------------+----------+------+
@@ -435,8 +436,8 @@ Signing this with **A**’s private key yields the signature in the message.
 Refund Transfer
 ---------------
 
-``RefundTransfer`` is a :term:`envelope message` very similiar to
-:ref:`LockedTransfer <locked-transfer-message>`, with the following differences:
+The ``RefundTransfer`` message is very similiar to :ref:`LockedTransfer <locked-transfer-message>`,
+with the following differences:
 - there is no ``metadata`` field
 - when computing the ``additional_hash``, there is thus no ``metadata_hash`` field at the end of the packed data, and
 - the command id is 8 instead of 7.
@@ -465,7 +466,7 @@ Preconditions
 Message Fields
 ^^^^^^^^^^^^^^
 
-The ``LockExpired`` message consists of an :ref:`offchain balance proof <balance-proof-offchain>` and the following fields:
+The ``LockExpired`` message consists of an :ref:`off-chain balance proof <balance-proof-off-chain>` and the following fields:
 
 +-----------------------+----------------------+------------------------------------------------------------+
 | Field Name            | Field Type           |  Description                                               |
@@ -513,7 +514,7 @@ Invariants
 Fields and signature
 ^^^^^^^^^^^^^^^^^^^^
 
-``SecretRequest`` is a :term:`offchain message` with the following fields plus a ``signature``
+``SecretRequest`` is an :ref:`internal message <message-classes>` with the following fields plus a ``signature``
 field:
 
 +----------------------+-----------+----------------------------------------------------------+
@@ -570,7 +571,7 @@ Message used by the nodes to inform others that the :term:`secret` is known. Use
 Fields and signature
 ^^^^^^^^^^^^^^^^^^^^
 
-``RevealSecret`` is a :term:`offchain message` with the following fields plus a ``signature`` field:
+``RevealSecret`` is an :ref:`internal message <message-classes>` with the following fields plus a ``signature`` field:
 
 +----------------------+-----------+------------------------------------------------------------+
 | Field Name           | Field Type|  Description                                               |
@@ -606,7 +607,7 @@ Invariants
 Fields
 ^^^^^^
 
-The ``Unlock`` message consists of an :ref:`offchain balance proof <balance-proof-offchain>` and the following fields:
+The ``Unlock`` message consists of an :ref:`off-chain balance proof <balance-proof-off-chain>` and the following fields:
 
 +----------------------+------------------------+------------------------------------------------------------+
 | Field Name           | Field Type             |  Description                                               |
@@ -642,7 +643,7 @@ The data is packed as follows to compute the :term:`additional hash`:
 Withdraw Request
 --------------------
 
-Message used by the a channel participant node to request the other participant signature on a new increased ``total_withdraw`` value.
+This message is used by a channel participant node to request the other participant's signature on a new increased ``total_withdraw`` value.
 
 Preconditions
 ^^^^^^^^^^^^^
@@ -660,8 +661,8 @@ Preconditions
 Fields and signature
 ^^^^^^^^^^^^^^^^^^^^
 
-``WithdrawRequest`` is an :term:`onchain message`. This is the format in which it is packed to
-compute the ``signature``, and in which it could be forwarded to a contract.
+The table below specifies the format in which a ``WithdrawRequest`` is packed to compute
+the signature.
 
 In addition to the signed fields listed below, the message has:
 
@@ -712,8 +713,9 @@ Preconditions
 Fields
 ^^^^^^
 
-``WithdrawConfirmation`` is an :term:`onchain message`. This is the format in which it is packed to
-compute the ``signature``, and in which it could be forwarded to a contract.
+The table below specifies the format in which a ``WithdrawConfirmation`` message is packed to be
+signed. The signatures of both channel participants are needed for the call to the smart contract's
+``setTotalWithdraw`` function.
 
 In addition to the signed fields listed below, the message has:
 
@@ -744,8 +746,8 @@ In addition to the signed fields listed below, the message has:
 Withdraw Expired
 -------------------
 
-Message used by the withdraw-requesting node to inform the partner that the earliest-requested, non-confirmed withdraw has expired.
-It can also be used to cancel a withdraw.
+This message is used by the withdraw-requesting node to inform the partner that the
+earliest-requested, non-confirmed withdraw has expired.
 
 Preconditions
 ^^^^^^^^^^^^^
@@ -762,8 +764,8 @@ Preconditions
 Fields
 ^^^^^^
 
-``WithdrawExpired`` is an :term:`onchain message`. This is the format in which it is packed to
-compute the ``signature``, and in which it could be forwarded to a contract.
+The table below specifies the format in which ``WithdrawExpired`` is packed to compute its
+signature.
 
 In addition to the signed fields listed below, the message has:
 
@@ -802,7 +804,7 @@ a message has been processed/received.
 Fields and signature
 ^^^^^^^^^^^^^^^^^^^^
 
-``Processed`` and ``Delivered`` are :term:`offchain messages <offchain message>` with the following
+``Processed`` and ``Delivered`` are :ref:`internal messages <message-classes>` with the following
 fields plus a ``signature``:
 
 +-------------------------------+-----------+----------------------------------------------------+
