@@ -8,8 +8,8 @@ This is a tentative specification for the `Raiden Network <http://raiden.network
    :maxdepth: 2
    :caption: Contents:
 
-   messaging
    mediated_transfer
+   messaging
    transport
    smart_contracts
    service_contracts

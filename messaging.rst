@@ -7,7 +7,8 @@ Overview
 This is the specification of the messages used in the Raiden protocol.
 
 There are data structures which reappear in different messages:
-- The :ref:`offchain balance proof <balance-proof-offchain>`
+
+- The :ref:`off-chain balance proof <balance-proof-off-chain>`
 - and the :ref:`hash time lock <hash-time-lock>`.
 
 A :term:`mediated transfer` begins with a :ref:`LockedTransfer message <locked-transfer-message>`.
@@ -22,31 +23,56 @@ The further messages within the transfer are based on it:
 
 Further messages in the protocol are:
 
-- The :ref:`Processed <processed-delivered-message>` that is sent to confirm received messages, and
+- The :ref:`Processed and Delivered <processed-delivered-message>` messages to acknowledge received messages, and
 - The withdraw-related messages :ref:`WithdrawRequest <withdraw-request-message>`,
   :ref:`WithdrawConfirmation <withdraw-confirmation-message>` and
   :ref:`WithdrawExpired <withdraw-expired-message>`.
 
-Encoding and transport
-======================
+Encoding, signing and transport
+===============================
 
 All messages are encoded in a JSON format and sent via our Matrix transport layer.
 
 The encoding used by the transport layer is independent of this specification, as
 long as the signatures using the data are encoded in the EVM big endian format.
 
+.. _message-classes:
+
+The messages of the protocol can be divided in three groups with different format/hashing/signing
+conventions:
+
+- **Envelope messages**, which contain a balance proof which can be sent to a contract. The
+  balance proof in turn contains an :term:`additional hash`, which is a hash over the rest of
+  the message. Each envelope message has a defined packed data format to compute the additional
+  hash. The format always starts with the 1-byte command id. Envelope messages are:
+  ``LockedTransfer``, ``RefundTransfer``, ``Unlock`` and ``LockExpired``.
+
+- The second group is messages that will never result in on-chain transactions, as they contain
+  no information that could be forwarded to a contract. There are four types of such messages,
+  which we will call **internal messages**: ``SecretRequest``, ``RevealSecret``, ``Processed``
+  and ``Delivered``. Internal messages have a packed data format in which they are signed.
+  The format always starts with the message type's 1-byte command id, but unlike the packing
+  format in envelope messages described above, the command id is followed by a padding of three
+  zero bytes.
+
+- In addition there are the withdraw-related message types: ``WithdrawRequest``,
+  ``WithdrawConfirmation``, and ``WithdrawExpired``. They have a packed formats starting with the
+  :term:`token network address`, the :term:`chain id` and a message type constant, which is an
+  unsigned 256-bit integer. The signatures from ``WithdrawRequest`` and ``WithdrawConfirmation``
+  are used when withdrawing tokens in the ``TokenNetwork`` contract.
+
 Data Structures
 ===============
 
-.. _balance-proof-offchain:
+.. _balance-proof-off-chain:
 
-Offchain Balance Proof
-----------------------
+Off-chain Balance Proof
+-----------------------
 
 Data required by the smart contracts to update the payment channel end of the participant that signed the balance proof.
-Messages into smart contracts contain a shorter form called :ref:`Onchain Balance Proof <balance-proof-onchain>`.
+Messages into smart contracts contain a shorter form called :ref:`On-chain Balance Proof <balance-proof-on-chain>`.
 
-The offchain balance proof consists of the :term:`balance data`, the channel's :term:`canonical identifier`, the
+The off-chain balance proof consists of the :term:`balance data`, the channel's :term:`canonical identifier`, the
 signature, the additional hash and a nonce.
 
 The signature must be valid and is defined as:
@@ -137,240 +163,138 @@ Locked Transfer message
 The message is always sent to the next mediating node, altered and forwarded until the
 **target** is reached.
 
-In order to create a valid, signed JSON message, five consecutive steps are conducted.
+In order to create a valid, signed JSON message, four consecutive steps are conducted.
 
-1. Packing of the message structure of Locked Transfer to create the packed message
-2. Hashing of packed message to create the :term:`additional hash`
-3. Creating, packing and hashing of the :term:`balance data` to get the ``balance_hash``
-4. Creating the ``balance_proof`` out of ``additional_hash`` and ``balance_hash``
-5. Packing the ``balance_proof`` and signing it to get the signature of the Locked Transfer
+1. Compute the :term:`additional hash`
+2. Compute the ``balance_hash`` from the :term:`balance data`
+3. Create the ``balance_proof`` with ``additional_hash`` and ``balance_hash``
+4. Pack and sign the ``balance_proof`` to get the signature of the Locked Transfer
 
-Let's assume that there is a network:
+The ``LockedTransfer`` message consists of the fields of a :ref:`hash time lock <hash-time-lock>`,
+an :ref:`off-chain balance proof <balance-proof-off-chain>` and the following:
 
-- [A] `0x540B51eDc5900B8012091cc7c83caf2cb243aa86`
-- [B] `0x2A915FDA69746F515b46C520eD511401d5CCD5e2`
-- [C] `0x811957b07304d335B271feeBF46754696694b09e`
++-----------------------+------------+-----------------------------------------------------------+
+| Field Name            | Type       |  Description                                              |
++=======================+============+===========================================================+
+|  message_identifier   | uint64     | An ID for ``Delivered`` and ``Processed`` acknowledgments |
++-----------------------+------------+-----------------------------------------------------------+
+|  payment_identifier   | uint64     | An identifier for the payment that the initiator specifies|
++-----------------------+------------+-----------------------------------------------------------+
+|  token                | address    | Address of the token contract                             |
++-----------------------+------------+-----------------------------------------------------------+
+|  recipient            | address    | Destination for this hop of the transfer                  |
++-----------------------+------------+-----------------------------------------------------------+
+|  target               | address    | Final destination of the payment                          |
++-----------------------+------------+-----------------------------------------------------------+
+|  initiator            | address    | Initiator of the transfer and party who knows the secret  |
++-----------------------+------------+-----------------------------------------------------------+
+|  fee                  | uint256    | Total available fee for remaining mediators               |
++-----------------------+------------+-----------------------------------------------------------+
 
-Where **A** has a channel with **B** and **B** has a channel with **C**.
+In addition there is a ``metadata`` field with a list of possible routes for the transfer.
 
-A <---> B <---> C
-
-If **A** wants to send 10 wei of a Token(0xc778417e063141139fce010982780140aa0cd5ab) to **C** he has to first
-send a LockedTransfer to **B** (**recipient**) where **C** is specified as the **target**. After receiving the message,
-**B** has to send a new Locked Transfer message to **C**.
-
-The message that will be sent from A -> B over the matrix transport would look like this.
-
-.. code-block:: json
-
-    {
-        "type": "LockedTransfer",
-        "chain_id": 337,
-        "message_identifier": 123456,
-        "payment_identifier": 1,
-        "nonce": 1,
-        "token_network_address": "0xe82ae5475589b828D3644e1B56546F93cD27d1a4",
-        "token": "0xc778417E063141139Fce010982780140Aa0cD5Ab",
-        "channel_identifier": 1338,
-        "transferred_amount": 0,
-        "locked_amount": 10,
-        "recipient": "0x2A915FDA69746F515b46C520eD511401d5CCD5e2",
-        "locksroot": "0x7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644",
-        "lock": {
-            "type": "Lock",
-            "amount": 10,
-            "expiration": 8155044,
-            "secrethash": "0x59cad5948673622c1d64e2322488bf01619f7ff45789741b15a9f782ce9290a8"
-        },
-        "target": "0x811957b07304d335B271feeBF46754696694b09e",
-        "initiator": "0x540B51eDc5900B8012091cc7c83caf2cb243aa86",
-        "fee": 0,
-        "signature": "0x4c9baebbaefa9a5ae6589c7764204303edc27c6186bc9ad94267fd1e9be2d3f74ddbbdb6fd0c332d6bb9943a54aa756ab3f787852a7b1ae977e5316b1b0377891c"
-    }
-
-1. Message Structure
-^^^^^^^^^^^^^^^^^^^^
-
-We define the following structure of message fields **message structure** of the Locked Transfer. There is a function
-**pack(message)** that takes the **message structure** and returns a byte array. Out of this **message structure** the
-necessary JSON can be created.
-
-
-The message format corresponds to the packed format of LockedTransfer.
-
-+-----------------------+----------------------+------------------------------------------------------------+
-| Field Name            | Size (Type)          |  Description                                               |
-+=======================+======================+============================================================+
-|  command_id           | 1 Byte               | Value 7 indicates Locked Transfer                          |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  pad                  | 3 Bytes              | Contents ignored                                           |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  nonce                | 8 Bytes (uint64)     | See `Offchain Balance Proof`_                              |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  chain_id             | 32 Bytes (uint256)   | See `Offchain Balance Proof`_                              |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  message_identifier   | 8 Bytes (uint64)     | An ID for ``Delivered`` and ``Processed`` acknowledgments  |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  payment_identifier   | 8 Bytes (uint64)     | An identifier for the payment that the initiator specifies |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  expiration           | 32 Bytes (uint256)   | See `HashTimeLock`_                                        |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  token_network_address| 20 Bytes (address)   | See ``token_network_id`` in `Offchain Balance Proof`_      |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  token                | 20 Bytes (address)   | Address of the token contract                              |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  channel_identifier   | 32 Bytes (uint256)   | See `Offchain Balance Proof`_                              |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  recipient            | 20 Bytes (address)   | Destination for this hop of the transfer                   |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  target               | 20 Bytes (address)   | Final destination of the payment                           |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  initiator            | 20 Bytes (address)   | Initiator of the transfer and party who knows the secret   |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  locksroot            | 32 Bytes (hash)      | See `Offchain Balance Proof`_                              |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  secrethash           | 32 Bytes (hash)      | See `HashTimeLock`_                                        |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  transferred_amount   | 32 Bytes (uint256)   | See `Offchain Balance Proof`_                              |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  locked_amount        | 32 Bytes (uint256)   | See `Offchain Balance Proof`_                              |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  amount               | 32 Bytes (uint256)   | Transferred amount including fees. See `HashTimeLock`_     |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  fee                  | 32 Bytes (uint256)   | Total available fee for remaining mediators                |
-+-----------------------+----------------------+------------------------------------------------------------+
-
-2. Additional Hash
+1. Additional Hash
 ^^^^^^^^^^^^^^^^^^
 
-We will build our **message structure** using the data in the JSON message that was presented above.
+The data will be packed as follows to compute the :term:`additional hash`:
 
-+-----------------------+-----------------------------------------------------------------------------------+
-| Field                 | Data                                                                              |
-+-----------------------+-----------------------------------------------------------------------------------+
-| command_id            | 7                                                                                 |
-+-----------------------+-----------------------------------------------------------------------------------+
-| pad                   | three zero bytes                                                                  |
-+-----------------------+-----------------------------------------------------------------------------------+
-| nonce                 | 1                                                                                 |
-+-----------------------+-----------------------------------------------------------------------------------+
-| chain_id              | 337                                                                               |
-+-----------------------+-----------------------------------------------------------------------------------+
-| message_identifier    | 123456                                                                            |
-+-----------------------+-----------------------------------------------------------------------------------+
-| payment_identifier    | 1                                                                                 |
-+-----------------------+-----------------------------------------------------------------------------------+
-| expiration            | 8155044                                                                           |
-+-----------------------+-----------------------------------------------------------------------------------+
-| token_network_address | 0xe82ae5475589b828D3644e1B56546F93cD27d1a4                                        |
-+-----------------------+-----------------------------------------------------------------------------------+
-| token                 | 0xc778417E063141139Fce010982780140Aa0cD5Ab                                        |
-+-----------------------+-----------------------------------------------------------------------------------+
-| channel_identifier    | 1338                                                                              |
-+-----------------------+-----------------------------------------------------------------------------------+
-| recipient             | 0x811957b07304d335B271feeBF46754696694b09e                                        |
-+-----------------------+-----------------------------------------------------------------------------------+
-| target                | 0x811957b07304d335B271feeBF46754696694b09e                                        |
-+-----------------------+-----------------------------------------------------------------------------------+
-| initiator             | 0x540B51eDc5900B8012091cc7c83caf2cb243aa86                                        |
-+-----------------------+-----------------------------------------------------------------------------------+
-| locksroot             | 0x7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644                |
-+-----------------------+-----------------------------------------------------------------------------------+
-| secrethash            | 0x59cad5948673622c1d64e2322488bf01619f7ff45789741b15a9f782ce9290a8                |
-+-----------------------+-----------------------------------------------------------------------------------+
-| transferred_amount    | 0                                                                                 |
-+-----------------------+-----------------------------------------------------------------------------------+
-| locked_amount         | 10                                                                                |
-+-----------------------+-----------------------------------------------------------------------------------+
-| amount                | 10                                                                                |
-+-----------------------+-----------------------------------------------------------------------------------+
-| fee                   | 0                                                                                 |
-+-----------------------+-----------------------------------------------------------------------------------+
++--------------------------------------+---------+-------------+
+| Field                                | Type    | Size (bytes)|
++======================================+=========+=============+
+| command_id (7 for ``LockedTransfer``)| uint8   |   1         |
++--------------------------------------+---------+-------------+
+| message_identifier                   | uint64  |   8         |
++--------------------------------------+---------+-------------+
+| payment_identifier                   | uint64  |   8         |
++--------------------------------------+---------+-------------+
+| expiration                           | uint256 |  32         |
++--------------------------------------+---------+-------------+
+| token_network_address                | address |  20         |
++--------------------------------------+---------+-------------+
+| token                                | address |  20         |
++--------------------------------------+---------+-------------+
+| recipient                            | address |  20         |
++--------------------------------------+---------+-------------+
+| target                               | address |  20         |
++--------------------------------------+---------+-------------+
+| initiator                            | address |  20         |
++--------------------------------------+---------+-------------+
+| secrethash                           | bytes32 |  32         |
++--------------------------------------+---------+-------------+
+| amount                               | uint256 |  32         |
++--------------------------------------+---------+-------------+
+| fee                                  | uint256 |  32         |
++--------------------------------------+---------+-------------+
+| metadata_hash                        | bytes32 |  32         |
++--------------------------------------+---------+-------------+
 
-This will be used to generate the the data field called ``additional_hash``.
+This will be used to generate the the data field called ``additional_hash``, which is a required
+part of the process to create the message signature. It is computed as the ``keccak256``-hash
+of the data structure given above::
 
-The ``additional_hash`` is a required part of the process to create the message signature.
+    additional_hash = keccak256(pack(additional_hash_data))
 
-To generate the ``additional_hash`` we can start by packing the **message structure**::
+.. note ::
 
-    packed_message_data = pack(message_structure)
+  The ``additional_hash`` is sometimes called ``message_hash`` in the reference implementation.
 
-    0x0700000000000000000000010000000000000000000000000000000000000000000000000000000000000151000000000001e240000000000000000100000000000000000000000000000000000000000000000000000000007c6fa4e82ae5475589b828d3644e1b56546f93cd27d1a4c778417e063141139fce010982780140aa0cd5ab000000000000000000000000000000000000000000000000000000000000053a2a915fda69746f515b46c520ed511401d5ccd5e2811957b07304d335b271feebf46754696694b09e540b51edc5900b8012091cc7c83caf2cb243aa867b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f64459cad5948673622c1d64e2322488bf01619f7ff45789741b15a9f782ce9290a80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000
-
-After creating the packed form of the data we can use ``keccak256`` to create the ``additional_hash``. ::
-
-    additional_hash = keccak256(packed_message_data)
-
-    0xaeba3609fa01beca6b0b54f49780f301d59a8994bc0b383b2571eee0e6dacad4
-
-3. Balance Hash
+2. Balance Hash
 ^^^^^^^^^^^^^^^
 
 Before we generate the message signature another hash needs to be created. This is
 the ``balance_hash`` that is generated using the :term:`balance data`:
 
-+-----------------------+----------------------------------------------------------------------+
-| Field                 | Data                                                                 |
-+-----------------------+----------------------------------------------------------------------+
-| transferred_amount    | 0                                                                    |
-+-----------------------+----------------------------------------------------------------------+
-| locked_amount         | 10                                                                   |
-+-----------------------+----------------------------------------------------------------------+
-| locksroot             | 0x7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644   |
-+-----------------------+----------------------------------------------------------------------+
++-----------------------+----------+-------+
+| Field                 | Data     | Size  |
++-----------------------+----------+-------+
+| transferred_amount    | uint256  | 32    |
++-----------------------+----------+-------+
+| locked_amount         | uint256  | 32    |
++-----------------------+----------+-------+
+| locksroot             | bytes32  | 32    |
++-----------------------+----------+-------+
 
 In order to create the ``balance_hash`` you first need to pack the :term:`balance data`::
 
     packed_balance = pack(balance_data)
-
-    0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a7b3cb8717939d1fc4054b9ef46978ba3780556aa7b1482c65585f65a3a97f644
-
-Add then use the ``keccak256`` hash function on the packed form.::
-
     balance_hash = keccak256(packed_balance)
 
-    0x2bc27bf596b1f55496848b46edce26b7b7b8b8561fc6783c49b8b5d6a26fc0e1
 
-
-4. Balance Proof
+3. Balance Proof
 ^^^^^^^^^^^^^^^^
 
 The signature of a Locked Transfer is created by signing the packed form of a ``balance_proof``.
 
 A ``balance_proof`` contains the following fields - using our example data. Notice that the fields
-are the same as in the :ref:`offchain balance proof <balance-proof-offchain>` datastructure, except
+are the same as in the :ref:`off-chain balance proof <balance-proof-off-chain>` datastructure, except
 there is no signature yet and the :term:`balance data` has been hashed into ``balance_hash``.
 
-+-----------------------+----------------------------------------------------------------------+
-| Field                 | Data                                                                 |
-+-----------------------+----------------------------------------------------------------------+
-| token_network_address | 0xe82ae5475589b828d3644e1b56546f93cd27d1a4                           |
-+-----------------------+----------------------------------------------------------------------+
-| chain_id              | 337                                                                  |
-+-----------------------+----------------------------------------------------------------------+
-| msg_type              | 1                                                                    |
-+-----------------------+----------------------------------------------------------------------+
-| channel_identifier    | 1338                                                                 |
-+-----------------------+----------------------------------------------------------------------+
-| balance_hash          | 0x2bc27bf596b1f55496848b46edce26b7b7b8b8561fc6783c49b8b5d6a26fc0e1   |
-+-----------------------+----------------------------------------------------------------------+
-| nonce                 | 1                                                                    |
-+-----------------------+----------------------------------------------------------------------+
-| additional_hash       | 0xaeba3609fa01beca6b0b54f49780f301d59a8994bc0b383b2571eee0e6dacad4   |
-+-----------------------+----------------------------------------------------------------------+
++--------------------------------+----------+------+
+| Field                          | Type     | Size |
++--------------------------------+----------+------+
+| token_network_address          | address  | 20   |
++--------------------------------+----------+------+
+| chain_id                       | uint256  | 32   |
++--------------------------------+----------+------+
+| msg_type (1 for balance proof) | uint256  | 32   |
++--------------------------------+----------+------+
+| channel_identifier             | uint256  | 32   |
++--------------------------------+----------+------+
+| balance_hash                   | bytes32  | 32   |
++--------------------------------+----------+------+
+| nonce                          | uint256  | 32   |
++--------------------------------+----------+------+
+| additional_hash                | bytes32  | 32   |
++--------------------------------+----------+------+
 
-5. Signature
+4. Signature
 ^^^^^^^^^^^^
 
-Lastly we pack the ``balance_proof`` and sign it.::
+Lastly we pack the ``balance_proof`` and sign it, to obtain the ``signature`` field of our
+``LockedTransfer`` message::
 
     packed_balance_proof = pack(balance_proof)
-
-    0xe82ae5475589b828d3644e1b56546f93cd27d1a400000000000000000000000000000000000000000000000000000000000001510000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000053a2bc27bf596b1f55496848b46edce26b7b7b8b8561fc6783c49b8b5d6a26fc0e10000000000000000000000000000000000000000000000000000000000000001aeba3609fa01beca6b0b54f49780f301d59a8994bc0b383b2571eee0e6dacad4
-
     signature = eth_sign(privkey=private_key, data=packed_balance_proof)
-
-    0x4c9baebbaefa9a5ae6589c7764204303edc27c6186bc9ad94267fd1e9be2d3f74ddbbdb6fd0c332d6bb9943a54aa756ab3f787852a7b1ae977e5316b1b0377891c
 
 Preconditions for LockedTransfer
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -387,6 +311,136 @@ For a Locked Transfer to be considered valid there are the following conditions.
 
 .. [#PC6] If the :term:`locked amount` is increased by more, then funds may get locked in the channel. If the :term:`locked amount` is increased by less, then the recipient will reject the message as it may mean it received the funds with an on-chain unlock. The initiator will stipulate the fees based on the available routes and incorporate it in the lock's amount. Note that with permissive routing it is not possible to predetermine the exact `fee` amount, as the initiator does not know which nodes are available, thus an estimated value is used.
 .. [#PC7] If the amount is higher then the recipient will reject it, as it means he will be spending money it does not own.
+
+.. _locked-transfer-example:
+
+Example
+^^^^^^^
+
+Consider an example network of three participants **A**, **B** and **C**, where **A** has a
+channel with **B** and **B** has a channel with **C**. **A** wants to send 50 wei of a token to
+**C**, using **B** as a mediator. So he will send a ``LockedTransfer`` to **B** (recipient),
+where **C** is specified as the target. After receiving the message, **B** sends a new
+``LockedTransfer`` message to **C**.
+
+Our example accounts are:
+
++------+-----------+--------------------------------------------+------------------------------------------------------------------+
+| Name | Role      | Address                                    | Private Key                                                      |
++======+===========+============================================+==================================================================+
+|  A   | initiator | 0x540B51eDc5900B8012091cc7c83caf2cb243aa86 | 377261472824796f2c4f6a73753136587b5624777a4537503b39324a227e227d |
++------+-----------+--------------------------------------------+------------------------------------------------------------------+
+|  B   | mediator  | 0x811957b07304d335B271feeBF46754696694b09e | 7c250a70410d7245412f6d576b614d275f0b277953433250777323204940540c |
++------+-----------+--------------------------------------------+------------------------------------------------------------------+
+|  C   | target    | 0x2A915FDA69746F515b46C520eD511401d5CCD5e2 | 2e20593e0b5923294a6d6f3223604433382b782b736e3d63233c2d3a2d357041 |
++------+-----------+--------------------------------------------+------------------------------------------------------------------+
+
+Our example token is deployed at ``0x05ab44f56e36b2edff7b36801d509ca0067f3f6d``
+and the ``TokenNetwork`` contract at ``0x67b0dd5217da3f7028e0c9463fdafbf0181e1e0a``.
+
+The ``LockedTransfer`` message generated by **A** looks like this:
+
+.. code-block:: json
+
+   {
+      "message_identifier": 8492128289064395926,
+      "signature": "0xff15d4f1b8dd01638e5287af408600d7b6e6b9cd7f9d5ef5a3dd3f6fdb72d8805377d8279e202f43139ca1a8f953009868558e8247fb61f8ca879353240b503a1c",
+      "chain_id": 337,
+      "nonce": 1,
+      "transferred_amount": 0,
+      "locked_amount": 50,
+      "locksroot": "0x07fe6255272aa923234b651199a2d7a277e3b1af3156f18c3bc0ba45d27fa380",
+      "channel_identifier": 20,
+      "token_network_address": "0x67b0dd5217da3f7028e0c9463fdafbf0181e1e0a",
+      "payment_identifier": 1,
+      "token": "0x05ab44f56e36b2edff7b36801d509ca0067f3f6d",
+      "recipient": "0x2a915fda69746f515b46c520ed511401d5ccd5e2",
+      "lock": {
+         "amount": 50,
+         "expiration": 1288153,
+         "secrethash": "0xd4683a22c1ce39824d931eedc68ea8fa5259ceb03528b1a22f7075863ef8baf0"
+      },
+      "target": "0x811957b07304d335b271feebf46754696694b09e",
+      "initiator": "0x540b51edc5900b8012091cc7c83caf2cb243aa86",
+      "fee": 0,
+      "metadata": {
+         "routes": [
+            {
+               "route": [
+                  "0x2a915fda69746f515b46c520ed511401d5ccd5e2",
+                  "0x811957b07304d335b271feebf46754696694b09e"
+               ]
+            }
+         ]
+      }
+   }
+
+Let’s recapitulate how the ``signature`` in this message has been computed.
+
+The data for the ``additional hash`` is::
+
+   cmdid = 7
+   message_identifier = 8492128289064395926
+   payment_identifier = 1
+   expiration = 1288153
+   token_network_address = 0x67b0dd5217da3f7028e0c9463fdafbf0181e1e0a
+   token = 0x05ab44f56e36b2edff7b36801d509ca0067f3f6d
+   recipient = 0x2a915fda69746f515b46c520ed511401d5ccd5e2
+   target = 0x811957b07304d335b271feebf46754696694b09e
+   initiator = 0x540b51edc5900b8012091cc7c83caf2cb243aa86
+   secrethash = 0xd4683a22c1ce39824d931eedc68ea8fa5259ceb03528b1a22f7075863ef8baf0
+   amount = 50
+   fee = 0
+   metadata_hash = 0x48a094f09ca6f63f59bf2c4f226ebb95c304e06d694586b3bc81b2c627a1db5a
+
+So the packed data for the ``additional_hash`` is::
+
+   0x0775da19af88baa4960000000000000001000000000000000000000000000000000000000000000000000000000013a7d905ab44f56e36b2edff7b36801d509ca0067f3f6d2a915fda69746f515b46c520ed511401d5ccd5e2811957b07304d335b271feebf46754696694b09e540b51edc5900b8012091cc7c83caf2cb243aa86d4683a22c1ce39824d931eedc68ea8fa5259ceb03528b1a22f7075863ef8baf00000000000000000000000000000000000000000000000000000000000000032000000000000000000000000000000000000000000000000000000000000000048a094f09ca6f63f59bf2c4f226ebb95c304e06d694586b3bc81b2c627a1db5a
+
+Which yields the ``additional_hash``::
+
+   0x1fe4b4ddd491bafd7e06b2c623b65b988e5bdf4daab043ac61a22cf6ee049816
+
+The :term:`balance data` is::
+
+   transferred_amount = 0
+   locked_amount = 50
+   locksroot = 0x07fe6255272aa923234b651199a2d7a277e3b1af3156f18c3bc0ba45d27fa380
+
+In packed form::
+
+   0x0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003207fe6255272aa923234b651199a2d7a277e3b1af3156f18c3bc0ba45d27fa380
+
+Which yields the ``balance_hash``::
+
+   0x1b3d8af4b3557a84d2ac8997e869d395167cec0024c685ce1165f47aa031ec88
+
+So this is the data to sign for the signature field::
+
+   token_network_address = 0x67b0dd5217da3f7028e0c9463fdafbf0181e1e0a
+   chain_id = 337
+   msg_type = 1
+   channel_identifier = 20
+   balance_hash = 0x1b3d8af4b3557a84d2ac8997e869d395167cec0024c685ce1165f47aa031ec88
+   nonce = 1
+   additional_hash = 0x1fe4b4ddd491bafd7e06b2c623b65b988e5bdf4daab043ac61a22cf6ee049816
+
+In packed form::
+
+   0x67b0dd5217da3f7028e0c9463fdafbf0181e1e0a0000000000000000000000000000000000000000000000000000000000000151000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000141b3d8af4b3557a84d2ac8997e869d395167cec0024c685ce1165f47aa031ec8800000000000000000000000000000000000000000000000000000000000000011fe4b4ddd491bafd7e06b2c623b65b988e5bdf4daab043ac61a22cf6ee049816
+
+Signing this with **A**’s private key yields the signature in the message.
+
+.. _refund-transfer-message:
+
+Refund Transfer
+---------------
+
+The ``RefundTransfer`` message is very similiar to :ref:`LockedTransfer <locked-transfer-message>`,
+with the following differences:
+- there is no ``metadata`` field
+- when computing the ``additional_hash``, there is thus no ``metadata_hash`` field at the end of the packed data, and
+- the command id is 8 instead of 7.
 
 .. _lock-expired-message:
 
@@ -412,35 +466,34 @@ Preconditions
 Message Fields
 ^^^^^^^^^^^^^^
 
+The ``LockExpired`` message consists of an :ref:`off-chain balance proof <balance-proof-off-chain>` and the following fields:
+
 +-----------------------+----------------------+------------------------------------------------------------+
 | Field Name            | Field Type           |  Description                                               |
 +=======================+======================+============================================================+
-|  command_id           | one byte             | Value 13 indicating ``LockExpired``                        |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  pad                  | three bytes          | Contents ignored                                           |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  nonce                | uint64               | See `Offchain Balance Proof`_                              |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  chain_id             | uint256              | See `Offchain Balance Proof`_                              |
-+-----------------------+----------------------+------------------------------------------------------------+
 |  message_identifier   | uint64               | An ID for ``Delivered`` and ``Processed`` acknowledgments  |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  token_network_address| address              | See ``token_network_id`` in `Offchain Balance Proof`_      |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  channel_identifier   | uint256              | See `Offchain Balance Proof`_                              |
 +-----------------------+----------------------+------------------------------------------------------------+
 |  recipient            | address              | Destination for this hop of the transfer                   |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  locksroot            | bytes32              | See `Offchain Balance Proof`_                              |
+|  secrethash           | bytes32              | From the transfer's `HashTimeLock`_                        |
 +-----------------------+----------------------+------------------------------------------------------------+
-|  secrethash           | bytes32              | See `HashTimeLock`_                                        |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  transferred_amount   | uint256              | See `Offchain Balance Proof`_                              |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  locked_amount        | uint256              | See `Offchain Balance Proof`_                              |
-+-----------------------+----------------------+------------------------------------------------------------+
-|  signature            | 65 bytes             | Computed as in `Offchain Balance Proof`_                   |
-+-----------------------+----------------------+------------------------------------------------------------+
+
+Additional Hash
+^^^^^^^^^^^^^^^
+
+The data will be packed as follows to compute the :term:`additional hash`:
+
++-------------------------------------+-----------+---------------+
+| Field                               | Type      | Size (bytes)  |
++=====================================+===========+===============+
+| command_id (13 for ``LockExpired``) | uint8     |   1           |
++-------------------------------------+-----------+---------------+
+| message_identifier                  | uint64    |   8           |
++-------------------------------------+-----------+---------------+
+| recipient                           | address   |  20           |
++-------------------------------------+-----------+---------------+
+| secrethash                          | bytes32   |  32           |
++-------------------------------------+-----------+---------------+
 
 
 .. _secret-request-message:
@@ -458,29 +511,55 @@ Invariants
 - The :term:`target` must have received a :term:`Locked Transfer` for the payment.
 - The ``signature`` must be from the :term:`target`.
 
-Fields
-^^^^^^
+Fields and signature
+^^^^^^^^^^^^^^^^^^^^
 
-+----------------------+---------------+------------------------------------------------------------+
-| Field Name           | Field Type    |  Description                                               |
-+======================+===============+============================================================+
-|  cmdid               | one byte      | Value 3 (indicating ``Secret Request``)                    |
-+----------------------+---------------+------------------------------------------------------------+
-|  pad                 | three bytes   | Ignored                                                    |
-+----------------------+---------------+------------------------------------------------------------+
-|  message identifier  | uint64        | An ID used in ``Delivered`` and ``Processed``              |
-|                      |               | acknowledgments                                            |
-+----------------------+---------------+------------------------------------------------------------+
-|  payment_identifier  | uint64        | An identifier for the payment chosen by the initiator      |
-+----------------------+---------------+------------------------------------------------------------+
-|  lock_secrethash     | bytes32       | Specifies which lock is being unlocked                     |
-+----------------------+---------------+------------------------------------------------------------+
-|  payment_amount      | uint256       | The amount received by the node once secret is revealed    |
-+----------------------+---------------+------------------------------------------------------------+
-|  expiration          | uint256       | See `HashTimeLock`_                                        |
-+----------------------+---------------+------------------------------------------------------------+
-|  signature           | bytes         | Elliptic Curve 256k1 signature                             |
-+----------------------+---------------+------------------------------------------------------------+
+``SecretRequest`` is an :ref:`internal message <message-classes>` with the following fields plus a ``signature``
+field:
+
++----------------------+-----------+----------------------------------------------------------+
+| Field Name           | Field Type|  Description                                             |
++======================+===========+==========================================================+
+|  cmdid               | uint8     | Value 3 (indicating ``Secret Request``),                 |
++----------------------+-----------+----------------------------------------------------------+
+|  (padding)           | bytes3    | three zero bytes                                         |
++----------------------+-----------+----------------------------------------------------------+
+|  message identifier  | uint64    | An ID used in ``Delivered`` and ``Processed``            |
+|                      |           | acknowledgments                                          |
++----------------------+-----------+----------------------------------------------------------+
+|  payment_identifier  | uint64    | An identifier for the payment chosen by the initiator    |
++----------------------+-----------+----------------------------------------------------------+
+|  lock_secrethash     | bytes32   | Specifies which lock is being unlocked                   |
++----------------------+-----------+----------------------------------------------------------+
+|  payment_amount      | uint256   | The amount received by the node once secret is revealed  |
++----------------------+-----------+----------------------------------------------------------+
+|  expiration          | uint256   | See `HashTimeLock`_                                      |
++----------------------+-----------+----------------------------------------------------------+
+
+The ``signature`` is obtained by signing the data packed in this format.
+
+Example
+^^^^^^^
+
+In the above :ref:`example <locked-transfer-example>` of a mediated transfer, **C** will send a
+secret request to **A**. The data to sign would be::
+
+   cmdid = 0x03
+   padding = 0x000000
+   message_identifier = 8492128289064395926
+   payment_identifier = 1
+   secrethash = 0xd4683a22c1ce39824d931eedc68ea8fa5259ceb03528b1a22f7075863ef8baf0
+   amount = 50
+   expiration = 1288153
+
+In packed form::
+
+   0x0300000075da19af88baa4960000000000000001d4683a22c1ce39824d931eedc68ea8fa5259ceb03528b1a22f7075863ef8baf00000000000000000000000000000000000000000000000000000000000000032000000000000000000000000000000000000000000000000000000000013a7d9
+
+Signing this with **C**'s private key yields::
+
+   0xfc3c0cd04b339936bb0001a8aff196b767ed49d8eaa3a57e53121f7077584846390c843bc16a04fab8d6e9f9f80004663e183899441a4f7a4e1509e9cdada7351c
+
 
 .. _reveal-secret-message:
 
@@ -489,23 +568,25 @@ Reveal Secret
 
 Message used by the nodes to inform others that the :term:`secret` is known. Used to request an updated :term:`balance proof` with the :term:`transferred amount` increased and the lock removed.
 
-Fields
-^^^^^^
+Fields and signature
+^^^^^^^^^^^^^^^^^^^^
 
-+----------------------+---------------+------------------------------------------------------------+
-| Field Name           | Field Type    |  Description                                               |
-+======================+===============+============================================================+
-|  cmdid               | one byte      | Value 11 (indicating ``Reveal Secret``)                    |
-+----------------------+---------------+------------------------------------------------------------+
-|  pad                 | three bytes   | Ignored                                                    |
-+----------------------+---------------+------------------------------------------------------------+
-|  message_identifier  | uint64        | An ID use in ``Delivered`` and ``Processed``               |
-|                      |               | acknowledgments                                            |
-+----------------------+---------------+------------------------------------------------------------+
-|  lock_secret         | bytes32       | The secret that unlocks the lock                           |
-+----------------------+---------------+------------------------------------------------------------+
-|  signature           | bytes         | Elliptic Curve 256k1 signature                             |
-+----------------------+---------------+------------------------------------------------------------+
+``RevealSecret`` is an :ref:`internal message <message-classes>` with the following fields plus a ``signature`` field:
+
++----------------------+-----------+------------------------------------------------------------+
+| Field Name           | Field Type|  Description                                               |
++======================+===========+============================================================+
+|  cmdid               | uint8     | Value 11 (indicating ``Reveal Secret``)                    |
++----------------------+-----------+------------------------------------------------------------+
+|  (padding)           | bytes3    | three zero bytes.                                          |
++----------------------+-----------+------------------------------------------------------------+
+|  message_identifier  | uint64    | An ID use in ``Delivered`` and ``Processed``               |
+|                      |           | acknowledgments                                            |
++----------------------+-----------+------------------------------------------------------------+
+|  lock_secret         | bytes32   | The secret that unlocks the lock                           |
++----------------------+-----------+------------------------------------------------------------+
+
+The ``signature`` is obtained by signing the data packed in this format.
 
 .. _unlock-message:
 
@@ -526,46 +607,43 @@ Invariants
 Fields
 ^^^^^^
 
+The ``Unlock`` message consists of an :ref:`off-chain balance proof <balance-proof-off-chain>` and the following fields:
+
 +----------------------+------------------------+------------------------------------------------------------+
 | Field Name           | Field Type             |  Description                                               |
 +======================+========================+============================================================+
-|  cmdid               | one byte               | Value 4 indicating Unlock                                  |
-+----------------------+------------------------+------------------------------------------------------------+
-|  pad                 | three bytes            | Ignored                                                    |
-+----------------------+------------------------+------------------------------------------------------------+
-|  chain_identifier    | uint256                | See :ref:`balance-proof-offchain`                          |
-+----------------------+------------------------+------------------------------------------------------------+
 |  message_identifier  | uint64                 | An ID used in ``Delivered`` and ``Processed``              |
 |                      |                        | acknowledgments                                            |
 +----------------------+------------------------+------------------------------------------------------------+
 |  payment_identifier  | uint64                 | An identifier for the :term:`Payment` chosen by the        |
 |                      |                        | :term:`Initiator`                                          |
 +----------------------+------------------------+------------------------------------------------------------+
-| token network        | address                | See :ref:`balance-proof-offchain`                          |
-| identifier           |                        |                                                            |
-+----------------------+------------------------+------------------------------------------------------------+
 |  lock_secret         | bytes32                | The secret that unlocked the lock                          |
 +----------------------+------------------------+------------------------------------------------------------+
-|  nonce               | uint64                 | See :ref:`balance-proof-offchain`                          |
-+----------------------+------------------------+------------------------------------------------------------+
-|  channel_identifier  | uint256                | See :ref:`balance-proof-offchain`                          |
-+----------------------+------------------------+------------------------------------------------------------+
-|  transferred amount  | uint256                | See :ref:`balance-proof-offchain`                          |
-+----------------------+------------------------+------------------------------------------------------------+
-|  locked amount       | uint256                | See :ref:`balance-proof-offchain`                          |
-+----------------------+------------------------+------------------------------------------------------------+
-|  lockedsroot         | bytes32                | See :ref:`balance-proof-offchain`                          |
-+----------------------+------------------------+------------------------------------------------------------+
-|  signature           | bytes                  | See :ref:`balance-proof-offchain`. Note ``additional_hash``|
-|                      |                        | is the hash of the whole message                           |
-+----------------------+------------------------+------------------------------------------------------------+
+
+Additional Hash
+^^^^^^^^^^^^^^^
+
+The data is packed as follows to compute the :term:`additional hash`:
+
++-------------------------------+-----------+---------------+
+| Field                         | Type      | Size (bytes)  |
++===============================+===========+===============+
+| command_id (4 for ``Unlock``) | uint8     |   1           |
++-------------------------------+-----------+---------------+
+| message_identifier            | uint64    |   8           |
++-------------------------------+-----------+---------------+
+| recipient                     | address   |  20           |
++-------------------------------+-----------+---------------+
+| secrethash                    | bytes32   |  32           |
++-------------------------------+-----------+---------------+
 
 .. _withdraw-request-message:
 
 Withdraw Request
 --------------------
 
-Message used by the a channel participant node to request the other participant signature on a new increased ``total_withdraw`` value.
+This message is used by a channel participant node to request the other participant's signature on a new increased ``total_withdraw`` value.
 
 Preconditions
 ^^^^^^^^^^^^^
@@ -580,19 +658,27 @@ Preconditions
 - The message sender address must be the same as ``participant``.
 - The ``signature`` must be from the :term:`sender` of the request.
 
-Fields
-^^^^^^
+Fields and signature
+^^^^^^^^^^^^^^^^^^^^
+
+The table below specifies the format in which a ``WithdrawRequest`` is packed to compute
+the signature.
+
+In addition to the signed fields listed below, the message has:
+
+- a ``nonce`` field
+- a ``message_identifier`` used for ``Processed`` and ``Delivered`` acknowledgements.
 
 +-------------------------------+---------------+----------------------------------------------------------------+
 | Field Name                    | Field Type    |  Description                                                   |
 +===============================+===============+================================================================+
-|  cmdid                        | one byte      | Value 15 (indicating ``Withdraw Request``)                     |
+|  token network address        | address       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  chain identifier             | uint256       | See :ref:`balance-proof-offchain`                              |
+|  chain identifier             | uint256       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  channel identifier           | uint256       | See :ref:`balance-proof-offchain`                              |
+|  message type                 | uint256       | 3 for withdraw messages                                        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  token network address        | address       | See :ref:`balance-proof-offchain`                              |
+|  channel identifier           | uint256       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  message identifier           | uint64        | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
 +-------------------------------+---------------+----------------------------------------------------------------+
@@ -602,17 +688,6 @@ Fields
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  expiration                   | uint256       | The block number at which withdraw request is no longer        |
 |                               |               | usable on-chain.                                               |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  nonce                        | uint64        | See :ref:`balance-proof-offchain`                              |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  signature                    | bytes         | Elliptic Curve 256k1 signature                                 |
-|                               |               | Signed data:                                                   |
-|                               |               | - Chain identifier                                             |
-|                               |               | - Message type, 3 for withdraw                                 |
-|                               |               | - Channel identifier                                           |
-|                               |               | - Participant (address of the withdraw requesting node)        |
-|                               |               | - Total withdraw                                               |
-|                               |               | - Expiration block number                                      |
 +-------------------------------+---------------+----------------------------------------------------------------+
 
 .. _withdraw-confirmation-message:
@@ -638,18 +713,25 @@ Preconditions
 Fields
 ^^^^^^
 
+The table below specifies the format in which a ``WithdrawConfirmation`` message is packed to be
+signed. The signatures of both channel participants are needed for the call to the smart contract's
+``setTotalWithdraw`` function.
+
+In addition to the signed fields listed below, the message has:
+
+- a ``nonce`` field
+- a ``message_identifier`` used for ``Processed`` and ``Delivered`` acknowledgements.
+
 +-------------------------------+---------------+----------------------------------------------------------------+
 | Field Name                    | Field Type    |  Description                                                   |
 +===============================+===============+================================================================+
-|  cmdid                        | one byte      | Value 16 (indicating ``Withdraw Confirmation``)                |
+|  token network address        | address       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  chain identifier             | uint256       | See :ref:`balance-proof-offchain`                              |
+|  chain identifier             | uint256       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  channel identifier           | uint256       | See :ref:`balance-proof-offchain`                              |
+|  message type                 | uint256       | 3 for withdraw messages                                        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  token network address        | address       | See :ref:`balance-proof-offchain`                              |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  message identifier           | uint64        | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
+|  channel identifier           | uint256       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  participant                  | address       | The address of the withdraw requesting node                    |
 +-------------------------------+---------------+----------------------------------------------------------------+
@@ -658,18 +740,14 @@ Fields
 |  expiration                   | uint256       | The block number at which withdraw request is no longer        |
 |                               |               | usable on-chain.                                               |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  nonce                        | uint64        | See :ref:`balance-proof-offchain`                              |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  signature                    | bytes         | Elliptic Curve 256k1 signature                                 |
-|                               |               | Signed data: see :ref:`withdraw-request-message`               |
-+-------------------------------+---------------+----------------------------------------------------------------+
 
 .. _withdraw-expired-message:
 
 Withdraw Expired
 -------------------
 
-Message used by the withdraw-requesting node to inform the partner that the earliest-requested, non-confirmed withdraw has expired.
+This message is used by the withdraw-requesting node to inform the partner that the
+earliest-requested, non-confirmed withdraw has expired.
 
 Preconditions
 ^^^^^^^^^^^^^
@@ -686,16 +764,24 @@ Preconditions
 Fields
 ^^^^^^
 
+The table below specifies the format in which ``WithdrawExpired`` is packed to compute its
+signature.
+
+In addition to the signed fields listed below, the message has:
+
+- a ``nonce`` field
+- a ``message_identifier`` used for ``Processed`` and ``Delivered`` acknowledgements.
+
 +-------------------------------+---------------+----------------------------------------------------------------+
 | Field Name                    | Field Type    |  Description                                                   |
 +===============================+===============+================================================================+
-|  cmdid                        | one byte      | Value 17 (indicating ``Withdraw Expired``)                     |
+|  token network address        | address       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  chain identifier             | uint256       | See :ref:`balance-proof-offchain`                              |
+|  chain identifier             | uint256       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  channel identifier           | uint256       | See :ref:`balance-proof-offchain`                              |
+|  message type                 | uint256       | 3 for withdraw messages                                        |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  token network address        | address       | See :ref:`balance-proof-offchain`                              |
+|  channel identifier           | uint256       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  message identifier           | uint64        | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
 +-------------------------------+---------------+----------------------------------------------------------------+
@@ -703,13 +789,8 @@ Fields
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  total_withdraw               | uint256       | The new monotonic ``total_withdraw`` value                     |
 +-------------------------------+---------------+----------------------------------------------------------------+
-|  expiration                   | uint256       | The block number at which withdraw request is no longer        |
+|  expiration                   | uint256       | The block number at which the withdraw request is no longer    |
 |                               |               | usable on-chain.                                               |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  nonce                        | uint64        | See :ref:`balance-proof-offchain`                              |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  signature                    | bytes         | Elliptic Curve 256k1 signature                                 |
-|                               |               | Signed data: see :ref:`withdraw-request-message`               |
 +-------------------------------+---------------+----------------------------------------------------------------+
 
 .. _processed-delivered-message:
@@ -717,41 +798,30 @@ Fields
 Processed/Delivered
 --------------------
 
-The ``Processed`` and ``Delivered`` message is sent to let other parties in a transfer know that
+The ``Processed`` and ``Delivered`` messages are sent to let other parties in a transfer know that
 a message has been processed/received.
 
-Fields
-^^^^^^
-+-------------------------------+---------------+----------------------------------------------------------------+
-| Field Name                    | Field Type    |  Description                                                   |
-+===============================+===============+================================================================+
-|  cmdid                        | one byte      | Value 0 for ``Processed``, 12 for ``Delivered``                |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  pad                          | 3 bytes       | ignored                                                        |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  message_identifier           | uint64        | The identifier of the message that has been processed.         |
-+-------------------------------+---------------+----------------------------------------------------------------+
+Fields and signature
+^^^^^^^^^^^^^^^^^^^^
+
+``Processed`` and ``Delivered`` are :ref:`internal messages <message-classes>` with the following
+fields plus a ``signature``:
+
++-------------------------------+-----------+----------------------------------------------------+
+| Field Name                    | Field Type|  Description                                       |
++===============================+===========+====================================================+
+|  cmdid                        | uint8     | Value 0 for ``Processed`` or 12 for ``Delivered``  |
++-------------------------------+-----------+----------------------------------------------------+
+|  (padding)                    | bytes3    | three zero bytes                                   |
++-------------------------------+-----------+----------------------------------------------------+
+|  message_identifier           | uint64    | The identifier of the processed/delivered message. |
++-------------------------------+-----------+----------------------------------------------------+
+
+The ``signature`` is obtained by signing the data packed in this format.
+
 
 References
 ==========
-
-Locked transfer example
------------------------
-
-All the examples in the :ref:`locked transfer <locked-transfer-message>` section are made using
-three predefined accounts, so that you can replicate the results and verify:
-
-+----+--------------------------------------------+------------------------------------------------------------------+
-| No | Address                                    | Private Key                                                      |
-+----+--------------------------------------------+------------------------------------------------------------------+
-| 1  | 0x540B51eDc5900B8012091cc7c83caf2cb243aa86 | 377261472824796f2c4f6a73753136587b5624777a4537503b39324a227e227d |
-+----+--------------------------------------------+------------------------------------------------------------------+
-| 2  | 0x811957b07304d335B271feeBF46754696694b09e | 7c250a70410d7245412f6d576b614d275f0b277953433250777323204940540c |
-+----+--------------------------------------------+------------------------------------------------------------------+
-| 3  | 0x2A915FDA69746F515b46C520eD511401d5CCD5e2 | 2e20593e0b5923294a6d6f3223604433382b782b736e3d63233c2d3a2d357041 |
-+----+--------------------------------------------+------------------------------------------------------------------+
-
-The sender of the message should be computable from ``signature`` so is not included in the message.
 
 Message fromat specifications
 -----------------------------
