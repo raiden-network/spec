@@ -64,11 +64,13 @@ The other fundamental relations are:
 - :math:`a - {fee}_{in} = c`
 - :math:`c - {fee}_{out} = b`
 
-The imbalance fee :math:`i(x)` is defined as follows, where :math:`t` is the total channel balance and :math:`IP(x)` is the imbalance penalty function.
+The imbalance fee :math:`i(x)` is defined as follows, where :math:`t` is the channel capacity, :math:`x` is the transferred amount and :math:`IP(x)` is the imbalance penalty function.
 
 .. math::
 
     i(x) = IP(t + x) - IP(t)
+
+In (1) we pass the negative amount to :math:`i` because the incoming channel's balance is decreased by the transfer, while it is increased for outgoing channel in (2) .
 
 
 .. note::
