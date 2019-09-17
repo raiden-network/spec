@@ -42,11 +42,13 @@ easier to let them define a *per-hop* proportional mediation fee (called
 
 .. math::
 
-    b(1+p) = b + bq + bq(1+p)  \\
-    (1+p) = 1 + q + q(1+p)  \\
-    q + q(1+p) = p \\
-    q(2+p) = p \\
-    q = \frac{p}{2+p}
+    \begin{split}
+    b(1+p) &= b + bq + bq(1+p)  \\
+    (1+p) &= 1 + q + q(1+p)  \\
+    q + q(1+p) &= p \\
+    q(2+p) &= p \\
+    q &= \frac{p}{2+p}
+    \end{split}
 
 Fee calculation
 ===============
@@ -90,8 +92,10 @@ From (2) follows:
 
 .. math::
 
-    c = b + bq + f + i(b) \\
-    b = \frac{c - f - i(b)}{1+q}
+    \begin{split}
+    c &= b + bq + f + i(b) \\
+    b &= \frac{c - f - i(b)}{1+q}
+    \end{split}
 
 This leads to
 
