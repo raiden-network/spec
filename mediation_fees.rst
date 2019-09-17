@@ -53,7 +53,7 @@ Fee calculation
 
 There are two fundamental formula to relate :math:`a`, :math:`b` and :math:`c`.
 
-1. :math:`a = c + aq + f + i(a)`
+1. :math:`a = c + aq + f + i(-a)`
 
 2. :math:`c = b + bq + f + i(b)`
 
@@ -84,7 +84,7 @@ From (1) follows:
 
 .. math::
 
-    {fee}_{in} = a - c = qa + f + i(a)
+    {fee}_{in} = a - c = qa + f + i(-a)
 
 From (2) follows:
 
@@ -122,13 +122,13 @@ From (1) follows:
 
 .. math::
 
-    {fee}_{in} = a - c = \frac{c + f + i(a)}{1-q} - c
+    {fee}_{in} = a - c = \frac{c + f + i(-a)}{1-q} - c
 
-Here the same approximation approach is used for the imbalance fee. The approximation :math:`i(a')` with :math:`a' = \frac{c + f}{1+q}` is used in the symbolic solution.
+Here the same approximation approach is used for the imbalance fee. The approximation :math:`i(-a')` with :math:`a' = \frac{c + f}{1+q}` is used in the symbolic solution.
 
 .. math::
 
-    {fee}_{in} = a - c \approx \frac{c + f + i(a')}{1-q} - c
+    {fee}_{in} = a - c \approx \frac{c + f + i(-a')}{1-q} - c
 
 
 
