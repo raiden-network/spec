@@ -6,10 +6,64 @@ Overview
 
 Mediation fees are used to incentivize people to mediate payments. There are (currently) three components:
 
-- Flat fees
-- Proportional fees
-- Imbalance penalty fees
+- **Flat fees**:
+  absolute fees paid per mediation.
+- **Proportional fees**:
+  fees that grows proportionally to the mediated amount
+- **Imbalance fees**:
+  fees that can be both positive or negative, which are used incentivize mediations which put the channels into a state desired by the mediator.
 
+Each of these fees is calculated by the mediator for both the incoming and outgoing channel. The sum of all fee components for both channels is the total mediation fee for a single mediator.
+
+For an explanation why this fee system has been chosen, please consult the `architectural decision record`_.
+
+.. _architectural decision record: https://github.com/raiden-network/raiden-services/blob/master/adr/003-mediation-fees.md
+
+Imbalance Fees
+==============
+
+The imbalance fee is calculated from an Imbalance Penalty (IP) function. :math:`\mathit{IP}(\mathit{cap})` describes how much a node is willing to pay to bring a channel from the capacity :math:`\mathit{cap}` into it's preferred capacity.
+
+Mediators can choose arbitrary IP functions to describe which channel capacities are preferable for them and how important that is to them. If a node prefers to have a channel capacity of 5 while the total capacity of that channel is 10 (so that it could mediate up to 5 tokens in both directions) the IP function might look like
+
+::
+
+   IP
+   ^
+   |X                     X
+   |X                     X
+   | X                   X
+   | X                   X
+   |  X                 X
+   |   X               X|
+   |    X             X |
+   |     X           X  |dIP = IP(cap_after) - IP(cap_before)
+   |      XX       XX   |
+   |        XX   XX----->
+   |          XXX  amount
+   +-----------+--+-----+--> Capacity
+   0           5  6     9
+
+If the node currently has a capacity of 6 and is asked to mediate a payment of 3 tokens coming from this channel, it will get into the less desired position of 9 capacity. To compensate for this, it will demand an imbalance fee of :math:`i = \mathit{IP}(9) - \mathit{IP}(6)`. If the situation was reversed and the capacity would go from 9 to 6, the absolute value would be the same, but this time it would be negative and thus incentivize moving towards the preferred state. By viewing the channel balances in this way, the imbalance fee is a zero sum game in the long term. All tokens which are earned by going into a bad state will be spent for moving into a good state again, later.
+
+The flexible shape of the IP function allows to encode many different mediator intentions. If I use a channel solely to pay (apart from mediation), having more free capacity is always desired and any capacity gained by mediating in the reverse direction is welcome. In that case, the IP function could look like
+
+::
+
+   IP
+   ^
+   |X
+   |X
+   | X
+   |  X
+   |   XX
+   |     XX
+   |       XX
+   |         XX
+   |           XX
+   |             XXX
+   |                XXX
+   +------------------------> Capacity
 
 Nomenclature
 ============
@@ -64,11 +118,11 @@ The other fundamental relations are:
 - :math:`a - {fee}_{in} = c`
 - :math:`c - {fee}_{out} = b`
 
-The imbalance fee :math:`i(x)` is defined as follows, where :math:`t` is the channel capacity, :math:`x` is the transferred amount and :math:`IP(x)` is the imbalance penalty function.
+The imbalance fee :math:`i(x)` is defined as follows, where :math:`t` is the channel capacity, :math:`x` is the transferred amount and :math:`\mathit{IP}(\mathit{capacity})` is the imbalance penalty function.
 
 .. math::
 
-    i(x) = IP(t + x) - IP(t)
+    i(x) = \mathit{IP}(t + x) - \mathit{IP}(t)
 
 In (1) we pass the negative amount to :math:`i` because the incoming channel's balance is decreased by the transfer, while it is increased for outgoing channel in (2) .
 
