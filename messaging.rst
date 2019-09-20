@@ -190,8 +190,14 @@ an :ref:`off-chain balance proof <balance-proof-off-chain>` and the following:
 +-----------------------+------------+-----------------------------------------------------------+
 |  fee                  | uint256    | Total available fee for remaining mediators               |
 +-----------------------+------------+-----------------------------------------------------------+
+|  metadata             | object     | Routing information                                       |
++-----------------------+------------+-----------------------------------------------------------+
 
-In addition there is a ``metadata`` field with a list of possible routes for the transfer.
+The ``metadata`` is a JSON object, which contains routing information under the key ``routes``.
+The value of ``routes`` must be a list of **route metadata objects**. Each route metadata object
+is again a json object with a key named ``route``, under which a list of ethereum addresses
+can be found. (EIP55-checksum addresses with ``0x``-prefix as usual). The last of the addresses
+in each list must be the target of the transfer, the former the desired mediators in order.
 
 1. Additional Hash
 ^^^^^^^^^^^^^^^^^^
@@ -227,6 +233,12 @@ The data will be packed as follows to compute the :term:`additional hash`:
 +--------------------------------------+---------+-------------+
 | metadata_hash                        | bytes32 |  32         |
 +--------------------------------------+---------+-------------+
+
+The ``metadata_hash`` is defined using `RLP <https://github.com/ethereum/wiki/wiki/RLP>`__.
+It is given as::
+
+    metadata_hash = sha3(rlp(list of route_hashes))
+    route_hash = sha3(rlp(list of addresses in binary form))
 
 This will be used to generate the the data field called ``additional_hash``, which is a required
 part of the process to create the message signature. It is computed as the ``keccak256``-hash
