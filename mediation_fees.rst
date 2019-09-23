@@ -9,7 +9,7 @@ Mediation fees are used to incentivize people to mediate payments. There are (cu
 - **Flat fees**:
   absolute fees paid per mediation.
 - **Proportional fees**:
-  fees that grows proportionally to the mediated amount
+  fees that grows proportionally to the mediated amount.
 - **Imbalance fees**:
   fees that can be both positive or negative, which are used incentivize mediations which put the channels into a state desired by the mediator.
 
@@ -22,7 +22,7 @@ For an explanation why this fee system has been chosen, please consult the `arch
 Imbalance Fees
 ==============
 
-The imbalance fee is calculated from an Imbalance Penalty (IP) function. :math:`\mathit{IP}(\mathit{cap})` describes how much a node is willing to pay to bring a channel from the capacity :math:`\mathit{cap}` into it's preferred capacity.
+The imbalance fee is calculated from an Imbalance Penalty (IP) function. :math:`\mathit{IP}(\mathit{cap})` describes how much a node is willing to pay to bring a channel from the capacity :math:`\mathit{cap}` into its preferred capacity.
 
 Mediators can choose arbitrary IP functions to describe which channel capacities are preferable for them and how important that is to them. If a node prefers to have a channel capacity of 5 while the total capacity of that channel is 10 (so that it could mediate up to 5 tokens in both directions) the IP function might look like
 
