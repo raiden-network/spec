@@ -16,11 +16,11 @@ Mediator2 -> Target: LockedTransfer(MSG) \n (HTL, BP_M2_1, initiator_address,\n 
 Target -> Initiator: SecretRequest(MSG) \n (amount, secrethash,\n signature)
 Initiator -> Target: RevealSecret(MSG) \n (secret, signature)
 Target -> Mediator2: RevealSecret(MSG) \n (secret, signature)
-Mediator2 -> Target: Secret(MSG) BP_M2_2
+Mediator2 -> Target: Unlock(MSG) BP_M2_2
 Mediator2 -> Mediator1: RevealSecret(MSG) \n (secret, signature)
-Mediator1 -> Mediator2: Secret(MSG) BP_M1_2
+Mediator1 -> Mediator2: Unlock(MSG) BP_M1_2
 Mediator1 -> Initiator: RevealSecret(MSG) \n (secret, signature)
-Initiator -> Mediator1: Secret(MSG) BP_I_2
+Initiator -> Mediator1: Unlock(MSG) BP_I_2
 
 Note over Mediator1: BP_I_2 (nonce=6, transferred=20,\n locked=5 locksroot_0)
 
