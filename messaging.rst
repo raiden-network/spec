@@ -450,6 +450,7 @@ Refund Transfer
 
 The ``RefundTransfer`` message is very similiar to :ref:`LockedTransfer <locked-transfer-message>`,
 with the following differences:
+
 - there is no ``metadata`` field
 - when computing the ``additional_hash``, there is thus no ``metadata_hash`` field at the end of the packed data, and
 - the command id is 8 instead of 7.
