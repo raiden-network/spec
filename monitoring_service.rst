@@ -208,8 +208,8 @@ A Monitor Request consists of a the following fields:
 |  reward_proof_signature  | string     | Signature of the reward proof data.                                            |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 
-- The balance proof and its signature are described in the `Balance Proof specification`__.
-- The creation of the ``non_closing_signature`` is specified in the `Balance Proof Update specification`__.
+- The balance proof and its signature are described in the :ref:`Balance Proof specification <balance-proof-on-chain>`.
+- The creation of the ``non_closing_signature`` is specified in the :ref:`Balance Proof Update specification <balance-proof-update-on-chain>`.
 - The ``reward_proof_signature`` is specified below.
 
 All of this fields are required. Monitoring Service MUST perform verification of these data, namely channel
@@ -270,7 +270,3 @@ Fields
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 | signature             | bytes      | Elliptic Curve 256k1 signature on the above data from participant paying the reward        |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
-
-
-__ https://raiden-network-specification.readthedocs.io/en/latest/smart_contracts.html#balance-proof-on-chain
-__ https://raiden-network-specification.readthedocs.io/en/latest/smart_contracts.html#balance-proof-update-on-chain
