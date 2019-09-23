@@ -19,7 +19,7 @@ A mediated transfer may be cancelled and can expire until the initiator reveals 
 Mediated Transfers
 ==================
 
-A :term:`mediated transfer` is a hash-time-locked transfer. Currently raiden supports only one type of lock. The lock has an amount that is being transferred, a :term:`secrethash` used to verify the secret that unlocks it, and a :term:`lock expiration` to determine its validity.
+A :term:`mediated transfer` is a hash-locked transfer. Currently Raiden supports only one type of lock, a :term:`hash time lock`. This lock has an amount that is being transferred, a :term:`secrethash` used to verify the secret that unlocks it, and a :term:`lock expiration` to determine its validity.
 
 Mediated transfers have an :term:`initiator` and a :term:`target` and a number of mediators in between. Assuming ``N`` number of mediators, a mediated transfer will require ``10N + 16`` messages to complete. These are:
 
