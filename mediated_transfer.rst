@@ -62,7 +62,7 @@ Mediated Transfer - Happy Path Scenario
 
 In the happy path scenario, all Raiden nodes are online and send the final balance proofs off-chain.
 
-.. image:: diagrams/RaidenClient_mediated_transfer_good.png
+.. image:: diagrams/RaidenClient_mediated_transfer_good.svg
     :alt: Mediated Transfer Good Behaviour
     :width: 900px
 
@@ -71,7 +71,7 @@ Mediated Transfer - Unhappy Path Scenario
 
 In case a Raiden node goes offline or does not send the final balance proof to its payee, then the payee can register the ``secret`` on-chain, in the ``SecretRegistry`` smart contract before the ``secret`` expires. This can be used to ``unlock`` the lock on-chain after the channel is settled.
 
-.. image:: diagrams/RaidenClient_mediated_transfer_secret_reveal.png
+.. image:: diagrams/RaidenClient_mediated_transfer_secret_reveal.svg
     :alt: Mediated Transfer Bad Behaviour
     :width: 900px
 
