@@ -339,21 +339,51 @@ Fields
 +--------------------------+------------+--------------------------------------------------------------------------------+
 | reveal_timeout           | uint256    | Reveal timeout of this channel                                                 |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-| signature                | bytes      | Elliptic Curve 256k1 signature on the above data                               |
-+--------------------------+------------+--------------------------------------------------------------------------------+
 
 Signature
 ^^^^^^^^^
 
-The signature of the message is calculated by:
+The signature is created by using ``ecdsa_recoverable`` on the fields in the order given above and stored in the ``signature`` field.
 
-::
-
-    ecdsa_recoverable(privkey, sha3_keccak(chain_id || token_network_address || channel_identifier || updating_participant || other_participant || updating_nonce || other_nonce || updating_capacity || other_capacity || reveal_timeout))
-
-All of this fields are required. The Pathfinding Service MUST perform verification of these data, namely channel
+All of these fields are required. The Pathfinding Service MUST perform verification of these data, namely channel
 existence. A Pathfinding service SHOULD accept the message if and only if the sender of the message is same as the sender
 address recovered from the signature.
+
+Fee Update
+^^^^^^^^^^
+
+``PFSFeeUpdate``\s are broadcast by the Raiden Client to Pathfinding Services in order to let them know about updated
+mediation fee schedules.
+
+Fields
+""""""
+
++-------------------------------+---------------+-------------------------------------------------------------------------+
+| Field Name                    | Field Type    |  Description                                                            |
++===============================+===============+=========================================================================+
+| chain_id                      | uint256       | Chain identifier as defined in EIP155                                   |
++-------------------------------+---------------+-------------------------------------------------------------------------+
+| token_network_identifier      | address       | Address of the TokenNetwork contract                                    |
++-------------------------------+---------------+-------------------------------------------------------------------------+
+| channel_identifier            | uint256       | Channel identifier inside the TokenNetwork contract                     |
++-------------------------------+---------------+-------------------------------------------------------------------------+
+| updating_participant          | address       | Channel participant who sends the balance update                        |
++-------------------------------+---------------+-------------------------------------------------------------------------+
+| fee_schedule.flat             | uint256       | Flat mediation fee in Wei of the mediated token                         |
++-------------------------------+---------------+-------------------------------------------------------------------------+
+| fee_schedule.proportional     | uint256       | Proportional mediation fee as parts-per-million of the mediated token   |
++-------------------------------+---------------+-------------------------------------------------------------------------+
+| fee_schedule.imbalance_penalty| array of [int,| (capacity, penalty) pairs for the IP function.                          |
+|                               | int] pairs    | This is RLP encoded in the signature.                                   |
++-------------------------------+---------------+-------------------------------------------------------------------------+
+| timestamp                     | string        | Current UTC date and time in ISO 8601 format                            |
+|                               |               | (e.g. 2019-02-25T12:53:16Z)                                             |
++-------------------------------+---------------+-------------------------------------------------------------------------+
+
+Signature
+^^^^^^^^^
+
+The signature is created by using ``ecdsa_recoverable`` on the fields in the order given above and stored in the ``signature`` field.
 
 
 Routing feedback
