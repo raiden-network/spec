@@ -288,29 +288,29 @@ Returns
 * HTTP 400 when feedback was not accepted
 
 Network Topology Updates
-------------------------
+========================
 
 The creation of new token networks can be followed by listening for:
-- `TokenNetworkCreated` events on the `TokenNetworksRegistry` contract.
+- ``TokenNetworkCreated`` events on the ``TokenNetworksRegistry`` contract.
 
 To learn about updates of the network topology of a token network the PFS must
 listen for the following events:
 
-- `ChannelOpenened`: Update the network to include the new channel
-- `ChannelClosed`: Remove the channel from the network
+- ``ChannelOpenened``: Update the network to include the new channel
+- ``ChannelClosed``: Remove the channel from the network
 
 
-Capacity Updates (Graph Weights)
----------------------------------------
+Capacity and Fee Updates
+========================
 Updates for channel capacities and fees are published over a public matrix room. Path finding services can pick these
 capacity updates from there and update the topology represented internally.
 The Raiden nodes that want to earn fees mediating payments would be incentivized to publish their capacity updates in
 order to provide a path.
 
-Balance Update
-^^^^^^^^^^^^^^
+Capacity Update
+^^^^^^^^^^^^^^^
 
-Balance Updates are messages that the Raiden client broadcasts to Pathfinding Services in order to let them know about updated
+``PFSCapacityUpdate``\s are messages that the Raiden client broadcasts to Pathfinding Services in order to let them know about updated
 channel balances.
 
 Fields
