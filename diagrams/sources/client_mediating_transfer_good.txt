@@ -3,25 +3,58 @@ participant Mediator1
 participant Mediator2
 participant Target
 
-Note over Initiator: Wants to transfer \n 10 tokens to Target
+Note over Initiator: Wants to transfer\n10 tokens to Target
 
-Note over Mediator1: BP_I_0 (nonce=4, transferred=10,\n locked=5 locksroot_0)
+Note over Mediator1: BP_I_0\n(nonce=4,\ntransferred=10,\nlocked=5,\nlocksroot_0)
 
-Initiator -> Mediator1: LockedTransfer(MSG) \n (HTL, BP_I_1, initiator_address,\n target_address)
+Initiator -> Mediator1: LockedTransfer\n(HTL, BP_I_1,\ninitiator_address,\n target_address, id:1)
+Mediator1 -> Initiator: Delivered (ref:1)
+Mediator1 -> Initiator: Processed (ref:1, id:2)
+Note over Mediator1: BP_I_1\n(nonce=5,\ntransferred=10,\nlocked=15,\nlocksroot_1)
+Initiator -> Mediator1: Delivered (ref:2)
 
-Note over Mediator1: BP_I_1 (nonce=5, transferred=10,\n locked=15 locksroot_1)
 
-Mediator1 -> Mediator2: LockedTransfer(MSG) \n (HTL, BP_M1_1, initiator_address,\n target_address)
-Mediator2 -> Target: LockedTransfer(MSG) \n (HTL, BP_M2_1, initiator_address,\n target_address)
-Target -> Initiator: SecretRequest(MSG) \n (amount, secrethash,\n signature)
-Initiator -> Target: RevealSecret(MSG) \n (secret, signature)
-Target -> Mediator2: RevealSecret(MSG) \n (secret, signature)
-Mediator2 -> Target: Unlock(MSG) BP_M2_2
-Mediator2 -> Mediator1: RevealSecret(MSG) \n (secret, signature)
-Mediator1 -> Mediator2: Unlock(MSG) BP_M1_2
-Mediator1 -> Initiator: RevealSecret(MSG) \n (secret, signature)
-Initiator -> Mediator1: Unlock(MSG) BP_I_2
 
-Note over Mediator1: BP_I_2 (nonce=6, transferred=20,\n locked=5 locksroot_0)
+Mediator1 -> Mediator2: LockedTransfer\n(HTL, BP_M1_1,\ninitiator_address,\n target_address, id:3)
+Mediator2 -> Mediator1: Delivered (ref:3)
+Mediator2 -> Mediator1: Processed (ref:3, id:4)
+Mediator1 -> Mediator2: Delivered (ref:4)
 
-Note over Mediator1: locked, locksroot can vary \n if there are other pending transfers
+Mediator2 -> Target: LockedTransfer\n(HTL, BP_M2_1,\ninitiator_address,\n target_address, id:5)
+Target -> Mediator2: Delivered (ref:5)
+Target -> Mediator2: Processed (ref:5, id:6)
+Mediator2 -> Target: Delivered (ref:6) 
+
+
+Target -> Initiator: SecretRequest (amount, secrethash,  signature, id:7)
+Initiator -> Target: Delivered (ref:7)
+
+Initiator -> Target: RevealSecret (secret, signature, id:8)
+Target -> Initiator: Delivered (ref:8)
+
+Target -> Mediator2: RevealSecret\n(secret, signature, id:9)
+Mediator2 -> Target: Delivered (ref:9)
+
+Mediator2 -> Target: Unlock BP_M2_2 (id:10)
+Target -> Mediator2: Delivered (ref:10)
+Target -> Mediator2: Processed (ref:10, id:11)
+Mediator2 -> Target: Delivered (ref:11)
+
+Mediator2 -> Mediator1: RevealSecret\n(secret, signature,\nid:12)
+Mediator1 -> Mediator2: Delivered (ref:12)
+
+Mediator1 -> Mediator2: Unlock BP_M1_2 (id:13)
+Mediator2 -> Mediator1: Delivered (ref:13)
+Mediator2 -> Mediator1: Processed (ref:13, id:14)
+Mediator1 -> Mediator2: Delivered (ref:14)
+
+Mediator1 -> Initiator: RevealSecret\n(secret, signature,\nid:15)
+Initiator -> Mediator1: Delivered (ref:15)
+
+
+Initiator -> Mediator1: Unlock BP_I_2 (id:16)
+Mediator1 -> Initiator: Delivered (ref:16)
+Mediator1 -> Initiator: Processed (ref:16, id:17)
+Note over Mediator1: BP_I_2\n(nonce=6,\ntransferred=20,\nlocked=5,\nlocksroot_0)
+Note over Mediator1: locked + locksroot can vary\nif there are other pending transfers
+Initiator -> Mediator1: Delivered (ref:17)
