@@ -25,9 +25,6 @@ Terminology
    Raiden Channel
        The Payment Channel implementation used in Raiden.
 
-   Off-Chain Payment Channel
-       The portion of a Payment Channel that is used by applications to perform payments without interacting with a blockchain.
-
    Token Network
        A network of payment channels for a given Token.
 
@@ -57,9 +54,6 @@ Terminology
    HTL
        An expirable lock locked by a secret.
 
-   HTL Commit
-       The action of asking a node to commit to reserving a given amount of token for a :term:`Hash Time Lock`. This is the message used to find a path through the network for a transfer.
-
    HTL Unlock
        The action of unlocking a given :term:`Hash Time Lock`. This is the message used to finalize a transfer once the path is found and the reserve is acknowledged.
 
@@ -82,7 +76,6 @@ Terminology
        The hash of a :term:`secret`.  ``sha3_keccack(secret)``
 
    balance proof
-   Participant Balance Proof
    BP
        Signed data required by the :term:`Payment Channel` to prove the balance of one of the parties. Different formats exist for off-chain communication and on-chain communication.  See the :ref:`on-chain balance proof definition <balance-proof-on-chain>` and :ref:`off-chain balance proof definition <balance-proof-off-chain>`.
 
@@ -121,12 +114,6 @@ Terminology
 
    Receiver
        The node that is receiving a Message.
-
-   Inbound Transfer
-       A :term:`locked transfer` received by a node. The node may be a :term:`Mediator` in the path or the :term:`Target`.
-
-   Outbound Transfer
-       A :term:`locked transfer` sent by a node. The node may be a :term:`Mediator` in the path or the :term:`Initiator`.
 
    Locked Transfer
    Locked Transfer message
@@ -203,9 +190,6 @@ Terminology
    additional hash
    additional_hash
        Hash of additional data (in addition to a balance proof itself) used on the Raiden protocol (and potentially in the future also the application layer). Currently this is the hash of the off-chain message that contains the balance proof. In the future, for example, some form of payment metadata can be hashed in.
-
-   Payment Receipt
-       TBD
 
    amount
         Number of tokens that is referred to in a specific message, e.g. amount in :term:`locked transfer` means number of tokens to be added to the already locked tokens as part of a transfer

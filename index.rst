@@ -27,7 +27,6 @@ against them, i. e. including a specified API.
    mediation_fees
    monitoring_service
    pathfinding_service
-   mobile_wallet
    terminology
 
 ..  Indices and tables
