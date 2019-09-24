@@ -123,6 +123,16 @@ Terminology
    Refund Transfer message
        A message for a :term:`Transfer` seeking a rerouting. When a receiver of a :term:`Locked Transfer` message gives up reaching the target, they return a Refund Transfer message. The Refund Transfer message locks an amount of tokens in the direction opposite from the previous :term:`Locked Transfer` allowing the previous hop to retry with a different path.
 
+   Delivered
+   Delivered Message
+       A "message received" acknowledgement on the transport layer. It contains a reference to the identifier of the
+       message that was successfully delivered. This allows the to stop retrying delivery.
+
+   Processed
+   Processed Message
+       A "Processed" message is returned to the sender for all messages that contain a balance proof, after the receiver
+       state was updated. The purpose is to allow the sender node to synchronize the partner state.
+
    Monitoring Service
    MS
        The service that monitors channel state on behalf of the user and takes an action if the channel is being closed with a balance proof that would violate the agreed on balances. Responsibilities

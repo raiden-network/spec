@@ -21,14 +21,14 @@ Mediated Transfers
 
 A :term:`mediated transfer` is a hash-locked transfer. Currently Raiden supports only one type of lock, a :term:`hash time lock`. This lock has an amount that is being transferred, a :term:`secrethash` used to verify the secret that unlocks it, and a :term:`lock expiration` to determine its validity.
 
-Mediated transfers have an :term:`initiator` and a :term:`target` and a number of mediators in between. Assuming a number of ``N`` mediators, a mediated transfer will require ``10N + 16`` messages to complete. These are:
+Mediated transfers have an :term:`initiator` and a :term:`target` and a number of mediators in between. Assuming a number of ``N`` mediators, a mediated transfer will require ``10N + 14`` messages to complete successfully in the best case. These are:
 
 - ``N + 1`` :term:`locked transfer` or :term:`refund transfer` messages
+- ``N + 1`` :term:`unlock`
+- ``2N + 2`` :term:`processed` (one for every message with a balance proof)
 - ``1`` :term:`secret request`
 - ``N + 2`` :term:`reveal secret`
-- ``N + 1`` :term:`unlock`
-- ``2N + 3`` processed (one for everything above)
-- ``5N + 8`` delivered
+- ``5N + 7`` :term:`delivered`
 
 For a simple example with one mediator:
 
