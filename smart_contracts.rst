@@ -1,5 +1,5 @@
-Raiden Network Smart Contracts Specification
-############################################
+Smart Contracts for the Network
+###############################
 
 Overview
 ========

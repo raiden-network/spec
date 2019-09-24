@@ -1,5 +1,5 @@
-Raiden Mediation Fee Specification
-##################################
+Mediation Fees
+##############
 
 Overview
 ========

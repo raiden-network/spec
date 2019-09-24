@@ -1,5 +1,5 @@
-Raiden Mobile Wallet Specification
-##################################
+Mobile Wallet
+#############
 
 (This is work in progress and will be updated as soon as integration related specifications for core protocol and other services are settled on and implemented)
 

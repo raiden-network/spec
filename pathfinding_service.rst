@@ -1,7 +1,7 @@
 .. _pfs:
 
-Raiden Pathfinding Service
-##########################
+Pathfinding Service
+###################
 
 Overview
 ========
