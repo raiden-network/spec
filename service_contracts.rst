@@ -1,5 +1,5 @@
-Smart Contracts for Raiden Services
-###################################
+Smart Contracts for the Services
+################################
 
 Overview
 ========

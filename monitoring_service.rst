@@ -1,7 +1,7 @@
 .. _ms:
 
-Raiden Monitoring Service
-#########################
+Monitoring Service
+##################
 
 
 Summary

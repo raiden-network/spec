@@ -1,5 +1,5 @@
-Raiden Terminology
-==================
+Terminology
+===========
 
 .. glossary::
    :sorted:

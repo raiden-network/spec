@@ -1,5 +1,5 @@
-Raiden Messages Specification
-#############################
+Messages
+########
 
 Overview
 ========
