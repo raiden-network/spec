@@ -49,17 +49,16 @@ conventions:
 
 - The second group is messages that will never result in on-chain transactions, as they contain
   no information that could be forwarded to a contract. There are four types of such messages,
-  which we will call **internal messages**: ``SecretRequest``, ``RevealSecret``, ``Processed``
-  and ``Delivered``. Internal messages have a packed data format in which they are signed.
+  which we will call **internal messages**: ``SecretRequest``, ``RevealSecret``, ``Processed``, ``Delivered`` and ``WithdrawExpired``. Internal messages have a packed data format in which they are signed.
   The format always starts with the message type's 1-byte command id, but unlike the packing
   format in envelope messages described above, the command id is followed by a padding of three
   zero bytes.
 
-- In addition there are the withdraw-related message types: ``WithdrawRequest``,
-  ``WithdrawConfirmation``, and ``WithdrawExpired``. They have a packed formats starting with the
+- In addition, there are two withdraw-related messages: ``WithdrawRequest`` and ``WithdrawConfirmation``. They have a signature format starting with the
   :term:`token network address`, the :term:`chain id` and a message type constant, which is an
-  unsigned 256-bit integer. The signatures from ``WithdrawRequest`` and ``WithdrawConfirmation``
-  are used when withdrawing tokens in the ``TokenNetwork`` contract.
+  unsigned 256-bit integer. The signatures of both messages are used when withdrawing tokens in the ``TokenNetwork`` contract.
+  
+  Since ``WithdrawExpired`` signatures are not used on-chain, they don't follow this format but the one for internal messages.
 
 Data Structures
 ===============
@@ -780,14 +779,17 @@ Fields
 The table below specifies the format in which ``WithdrawExpired`` is packed to compute its
 signature.
 
-In addition to the signed fields listed below, the message has:
-
-- a ``nonce`` field
-- a ``message_identifier`` used for ``Processed`` and ``Delivered`` acknowledgements.
-
 +-------------------------------+---------------+----------------------------------------------------------------+
 | Field Name                    | Field Type    |  Description                                                   |
 +===============================+===============+================================================================+
+|  cmdid                        | uint8         | Value 17 (indicating ``Withdraw Expired``),                    |
++-------------------------------+---------------+----------------------------------------------------------------+
+|  (padding)                    | bytes3        | three zero bytes                                               |
++-------------------------------+---------------+----------------------------------------------------------------+
+|  nonce                        | uint256       | Strictly monotonic value used to order transfers.              |
++-------------------------------+---------------+----------------------------------------------------------------+
+|  message_identifier           | uint64        | An ID for ``Delivered`` and ``Processed`` acknowledgments      |
++-------------------------------+---------------+----------------------------------------------------------------+
 |  token network address        | address       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+---------------+----------------------------------------------------------------+
 |  chain identifier             | uint256       | Part of the :term:`canonical identifier` of the channel        |
