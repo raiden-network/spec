@@ -31,7 +31,7 @@ Further messages in the protocol are:
 Encoding, signing and transport
 ===============================
 
-All messages are encoded in a JSON format and sent via our Matrix transport layer.
+All messages are encoded in a JSON format and sent via the Matrix transport layer.
 
 The encoding used by the transport layer is independent of this specification, as
 long as the signatures using the data are encoded in the EVM big endian format.
