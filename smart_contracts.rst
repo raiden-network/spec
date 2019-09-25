@@ -511,7 +511,7 @@ Allows a channel participant to withdraw tokens from a channel without closing i
 
 **Close a channel**
 
-Allows a channel participant to close the channel. The channel cannot be settled before the challenge period has ended.
+Allows anybody to close a channel with a channel participant's signature. After a channel is closed, the channel cannot be settled before the challenge period has ended.
 
 ::
 
@@ -546,8 +546,6 @@ Allows a channel participant to close the channel. The channel cannot be settled
 - ``closing_participant``: Ethereum address of the channel participant who calls this contract function.
 
 .. Note::
-    Only a participant may close the channel.
-
     A participant ``MUST`` be able to set his partner's balance proof on-chain, in order to be used in the settlement algorithm.
 
     Only a valid signed :term:`balance proof` from the channel ``partner`` ``MUST`` be accepted. This :term:`balance proof` sets the amount of tokens owed to the ``participant`` by the channel ``partner``.
