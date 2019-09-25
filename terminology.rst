@@ -124,14 +124,12 @@ Terminology
        A message for a :term:`Transfer` seeking a rerouting. When a receiver of a :term:`Locked Transfer` message gives up reaching the target, they return a Refund Transfer message. The Refund Transfer message locks an amount of tokens in the direction opposite from the previous :term:`Locked Transfer` allowing the previous hop to retry with a different path.
 
    Delivered
-   Delivered Message
-       A "message received" acknowledgement on the transport layer. It contains a reference to the identifier of the
-       message that was successfully delivered. This allows the to stop retrying delivery.
+   Delivered message
+       A "message received" acknowledgement on the transport layer. It informs the sender that the message was received *and* persisted. This message provides a weaker guarantee in respect to the :term:`Processed` message. It can be emulated by a transport layer that guarantees persistence, or it can be sent by the recipient before the received message is processed (therefore it does not matter if the message was successfully processed or not).
 
    Processed
-   Processed Message
-       A "Processed" message is returned to the sender for all messages that contain a balance proof, after the receiver
-       state was updated. The purpose is to allow the sender node to synchronize the partner state.
+   Processed message
+       A "Processed" message is used by the recipient when a message, which has to be validated against blockchain data, was successfully processed. This message is only used to confirm the processing of messages which have some blockchain related data, where receiving the message is not sufficient. This message is required even if the transport guarantees durability of the data. It provides a stronger guarantee then a :term:`Delivered`, therefore it can replace it.
 
    Monitoring Service
    MS
