@@ -9,7 +9,7 @@ Summary
 *   A Monitoring Service (MS) listens to Monitor Requests (MRs - blinded Balance Proofs) in a public "broadcast" Matrix room. An MR is accompanied by an offered reward for acting on it.
 *   Any pre-registered MS can decide to monitor a channel and store the corresponding MRs.
 *   Then, whenever a channel is closed by calling ``closeChannel`` and if the client did not react within a specified
-  timeout, the MS will call ``updateNonClosingBalanceProof`` with the submitted MR on behalf of its client.
+    timeout, the MS will call ``updateNonClosingBalanceProof`` with the submitted MR on behalf of its client.
 *   Rewards are paid in RDN, there is no free tier.
 *   In the current stage, this is a simple design which is expected to help to reach the Ithaca milestone earlier
 *   In the long-term a PISA approach seems more economically viable and user friendly, but this design requires
