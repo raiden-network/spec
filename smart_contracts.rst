@@ -6,7 +6,7 @@ Overview
 
 This is the specification document for the Solidity smart contracts required for building the Raiden Network. All functions, their signatures, and their semantics.
 
-On Raiden, users can send tokens offchain, but the offchain interaction is ultimately about deposits held in TokenNetwork smart contract.
+On Raiden, users can send tokens off-chain, but the off-chain interaction is ultimately about deposits held in a ``TokenNetwork`` smart contract.
 
 * TokenNetwork: a smart contract that manages channels and deposits onchain. Each TokenNetwork deployment works on a particular ERC20 token and manages channels between addresses. The TokenNetwork deployment manages the deposited tokens, and is the main point of contact for any onchain operations regarding Raiden channels.
 * TokenNetworkRegistry: a smart contract that allows users to look up a TokenNetwork deployment from a token.
