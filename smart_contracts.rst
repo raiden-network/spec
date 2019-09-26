@@ -606,11 +606,9 @@ Called after a channel has been closed. Can be called by any Ethereum address an
 
     Only a valid signed :term:`balance proof` from the channel's ``closing participant`` (the other channel participant) ``MUST`` be accepted. This :term:`balance proof` sets the amount of tokens owed to the ``non-closing participant`` by the ``closing participant``.
 
-    Only a valid signed `balance proof update`__  ``MUST`` be accepted. This update is a confirmation from the ``non-closing participant`` that the contained :term:`balance proof` can be set on his behalf.
+    Only a valid signed :ref:`balance proof update <balance-proof-update-on-chain>`  ``MUST`` be accepted. This update is a confirmation from the ``non-closing participant`` that the contained :term:`balance proof` can be set on his behalf.
 
-    The same `balance proof update`__ ``MUST NOT`` be accepted multiple times. This prevents Monitoring Services from getting rewards again and again using the same reward proof.
-
-    __ balance-proof-update-on-chain_
+    The same :ref:`balance proof update <balance-proof-update-on-chain>` ``MUST NOT`` be accepted multiple times. This prevents Monitoring Services from getting rewards again and again using the same reward proof.
 
 .. _settle-channel:
 
