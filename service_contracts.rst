@@ -6,8 +6,8 @@ Overview
 
 The Raiden services (:ref:`MS` and :ref:`PFS`) require a set of smart contracts to function. There are two general smart contracts:
 
-* UserDeposit
-* ServiceRegistry
+* UserDeposit, used as a pool for tokens used in service fee payments
+* ServiceRegistry, where service providers can register themselves so they can use the service fee payment contracts
 
 and one additional contract for each of the services
 
