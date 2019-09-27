@@ -114,6 +114,13 @@ Setting a URL
 
 A registered service provider can set a URL (with enough ETH to cover the gas costs).  If it has already set a URL, the new URL overwrites the old URL.
 
+Seeing all addresses that have ever made deposits
+-------------------------------------------------
+
+The list ``ever_made_deposits`` is public so anybody can call ``ever_made_deposits()`` to see addresses that have ever made deposits. They can call ``hasValidRegistration()`` on element of the list, and determine the set of currently registered services.
+
+This function is not intended for onchain use because the operation might exceed the block gas limit.
+
 Setting the Deprecation Switch
 ------------------------------
 
