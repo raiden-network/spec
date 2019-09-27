@@ -107,6 +107,8 @@ The current price might be higher than what the service provider candidate has s
 
 If the service provider candidate approved more than the current price (both in the ERC20 token smart contract and in the limit amount parameter), its tokens are transferred into a newly created Deposit smart contract. The ServiceRegistry smart contract records the new deadline of the service provider's registration. The new deposits cannot be withdrawn until this deadline. After the deadline, the registered service provider can withdraw the deposit. The address of the newly created Deposit contract can be seen as the fourth parameter of ``RegisteredService(msg.sender, valid_till, amount, depo)``.  Extension of an existing registration does not affect the deposits made in the past. In other words, the old deposits can be withdrawn after the originally scheduled deadline.
 
+If the deadline calculation overflows, the deposit does not succeed.
+
 In case the deposit is made successfully, the ServiceRegistry contract remembers the amount as ``set_price``, and the current timestamp as ``set_price_at``.
 
 Setting a URL
