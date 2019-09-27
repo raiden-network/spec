@@ -243,7 +243,7 @@ Reward Proof
 
     ecdsa_recoverable(privkey, sha3_keccak("\x19Ethereum Signed Message:\n181"
         || monitoring_service_contract_address || chain_id || MessageTypeId.MSReward
-        || non_closing_signature || reward_amount ))
+        || token_network_address || non_closing_participant || non_closing_signature || reward_amount ))
 
 
 Fields
@@ -254,7 +254,7 @@ Fields
 +=======================+============+============================================================================================+
 | signature_prefix      | string     | ``\x19Ethereum Signed Message:\n``                                                         |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
-| message_length        | string     | ``181`` = length of message = ``20 + 32 + 32 + 65 + 32``                                   |
+| message_length        | string     | ``221`` = length of message = ``20 + 32 + 32 + 65 + 20 + 20 + 32``                         |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 | monitoring_service    | address    | Address of the monitoring service contract in which the reward can be claimed              |
 | _contract_address     |            |                                                                                            |
@@ -263,6 +263,10 @@ Fields
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 | MessageTypeId.MSReward| uint256    | A constant with the value of 6 used to make sure that no other messages accidentally share |
 |                       |            | the same signature.                                                                        |
++-----------------------+------------+--------------------------------------------------------------------------------------------+
+| token_network_address | address    | Address of TokenNetwork that the request is about                                          |
++-----------------------+------------+--------------------------------------------------------------------------------------------+
+| non_closing_address   | address    | Address of the client that signed ``non_closing_signature``                                |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 | non_closing_signature | bytes      | Signature of the on-chain balance proof by the client                                      |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
