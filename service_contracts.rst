@@ -348,3 +348,5 @@ To handle the rewards, the MonitoringService contract provides two functions. ``
 
 .. autosolcontract:: MonitoringService
     :members: monitor, claimReward
+
+In order to avoid an unproductive race between service providers, for the same participant on the same channel, different service providers have different block number from which they can call ``monitor()``.  Here we are not trying to get randomness, but merely trying to make differences in a fair way.
