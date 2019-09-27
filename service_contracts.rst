@@ -351,4 +351,11 @@ To handle the rewards, the MonitoringService contract provides two functions. ``
 .. autosolcontract:: MonitoringService
     :members: monitor, claimReward
 
-In order to avoid an unproductive race between service providers, for the same participant on the same channel, different service providers have different block number from which they can call ``monitor()``.  Here we are not trying to get randomness, but merely trying to make differences in a fair way.
+In order to avoid an unproductive race between service providers, for the same participant on the same channel, different service providers have different block numbers from which they can call ``monitor()``.  Here we are not trying to get randomness, but merely trying to make differences in a fair way.
+
+monitor()
+---------
+
+When the :ref:`MS` calls ``monitor()`` with a :term:`balance proof`, ``MonitoringService`` smart contract submits the balance proof on behalf of the :ref:`MS`.  If that succeeds, ``MonitoringService`` smart contract records the fact that the :ref:`MS` has submitted the balance proof.
+
+* ``monitor()`` refuses callers that are not registered in ``ServiceRegistry``.
