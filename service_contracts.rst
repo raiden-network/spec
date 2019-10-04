@@ -44,6 +44,9 @@ Requirements
 - There must be a way for other smart contracts to check if an address is registered as a service provider
 - Avoid new implementations if possible
 - The deployer should be able to choose whether it wants to control the parameters
+- The controller should be able to deprecate the ServiceRegistry
+    * When the ServiceRegistry is deprecated, no new deposits are accepted
+    * When the ServiceRegistry is deprecated, already held deposits can be immediately withdrawn
 
 Design
 ------------
