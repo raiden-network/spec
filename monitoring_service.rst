@@ -4,36 +4,24 @@ Monitoring Service
 ##################
 
 
-Summary
-=======
-*   A Monitoring Service (MS) listens to Monitor Requests (MRs - blinded Balance Proofs) in a public "broadcast" Matrix room. An MR is accompanied by an offered reward for acting on it.
-*   Any pre-registered MS can decide to monitor a channel and store the corresponding MRs.
-*   Then, whenever a channel is closed by calling ``closeChannel`` and if the client did not react within a specified
-    timeout, the MS will call ``updateNonClosingBalanceProof`` with the submitted MR on behalf of its client.
-*   Rewards are paid in RDN, there is no free tier.
-*   In the current stage, this is a simple design which is expected to help to reach the Ithaca milestone earlier
-*   In the long-term a PISA approach seems more economically viable and user friendly, but this design requires
-    additional features and can be developed independently after Ithaca.
+Overview
+========
 
-Usual Scenario
-==============
+Monitoring services watch open payment channels when the user is not online. In
+case one channel partner closes a channel while the counterparty is offline (or
+doesn’t react for 80% of the settlement timeout after close has been called),
+the monitoring service sends the latest balance proof to the channel smart
+contract and thus ensures correct settlement of the channel.
 
-The Raiden node that belongs to Alice is going offline and Alice wants to be protected against having her channels
-closed by Bob with an incorrect balance proof.
+To do this a Monitoring Service (MS) listens to :ref:`Monitor Requests <Monitor
+Request>` in a public Matrix room. An MR is accompanied by a reward for acting
+on it. Based on this reward, the MS can decide to monitor a channel and store
+the corresponding MRs.
 
-1)  Whenever Alice wants to get her channel monitored, Alice publishes her `Monitor Request`_ - including a blinded balance
-    proofs - into a public chat room
-2)  Updates can be sent by Alice whenever the state or offered reward changes
-3)  MSs can pick up these messages and then listen to ``ChannelClosed`` events regarding this particular channel
-4)  If so, whenever the channel is closed and before the settlement period has ended, the MS will call the
-    ``updateNonClosingBalanceProof`` function with the provided information, after a period of x blocks where the client
-    is expected to react. This way the settleChannel function that calculates the token distribution can only be
-    executed submitting the corresponding balance values of the hashed balances provided before
-5)  Either Alice or Bob (or anyone else) can now anytime call ``settleChannel`` and initiate the token distribution
-6)  After a successful submission of the hashed balance by the MS calling ``updateNonClosingBalanceProof`` (might be a
-    defeat of an attack), the monitoring service gets an on-chain payment from a smart contract where Alice deposited
-    some tokens beforehand
-7)  This will result in a correct distribution of tokens, in accordance with the off-chain transfers
+Whenever a channel is closed by calling ``closeChannel`` and if the client did
+not react itself, the MS will call ``updateNonClosingBalanceProof`` with the
+submitted MR on behalf of its client. For that action then MS can then claim the
+reward from the :ref:`Monitoring Service contract <MonitoringServiceContract>`.
 
 Information Flow
 ================
@@ -42,26 +30,32 @@ Information Flow
     :alt: Monitoring Service - Flow Chart
     :width: 900px
 
-General Requirements for the Design of the Monitoring Service
-=============================================================
 
-*   Sybil Attack resistance (i.e. no one should be able to announce an unlimited number of possibly faulty services)
-*   Some degree of redundancy (ability to register a balance proof with multiple competing monitoring services)
+Design of the Monitoring Service
+================================
 
-Design of the Monitoring Service (still work in progress)
-=========================================================
+Requirements
+------------
+
+* Sybil Attack resistance (i.e. no one should be able to announce an unlimited number of possibly faulty services)
+* Some degree of redundancy (ability to register a balance proof with multiple competing monitoring services)
+
+In the current stage we opt for a simple design which is expected to help reach
+a working state faster. Therefore some user friendly features are currently out
+of scope.
 
 Monitoring Service Registration
 -------------------------------
 
-The Monitoring Service has to be registered in the :ref:`ServiceRegistry` contract. Registry slots will be auctioned. If chosen in the auction, the service provider will become part of the list of MSs and must deposit some RDN.
+The Monitoring Service has to be registered in the :ref:`ServiceRegistry`
+contract. Registry slots will be auctioned. If chosen in the auction, the
+service provider will become part of the list of MSs and must deposit some RDN. This is done in order to prevent Sybil attacks.
 
 Client Onboarding
 -----------------
 
-Clients that want to request this service have to deposit an amount of RDN into the UDC in order to provide rewards to
-the MS. This happens during the general Raiden onboarding process, so that no additional preparation is necessary when
-usage of a MS is desired.
+Clients that want to request this service have to deposit an amount of RDN into
+the :ref:`UserDeposit` contract in order to provide rewards to the MS.
 
 Service Discovery
 -----------------
@@ -93,8 +87,132 @@ Privacy
 The recipient and the actual transferred amounts are hidden by providing a hashed balance proof (or state). This
 provides some sort of privacy even if it can potentially be recalculated.
 
-Security Analysis (inspired by PISA)
-====================================
+
+Message Format
+==============
+
+Monitoring Services uses JSON format to exchange the data. For description of
+the envelope format and required fields of the message please see Transport
+document.
+
+.. _`Monitor Request`:
+
+Monitor Request
+---------------
+
+Monitor Requests are messages that the Raiden client broadcasts to Monitoring
+Services in order to request monitoring for a channel.
+
+A Monitor Request consists of a the following fields:
+
++--------------------------+------------+--------------------------------------------------------------------------------+
+| Field Name               | Field Type |  Description                                                                   |
++==========================+============+================================================================================+
+|  balance_proof           | object     | Latest Blinded Balance Proof to be used by the monitor service                 |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  non_closing_signature   | string     | Signature of the on-chain balance proof by the client                          |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  reward_amount           | uint256    | Offered reward in RDN                                                          |
++--------------------------+------------+--------------------------------------------------------------------------------+
+|  reward_proof_signature  | string     | Signature of the reward proof data.                                            |
++--------------------------+------------+--------------------------------------------------------------------------------+
+
+- The balance proof and its signature are described in the :ref:`Balance Proof specification <balance-proof-on-chain>`.
+- The creation of the ``non_closing_signature`` is specified in the :ref:`Balance Proof Update specification <balance-proof-update-on-chain>`.
+- The ``reward_proof_signature`` is specified below.
+
+All of this fields are required. Monitoring Service MUST perform verification of these data, namely channel
+existence. Monitoring service SHOULD accept the message if and only if the sender of the message is same as the sender
+address recovered from the signature.
+
+
+Example Monitor Request
+-----------------------------
+::
+
+    {
+      "balance_proof": {
+          "token_network_address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+          "chain_id": 1,
+          "channel_identifier": 76,
+          "balance_hash": "0x1c3a34a22ab087808ba772f40779b04e719080e86289c7a4ad1bd2098a3c751d",
+          "nonce": 5,
+          "additional_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "signature": "0xd38c435654373983d5bdee589980853b5e7da2714d7bdcba5282ccb88ffd29210c3b1d07313aab05f7d2a514561b6796191093a9ce5726da8f1eb89bc575bc7e1b"
+      },
+      "non_closing_signature": "0x77857e08793165163380d50ea780cf3798d2132a61b1d43395fc6e4a766f3c1918f8365d3bef173e0f8bb32c1f373be76369f54fb0ac7fdf91dd559e6e5865431b",
+      "reward_amount": 1234,
+      "reward_proof_signature": "0x12345e08793165163380d50ea780cf3798d2132a61b1d43395fc6e4a766f3c1918f8365d3bef173e0f8bb32c1f373be76369f54fb0ac7fdf91dd559e6e5864444a"
+    }
+
+Reward Proof
+------------
+
+::
+
+    ecdsa_recoverable(privkey, sha3_keccak("\x19Ethereum Signed Message:\n221"
+        || monitoring_service_contract_address || chain_id || MessageTypeId.MSReward
+        || token_network_address || non_closing_participant || non_closing_signature || reward_amount ))
+
+
+Fields
+''''''
+
++-----------------------+------------+--------------------------------------------------------------------------------------------+
+| Field Name            | Field Type | Description                                                                                |
++=======================+============+============================================================================================+
+| signature_prefix      | string     | ``\x19Ethereum Signed Message:\n``                                                         |
++-----------------------+------------+--------------------------------------------------------------------------------------------+
+| message_length        | string     | ``221`` = length of message = ``20 + 32 + 32 + 65 + 20 + 20 + 32``                         |
++-----------------------+------------+--------------------------------------------------------------------------------------------+
+| monitoring_service    | address    | Address of the monitoring service contract in which the reward can be claimed              |
+| _contract_address     |            |                                                                                            |
++-----------------------+------------+--------------------------------------------------------------------------------------------+
+| chain_id              | uint256    | Chain identifier as defined in EIP155                                                      |
++-----------------------+------------+--------------------------------------------------------------------------------------------+
+| MessageTypeId.MSReward| uint256    | A constant with the value of 6 used to make sure that no other messages accidentally share |
+|                       |            | the same signature.                                                                        |
++-----------------------+------------+--------------------------------------------------------------------------------------------+
+| token_network_address | address    | Address of TokenNetwork that the request is about                                          |
++-----------------------+------------+--------------------------------------------------------------------------------------------+
+| non_closing_address   | address    | Address of the client that signed ``non_closing_signature``                                |
++-----------------------+------------+--------------------------------------------------------------------------------------------+
+| non_closing_signature | bytes      | Signature of the on-chain balance proof by the client                                      |
++-----------------------+------------+--------------------------------------------------------------------------------------------+
+| reward_amount         | uint256    | Rewards received for updating the channel                                                  |
++-----------------------+------------+--------------------------------------------------------------------------------------------+
+| signature             | bytes      | Elliptic Curve 256k1 signature on the above data from participant paying the reward        |
++-----------------------+------------+--------------------------------------------------------------------------------------------+
+
+Appendix A: Interfaces
+======================
+
+Broadcast Interface
+-------------------
+
+Client's request to store a balance proof will be broadcasted using Matrix as a
+transport layer. A public room will be available for anyone to join - clients
+will post balance proofs to the chatroom and Monitoring Services picks them up.
+
+Web3 Interface
+--------------
+
+Monitoring Service are required to have a synced Ethereum node with an enabled JSON-RPC interface. All blockchain
+operations are performed using this connection.
+
+Event Filtering
+'''''''''''''''
+
+MS must filter events for each on-chain channel that corresponds to the submitted balance proofs.
+On ``ChannelClosed`` and ``NonClosingBalanceProofUpdated`` events state the channel was closed with the Monitoring
+Service must call ``updateNonClosingBalanceProof`` with the respective latest balance proof provided by its client.
+On ``ChannelSettled`` event any state data for this channel can be deleted from the MS.
+
+
+Appendix B: Security Analysis
+=============================
+
+This is inspired by the security analysis in the `PISA paper <https://www.cs.cornell.edu/~iddo/pisa.pdf>`_.
 
 State Privacy
 -------------
@@ -150,127 +268,3 @@ A client can use a single deposit to request an MS to monitor all his payment ch
 a problematically high amount of channels, he can start to ignore requests made by this client, or even drop old
 requests. Since there is no punishment for failing to monitor a channel, stopping to monitor is a simple way to reduce
 resource usage when desired, although it should not be necessary under normal circumstances.
-
-Proposed SC Logic
-'''''''''''''''''
-
-1)  Client (Raiden node) will transfer tokens used as a reward to the User Deposit Contract (UDC)
-2)  Whoever calls SC’s ``updateTransfer`` method MUST supply payout address as a parameter. This address is stored in the
-    UDC. ``updateTransfer`` MAY be called multiple times, but it will only accept a balance proof newer than the
-    previous one
-3)  When calling ``claimReward``, the reward tokens will be sent to the payout address
-
-Appendix A: Interfaces
-======================
-
-Broadcast Interface
--------------------
-Client's request to store a balance proof will be in the usual scenario broadcasted using Matrix as a transport layer.
-A public chatroom will be available for anyone to join - clients will post balance proofs to the chatroom and
-Monitoring Services picks them up.
-
-Web3 Interface
---------------
-Monitoring Service are required to have a synced Ethereum node with an enabled JSON-RPC interface. All blockchain
-operations are performed using this connection.
-
-Event Filtering
-'''''''''''''''
-MS must filter events for each on-chain channel that corresponds to the submitted balance proofs.
-On ``ChannelClosed`` and ``NonClosingBalanceProofUpdated`` events state the channel was closed with the Monitoring
-Service must call ``updateNonClosingBalanceProof`` with the respective latest balance proof provided by its client.
-On ``ChannelSettled`` event any state data for this channel MAY be deleted from the MS.
-
-Appendix B: Message Format
-==========================
-Monitoring Services uses JSON format to exchange the data.
-For description of the envelope format and required fields of the message please see Transport document.
-
-Monitor Request
----------------
-
-.. _`Monitor Request`:
-
-Monitor Requests are messages that the Raiden client broadcasts to Monitoring Services in order to get monitoring for a
-channel.
-
-A Monitor Request consists of a the following fields:
-
-+--------------------------+------------+--------------------------------------------------------------------------------+
-| Field Name               | Field Type |  Description                                                                   |
-+==========================+============+================================================================================+
-|  balance_proof           | object     | Latest Blinded Balance Proof to be used by the monitor service                 |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-|  non_closing_signature   | string     | Signature of the on-chain balance proof by the client                          |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-|  reward_amount           | uint256    | Offered reward in RDN                                                          |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-|  reward_proof_signature  | string     | Signature of the reward proof data.                                            |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-
-- The balance proof and its signature are described in the :ref:`Balance Proof specification <balance-proof-on-chain>`.
-- The creation of the ``non_closing_signature`` is specified in the :ref:`Balance Proof Update specification <balance-proof-update-on-chain>`.
-- The ``reward_proof_signature`` is specified below.
-
-All of this fields are required. Monitoring Service MUST perform verification of these data, namely channel
-existence. Monitoring service SHOULD accept the message if and only if the sender of the message is same as the sender
-address recovered from the signature.
-
-
-Example Monitor Request
------------------------------
-::
-
-    {
-      "balance_proof": {
-          "token_network_address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-          "chain_id": 1,
-          "channel_identifier": 76,
-          "balance_hash": "0x1c3a34a22ab087808ba772f40779b04e719080e86289c7a4ad1bd2098a3c751d",
-          "nonce": 5,
-          "additional_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-          "signature": "0xd38c435654373983d5bdee589980853b5e7da2714d7bdcba5282ccb88ffd29210c3b1d07313aab05f7d2a514561b6796191093a9ce5726da8f1eb89bc575bc7e1b"
-      },
-      "non_closing_signature": "0x77857e08793165163380d50ea780cf3798d2132a61b1d43395fc6e4a766f3c1918f8365d3bef173e0f8bb32c1f373be76369f54fb0ac7fdf91dd559e6e5865431b",
-      "reward_amount": 1234,
-      "reward_proof_signature": "0x12345e08793165163380d50ea780cf3798d2132a61b1d43395fc6e4a766f3c1918f8365d3bef173e0f8bb32c1f373be76369f54fb0ac7fdf91dd559e6e5864444a"
-    }
-
-Reward Proof
-------------
-
-::
-
-    ecdsa_recoverable(privkey, sha3_keccak("\x19Ethereum Signed Message:\n181"
-        || monitoring_service_contract_address || chain_id || MessageTypeId.MSReward
-        || token_network_address || non_closing_participant || non_closing_signature || reward_amount ))
-
-
-Fields
-''''''
-
-+-----------------------+------------+--------------------------------------------------------------------------------------------+
-| Field Name            | Field Type | Description                                                                                |
-+=======================+============+============================================================================================+
-| signature_prefix      | string     | ``\x19Ethereum Signed Message:\n``                                                         |
-+-----------------------+------------+--------------------------------------------------------------------------------------------+
-| message_length        | string     | ``221`` = length of message = ``20 + 32 + 32 + 65 + 20 + 20 + 32``                         |
-+-----------------------+------------+--------------------------------------------------------------------------------------------+
-| monitoring_service    | address    | Address of the monitoring service contract in which the reward can be claimed              |
-| _contract_address     |            |                                                                                            |
-+-----------------------+------------+--------------------------------------------------------------------------------------------+
-| chain_id              | uint256    | Chain identifier as defined in EIP155                                                      |
-+-----------------------+------------+--------------------------------------------------------------------------------------------+
-| MessageTypeId.MSReward| uint256    | A constant with the value of 6 used to make sure that no other messages accidentally share |
-|                       |            | the same signature.                                                                        |
-+-----------------------+------------+--------------------------------------------------------------------------------------------+
-| token_network_address | address    | Address of TokenNetwork that the request is about                                          |
-+-----------------------+------------+--------------------------------------------------------------------------------------------+
-| non_closing_address   | address    | Address of the client that signed ``non_closing_signature``                                |
-+-----------------------+------------+--------------------------------------------------------------------------------------------+
-| non_closing_signature | bytes      | Signature of the on-chain balance proof by the client                                      |
-+-----------------------+------------+--------------------------------------------------------------------------------------------+
-| reward_amount         | uint256    | Rewards received for updating the channel                                                  |
-+-----------------------+------------+--------------------------------------------------------------------------------------------+
-| signature             | bytes      | Elliptic Curve 256k1 signature on the above data from participant paying the reward        |
-+-----------------------+------------+--------------------------------------------------------------------------------------------+
