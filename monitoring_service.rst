@@ -44,48 +44,32 @@ In the current stage we opt for a simple design which is expected to help reach
 a working state faster. Therefore some user friendly features are currently out
 of scope.
 
-Monitoring Service Registration
--------------------------------
-
-The Monitoring Service has to be registered in the :ref:`ServiceRegistry`
-contract. Registry slots will be auctioned. If chosen in the auction, the
-service provider will become part of the list of MSs and must deposit some RDN. This is done in order to prevent Sybil attacks.
-
-Client Onboarding
------------------
-
-Clients that want to request this service have to deposit an amount of RDN into
-the :ref:`UserDeposit` contract in order to provide rewards to the MS.
-
-Service Discovery
------------------
-
-All MS listen to a public Matrix room. Monitor Requests are broadcast and no specific MSs are appointed. The MSs can
-also publish their expected rewards in this room, which does not provide any guarantees, but increases the chance of
-reliable monitoring if both parties cooperate.
 
 Monitoring Service Payment
 --------------------------
 
-The MS is paid after successfully submitting its client’s balance proof update. The payment is paid out from a deposit
-in the User Deposit Contract (UDC). Ideally, only one MS submits the latest BP to the SC to avoid unnecessary gas usage.
-This can be made more likely by choosing the rewarded MS based on a function of the MS’s address and the current block
-number. MSs which have a low f(address, block_num) would be incentivized to wait for a block number which yields a
-higher f for them, since they would probably lose out to another MS if they submitted the BP during the current block.
-Incentivizing MSs to wait in some cases greatly reduces the number of MSs submitting BPs simultaneously.
+The MS can claim its reward after successfully submitting its client’s balance proof update. This is only allowed when the Monitoring Service is registered in the Service Registry. For more infos see the :ref:`ServiceRegistry` contract.
 
-Ensuring MS Reliability
------------------------
+The payment is paid out from a deposit in the :ref:`UserDeposit` Contract (UDC).
+Ideally, only one MS submits the latest BP to the SC to avoid unnecessary gas
+usage (for more infos see the description of the :ref:`Monitoring Service contract <MonitoringServiceContract>`.
 
-The MS has an incentive to intervene in case of a dispute, since it is only paid in that case. There are no incentives
-for a high level of reliability and the client knows neither how many MSs are monitoring his channel nor how reliable
-they are. These tradeoffs are made to favor simplicity of implementation.
+
+MS Reliability
+--------------
+
+The Monitoring Service itself is split into two components to increase reliability and lower the attack surface.
+
+* The request collector is a simple component that connects to the Matrix network and listens only for :ref:`Monitor Requests <Monitor Request>`, which are written to a database.
+* The monitoring service itself just reads these MRs from the database and otherwise listens and reacts to blockchain events.
+
 
 Privacy
 -------
 
-The recipient and the actual transferred amounts are hidden by providing a hashed balance proof (or state). This
-provides some sort of privacy even if it can potentially be recalculated.
+The recipient and the actual transferred amounts are hidden by providing a
+hashed balance proof. This provides some sort of privacy even if it can
+potentially be recalculated. For reference see `this issue. <https://github.com/raiden-network/raiden/issues/1309>`_
 
 
 Message Format
