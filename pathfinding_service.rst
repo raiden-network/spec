@@ -22,6 +22,7 @@ Assumptions & Goals
 
 High-Level-Description
 ======================
+
 A node can request a list of possible paths from start point to endpoint for a given transfer value.
 The ``get_paths`` method implements the bi-directional Dijkstra algorithm to return a given number of paths
 for a mediated transfer of a given value. The design regards the Raiden network as an unidirectional
@@ -88,7 +89,10 @@ The arguments are POSTed as a JSON object.
 Returns
 """""""
 
-A list of path objects and a feedback token when successful.
+When successfull, the request returns a list of path objects and a feedback
+token. A feedback token is the 32-character hexadecimal string
+representation of a UUID and is valid for all routes that are included in the
+response.
 
 Each path object consists of the following information:
 
@@ -100,8 +104,28 @@ Each path object consists of the following information:
 | estimated_fee        | int           | An estimate of the fees required for that path.                       |
 +----------------------+---------------+-----------------------------------------------------------------------+
 
-The feedback token is the 32-character hexadecimal string representation of a UUID and is valid for all routes that
-are included in the response.
+
+An example response looks like:
+
+::
+
+    {
+        "result":
+        [
+            {
+                "path":
+                [
+                    "0x627E3C777232243a6C766D20404f790B66456747",
+                    "0x574b315075443878652f2F403645743d5b4a7950",
+                    "0x49650D660c475e65253F666f302A4A662A3d533D",
+                    "0x6A273E6D557454520964484D23502C207361597D"
+                ],
+                "estimated_fee": 123
+            }
+        ],
+        "feedback_token": "381e4a005a4d4687ac200fa1acd15c6f"
+    }
+
 
 Routing Preferences
 """""""""""""""""""
