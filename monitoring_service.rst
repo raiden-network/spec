@@ -7,21 +7,22 @@ Monitoring Service
 Overview
 ========
 
-Monitoring services watch open payment channels when the user is not online. In
-case one channel partner closes a channel while the counterparty is offline (or
-doesn’t react for 80% of the settlement timeout after close has been called),
-the monitoring service sends the latest balance proof to the channel smart
-contract and thus ensures correct settlement of the channel.
+Monitoring services (MS) watch open payment channels when the user is not
+online. In case one channel partner closes a channel while the counterparty is
+offline or does not react itself, the Monitoring Service sends the latest
+balance proof to the ``TokenNetwork`` contract and thus ensures correct
+settlement of the channel.
 
-To do this a Monitoring Service (MS) listens to :ref:`Monitor Requests <Monitor
+To do this a Monitoring Service listens to :ref:`Monitor Requests <Monitor
 Request>` in a public Matrix room. An MR is accompanied by a reward for acting
 on it. Based on this reward, the MS can decide to monitor a channel and store
 the corresponding MRs.
 
 Whenever a channel is closed by calling ``closeChannel`` and if the client did
-not react itself, the MS will call ``updateNonClosingBalanceProof`` with the
-submitted MR on behalf of its client. For that action then MS can then claim the
-reward from the :ref:`Monitoring Service contract <MonitoringServiceContract>`.
+not react itself, the MS will call ``MonitoringServiceContract.monitor(...)``
+with the submitted MR on behalf of its client. For that action the MS can then
+claim the reward. For more information see the documentation of the
+:ref:`Monitoring Service contract <MonitoringServiceContract>`.
 
 Information Flow
 ================
@@ -48,11 +49,15 @@ of scope.
 Monitoring Service Payment
 --------------------------
 
-The MS can claim its reward after successfully submitting its client’s balance proof update. This is only allowed when the Monitoring Service is registered in the Service Registry. For more infos see the :ref:`ServiceRegistry` contract.
+The MS can claim its reward after successfully submitting its client’s balance
+proof update. Sending this update is only allowed when the MS is registered in
+the Service Registry. Therefore, only registered MS can receive payments. For
+more information see the :ref:`ServiceRegistry` contract specification.
 
 The payment is paid out from a deposit in the :ref:`UserDeposit` Contract (UDC).
-Ideally, only one MS submits the latest BP to the SC to avoid unnecessary gas
-usage (for more infos see the description of the :ref:`Monitoring Service contract <MonitoringServiceContract>`.
+Ideally, only one MS submits the latest BP to the contract to avoid wasting
+gas. For more information see the description of the :ref:`Monitoring
+Service contract <MonitoringServiceContract>`.
 
 
 MS Reliability
@@ -61,7 +66,7 @@ MS Reliability
 The Monitoring Service itself is split into two components to increase reliability and lower the attack surface.
 
 * The request collector is a simple component that connects to the Matrix network and listens only for :ref:`Monitor Requests <Monitor Request>`, which are written to a database.
-* The monitoring service itself just reads these MRs from the database and otherwise listens and reacts to blockchain events.
+* The monitoring service itself just reads these MRs from the database and otherwise listens to blockchain events and updates the respective smart contracts by sending transactions.
 
 
 Privacy
@@ -75,9 +80,9 @@ potentially be recalculated. For reference see `this issue. <https://github.com/
 Message Format
 ==============
 
-Monitoring Services uses JSON format to exchange the data. For description of
+Monitoring Services use the JSON format to exchange the data. For description of
 the envelope format and required fields of the message please see Transport
-document.
+specification.
 
 .. _`Monitor Request`:
 
@@ -105,9 +110,10 @@ A Monitor Request consists of a the following fields:
 - The creation of the ``non_closing_signature`` is specified in the :ref:`Balance Proof Update specification <balance-proof-update-on-chain>`.
 - The ``reward_proof_signature`` is specified below.
 
-All of this fields are required. Monitoring Service MUST perform verification of these data, namely channel
-existence. Monitoring service SHOULD accept the message if and only if the sender of the message is same as the sender
-address recovered from the signature.
+All of this fields are required. Monitoring Service must perform verification of
+these data, namely channel existence. Monitoring service should accept the
+message if and only if the sender of the message is same as the sender address
+recovered from the signature.
 
 
 Example Monitor Request
@@ -168,87 +174,76 @@ Fields
 | signature             | bytes      | Elliptic Curve 256k1 signature on the above data from participant paying the reward        |
 +-----------------------+------------+--------------------------------------------------------------------------------------------+
 
-Appendix A: Interfaces
-======================
 
-Broadcast Interface
--------------------
-
-Client's request to store a balance proof will be broadcasted using Matrix as a
-transport layer. A public room will be available for anyone to join - clients
-will post balance proofs to the chatroom and Monitoring Services picks them up.
-
-Web3 Interface
---------------
-
-Monitoring Service are required to have a synced Ethereum node with an enabled JSON-RPC interface. All blockchain
-operations are performed using this connection.
-
-Event Filtering
-'''''''''''''''
-
-MS must filter events for each on-chain channel that corresponds to the submitted balance proofs.
-On ``ChannelClosed`` and ``NonClosingBalanceProofUpdated`` events state the channel was closed with the Monitoring
-Service must call ``updateNonClosingBalanceProof`` with the respective latest balance proof provided by its client.
-On ``ChannelSettled`` event any state data for this channel can be deleted from the MS.
-
-
-Appendix B: Security Analysis
-=============================
+Security Analysis
+=================
 
 This is inspired by the security analysis in the `PISA paper <https://www.cs.cornell.edu/~iddo/pisa.pdf>`_.
 
 State Privacy
 -------------
 
-Blinded BPs are published to the MS as part of the Monitor Request in the matrix room and then submitted to the smart
-contract.
+Blinded BPs are published to the MS as part of the Monitor Request in the matrix
+room and then submitted to the smart contract.
 
 Fair Exchange
 -------------
 
-Clients can freely choose the reward for the MS, so it is easy for him to choose the amount in a way that makes the
-exchange attractive for himself. The client can’t know if a MS started monitoring his payment channel, so he can’t use
-such feedback to arrive at a reward where he knows that the deal is attractive for both him and the MS. Neither can he
-recognize if there is no such possible reward.
-The MS on the other hand can freely choose to ignore requests when the reward is too low, so he will only choose
-requests that he deems fairly rewarded. If the MS ignores the client’s request, the client keeps his deposit and it can
-be used by other MSs or for later BPs. In summary, the exchange is fair for both parties, but there is a high likelihood
-that no exchange will happen at all.
+Clients can freely choose the reward for the MS, so it is easy for him to choose
+the amount in a way that makes the exchange attractive for himself. The client
+can’t know if a MS started monitoring his payment channel, so he can’t use such
+feedback to arrive at a reward where he knows that the deal is attractive for
+both him and the MS. Neither can he recognize if there is no such possible
+reward. The MS on the other hand can freely choose to ignore requests when the
+reward is too low, so he will only choose requests that he deems fairly
+rewarded. If the MS ignores the client’s request, the client keeps his deposit
+and it can be used by other MSs or for later BPs. In summary, the exchange is
+fair for both parties, but there is a high likelihood that no exchange will
+happen at all.
 
 Non-frameability
 ----------------
 
-MSs can put the clients channel deposit at risk by ignoring all client requests. But since a MS can’t force other MSs to
-ignore client requests, this can not be considered as framing. When only a single MS is monitoring the channel, the MS’s
-dispute intervention and the reward payment happen atomically inside the SC. In this case, no party can frame the other.
+MSs can put the client's channel deposit at risk by ignoring all client
+requests. But since a MS can’t force other MSs to ignore client requests, this
+can not be considered as framing. When only a single MS is monitoring the
+channel, the MS’s dispute intervention and the reward payment happen atomically
+inside the SC. In this case, no party can frame the other.
 
-When multiple MSs try to settle the same dispute, only the first one doing so receives a reward, but all of them have to
-invest resources to monitor the channel and spend gas to interact with the SC. If you find a way to continuously front
-run other MSs, you can drain their resources and block their only income. However, while doing so you fulfilled the MS’s
-duty to settle the payment channel correctly and protect the client’s deposit.
-In the short run, this is an acceptable outcome for the client. In the long run, this will drive other MSs out of
-business and thus reduce redundancy and reliability of the overall MS ecosystem. Since all MSs try to be the first to
-submit a BP, it is unlikely that a single MS will continuously be the fastest, but slightly slower MSs will still not
-get any rewards even if they are well behaved and reliable.
+When multiple MSs try to settle the same dispute, only the first one doing so
+receives a reward, but all of them have to invest resources to monitor the
+channel and spend gas to interact with the SC. If you find a way to continuously
+front run other MSs, you can drain their resources and block their only income.
+However, while doing so you fulfilled the MS’s duty to settle the payment
+channel correctly and protect the client’s deposit. In the short run, this is an
+acceptable outcome for the client. In the long run, this will drive other MSs
+out of business and thus reduce redundancy and reliability of the overall MS
+ecosystem. Since all MSs try to be the first to submit a BP, it is unlikely that
+a single MS will continuously be the fastest, but slightly slower MSs will still
+not get any rewards even if they are well behaved and reliable.
 
-If a client wants to waste the resources of MSs, he can first broadcast a BP with a high reward and keep more recent BPs
-to himself. When a dispute happens, he can wait for the MSs to act before submitting his latest BPs, which prevents the
-MSs from receiving a reward. Doing this at a large scale is expensive, since the client needs to open and close a
-payment channel for this at his own cost.
+If a client wants to waste the resources of MSs, he can first broadcast a BP
+with a high reward and keep more recent BPs to himself. When a dispute happens,
+he can wait for the MSs to act before submitting his latest BPs, which prevents
+the MSs from receiving a reward. Doing this at a large scale is expensive, since
+the client needs to open and close a payment channel for this at his own cost.
 
 Recourse as a Financial Deterrent
 ---------------------------------
 
-There is no possibility of recourse which lets MSs operate without any incentive of high reliability. A client must
-expect MSs to ignore their requests and have no means to force a highly reliable monitoring.
+There is no possibility of recourse which lets MSs operate without any incentive
+of high reliability. A client must expect MSs to ignore their requests and have
+no means to force a highly reliable monitoring.
 
 Efficiency Requirements
 -----------------------
 
-For each channel, only the latest (as indicated by the nonce) BP has to be saved. Unless an extremely high amount of
-channels is being monitored, this efficiency should not be a concern for the MS.
-A client can use a single deposit to request an MS to monitor all his payment channels. If this causes the MS to monitor
-a problematically high amount of channels, he can start to ignore requests made by this client, or even drop old
-requests. Since there is no punishment for failing to monitor a channel, stopping to monitor is a simple way to reduce
-resource usage when desired, although it should not be necessary under normal circumstances.
+For each channel, only the latest (as indicated by the nonce) BP has to be
+saved. Unless an extremely high amount of channels is being monitored, this
+efficiency should not be a concern for the MS. A client can use a single deposit
+to request an MS to monitor all his payment channels. If this causes the MS to
+monitor a problematically high amount of channels, he can start to ignore
+requests made by this client, or even drop old requests. Since there is no
+punishment for failing to monitor a channel, stopping to monitor is a simple way
+to reduce resource usage when desired, although it should not be necessary under
+normal circumstances.
