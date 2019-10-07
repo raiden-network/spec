@@ -105,10 +105,10 @@ One per network. Participants can discover peers willing to open more channels. 
 
 Monitoring Service Updates Room
 '''''''''''''''''''''''''''''''
-Raiden nodes can submit a ``MonitoringRequest`` to the Monitoring Service room when they go
+Raiden nodes can submit a :term:`MonitoringRequest` to the Monitoring Service room when they go
 offline. The Monitoring Service will submit their balance proof on their behalf.
 
 Pathfinding Service Updates Room
 ''''''''''''''''''''''''''''''''
-Raiden Nodes publish PFSCapacityUpdate and PFSFeeUpdates to the Pathfinding Service room. The Pathfinding Service can
+Raiden Nodes publish :term:`PFSCapacityUpdate` and :term:`PFSFeeUpdate` to the Pathfinding Service room. The Pathfinding Service can
  compute efficient routes throughout the network and provide these routes to requesting nodes.
