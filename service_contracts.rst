@@ -143,6 +143,9 @@ The controller can at any time change the parameters
 
 When the parameters are changed, the ServiceRegistry contract calculates and records the current price using the old parameters. From then on, the price changes according to the new parameters.
 
+
+.. _UserDeposit:
+
 UserDeposit
 ===========
 
@@ -341,6 +344,8 @@ should be unlikely due to the following aspects:
    channels and reopen new channels at a cost which will most likely be
    higher than the profit gained by cheating
 
+
+.. _MonitoringServiceContract:
 
 MonitoringService
 =================
