@@ -350,8 +350,15 @@ should be unlikely due to the following aspects:
 MonitoringService
 =================
 
-The :ref:`MS` submits an up-to-date :term:`balance proof` on behalf of users who are offline when a channel is closed to prevent them from losing tokens. This could be done without a dedicated contract by calling `TokenNetwork.updateNonClosingBalanceProof <update-channel>` but then the MS would not be able to claim a reward for its work.
-To handle the rewards, the MonitoringService contract provides two functions. ``monitor()`` for wrapping `updateNonClosingBalanceProof` and creating the reward and ``claimReward()`` for claiming the reward after the settlement. ``monitor()`` only works for service providers that are registered in ServiceRegistry:
+The :ref:`MS` submits an up-to-date :term:`balance proof` on behalf of users who
+are offline when a channel is closed to prevent them from losing tokens. This
+could be done without a dedicated contract by calling
+`TokenNetwork.updateNonClosingBalanceProof <update-channel>` but then the MS
+would not be able to claim a reward for its work. To handle the rewards, the
+MonitoringService contract provides two functions. ``monitor()`` for wrapping
+`updateNonClosingBalanceProof` and creating the reward and ``claimReward()`` for
+claiming the reward after the settlement. ``monitor()`` only works for service
+providers that are registered in ServiceRegistry:
 
 .. autosolcontract:: MonitoringService
     :members: monitor, claimReward
