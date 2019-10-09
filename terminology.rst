@@ -212,4 +212,4 @@ Terminology
         A message that is broadcasted from the client to the :term:`Pathfinding Service` in order to update the channel capacity.
 
    PFSFeeUpdate
-        A message that is broadcasted from the client to the :term:`Pathfinding Service` in order to update the mediation fees.
+        A message that is broadcasted from the client to the :term:`Pathfinding Services<Pathfinding Service>` in order to update the mediation fees demanded by the client.
