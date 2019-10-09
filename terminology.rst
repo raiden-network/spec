@@ -206,7 +206,7 @@ Terminology
         Specific block after which the lock in the :term:`locked transfer` expires
 
    MonitoringRequest
-        A message that is broadcasted from a client to :term:`Monitoring Service` in order to provide the MS with the necessary information to watch the channel.
+        A message that is broadcasted from a client to :term:`Monitoring Services<Monitoring Service>` in order to request channel watching from the MS. The message contains all the necessary information for the MS to carry out a channel update for the user.
 
    PFSCapacityUpdate
         A message that is broadcasted from the client to the :term:`Pathfinding Services<Pathfinding Service>` in order to update the channel capacity.
