@@ -215,3 +215,73 @@ Now forward and backward calculation should let us recalculate :math:`b` or :mat
 .. math::
 
     {fee}_{out} = c - b = bq + f + i = 1000 * 0.1 + 100 = 200
+
+
+Default Imbalance Penalty Curve
+===============================
+
+Requirements
+------------
+
+In order to make it easier to enable imbalance fees, the Raiden client
+includes a default IP function that can be configured by a single
+parameter (``--proportional-imbalance-fee`` on the Raiden CLI).
+
+The function is chosen to have the following properties:
+
+1. It is convex, symmetric and defined for all values in the range :math:`[0,
+   \mathit{capacity}]`
+2. The penalty is zero when both channel participants have the same balance.
+3. The highest point should have a given value :math:`f(0) := c`.
+4. The slope should not exceed :math:`s := 0.1` to avoid awarding extreme
+   incentives for transferring tokens.
+
+To get reasonable values for channels with greatly varying capacity, the
+highest value :math:`c` is chosen in proportion to the channel capacity.
+
+Used Function
+-------------
+
+One function that fulfills these requirements is
+
+.. math::
+   f(x) := a|x-o|^b
+
+when the offset :math:`o` is chosen to be half the channel capacity,
+:math:`a = \frac{c}{o^b}` and :math:`b = \frac{so}{c}`.
+
+Derivation of :math:`a` and :math:`b`
+-------------------------------------
+
+Starting with the function formula and its derivative
+
+.. math::
+   \begin{align}
+   f(x) &= a|x-o|^b \\
+   f'(x) &= ab(x-o)|o-x|^{b-2}
+   \end{align}
+
+as well as
+
+.. math::
+   f(0) := c \quad\text{and}\quad f'(0) := -s
+
+from the requirements, we can deduce the values for :math:`a`
+
+.. math::
+   \begin{align}
+   f(0) &= c \\
+   ao^b &= c \\
+   a &= \frac{c}{o^b}
+   \end{align}
+
+and :math:`b`
+
+.. math::
+   \begin{align}
+   f'(0) &= -s \\
+   ab(-o)o^{b-2} &= -s \\
+   abo^{b-1} &= s \\
+   \frac{c}{o^b}bo^{b-1} = \frac{cb}{o} &= s \\
+   b &= \frac{so}{c}
+   \end{align}
