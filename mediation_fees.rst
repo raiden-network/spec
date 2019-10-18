@@ -224,7 +224,7 @@ Requirements
 ------------
 
 In order to make it easier to enable imbalance fees, the Raiden client
-includes a default IP function that can be configured by a single
+includes a default imbalance penalty (IP) function that can be configured by a single
 parameter (``--proportional-imbalance-fee`` on the Raiden CLI).
 
 The function is chosen to have the following properties:
@@ -237,7 +237,7 @@ The function is chosen to have the following properties:
    incentives for transferring tokens.
 
 To get reasonable values for channels with greatly varying capacity, the
-highest value :math:`c` is chosen in proportion to the channel capacity.
+maximum :math:`c` is chosen in proportion to the channel capacity.
 
 Used Function
 -------------
@@ -245,10 +245,14 @@ Used Function
 One function that fulfills these requirements is
 
 .. math::
-   f(x) := a|x-o|^b
+   f(x) := a|x-o|^b \\
 
-when the offset :math:`o` is chosen to be half the channel capacity,
-:math:`a = \frac{c}{o^b}` and :math:`b = \frac{so}{c}`.
+where
+
+.. math::
+   \quad b := \frac{so}{c}, \quad a := \frac{c}{o^b}, \quad o > 0
+
+when the offset :math:`o` is chosen to be half the total channel capacity (own balance + partner balance).
 
 Derivation of :math:`a` and :math:`b`
 -------------------------------------
@@ -261,7 +265,7 @@ Starting with the function formula and its derivative
    f'(x) &= ab(x-o)|o-x|^{b-2}
    \end{align}
 
-as well as
+as well as the slope constraint
 
 .. math::
    f(0) := c \quad\text{and}\quad f'(0) := -s
@@ -281,7 +285,7 @@ and :math:`b`
    \begin{align}
    f'(0) &= -s \\
    ab(-o)o^{b-2} &= -s \\
-   abo^{b-1} &= s \\
+   abo^{b-1} &= s \quad \text{(now substitute a)}\\
    \frac{c}{o^b}bo^{b-1} = \frac{cb}{o} &= s \\
    b &= \frac{so}{c}
    \end{align}

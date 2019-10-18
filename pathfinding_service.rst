@@ -9,18 +9,14 @@ Overview
 A path finding service having a global view on a token network can provide suitable payment paths for Raiden nodes.
 Raiden nodes can request paths via public endpoints and pay per request. The service will keep its view on the
 token network updated by listening to blockchain events and a public matrix room where current capacities and
-fees (``Capacity Updates``) are being published. Nodes will publish their ``Capacity Updates`` in order to advertise
-their channels to become mediators.
+fees are being published. Nodes will publish this information in order to advertise their channels for mediation.
 
-Implementation Process and Assumptions
-======================================
+Assumptions & Goals
+===================
 
-* The path finding service will be implemented iteratively adding more complexity on every step.
-* There are three steps planned - (1) Pathfinding Minimal Viable Product, (2) Adding service fees, (3) Handling mediation fees.
-* It should be able to handle a similar amount of active nodes as currently present in Ethereum (~20,000).
+* The PFS should be able to handle a similar amount of active nodes as currently present in Ethereum (~20,000).
 * Nodes are incentivized to publicly report their current capacities and fees to "advertise" their channels.
-* Uncooperative nodes are dropped on the Raiden-level protocol, so paths provided by the service can be expected to work most of the time.
-* User experience should be simple and free for sparse users with optional premium fee schedules for heavy users.
+* Uncooperative nodes are dropped by the PFS, so paths provided by the service can be expected to work most of the time.
 * No guarantees are or can be made about the feasibility of the path with respect to node uptime or neutrality.
 
 
@@ -32,7 +28,7 @@ for a mediated transfer of a given value. The design regards the Raiden network 
 weighted graph, where the weights of the edges/channels are the sum of multiple penalty terms:
 
 * a base weight of 1 per edge, to incentivize short paths
-* a term proportional to the mediations fees for that channel
+* a term proportional to the mediation fees for that channel
 * if the edge is included in a route, all following routes will get a penalty
   if they include the same edge. This increases the diversity of routes and
   reduces the likelihood that multiple routes fail due to the same problem.
@@ -290,8 +286,7 @@ Returns
 Network Topology Updates
 ========================
 
-The creation of new token networks can be followed by listening for:
-- ``TokenNetworkCreated`` events on the ``TokenNetworksRegistry`` contract.
+The creation of new token networks can be followed by listening for ``TokenNetworkCreated`` events on the ``TokenNetworksRegistry`` contract.
 
 To learn about updates of the network topology of a token network the PFS must
 listen for the following events:
@@ -397,12 +392,3 @@ route fails or the payment succeeds by using a certain route, this feedback is g
 
 While the individual feedback cannot be trusted by the PFS, it can use general trends to improve it's routing algorithm, e.g. lowering the precedence or removing channels
 from the routing table when payments including them often fail.
-
-Future Work
-===========
-
-The methods will be rate-limited in a configurable way. If the rate limit is exceeded,
-clients can be required to pay the path-finding service with RDN tokens via the Raiden Network.
-The required path for this payment will be provided by the service for free. This enables a simple
-user experience for light users without the need for additional on-chain transactions for channel
-creations or payments, while at the same time monetizing extensive use of the API.
