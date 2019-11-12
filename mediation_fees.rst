@@ -107,115 +107,124 @@ easier to let them define a *per-hop* proportional mediation fee (called
 Fee calculation
 ===============
 
-There are two fundamental formula to relate :math:`a`, :math:`b` and :math:`c`.
-
-1. :math:`a = c + aq + f + i(-a)`
-
-2. :math:`c = b + bq + f + i(b)`
-
-The other fundamental relations are:
-
-- :math:`a - {fee}_{in} = c`
-- :math:`c - {fee}_{out} = b`
-
-The imbalance fee :math:`i(x)` is defined as follows, where :math:`t` is the channel capacity, :math:`x` is the transferred amount and :math:`\mathit{IP}(\mathit{capacity})` is the imbalance penalty function.
+The mediation fees for a payment amount :math:`x` for a single channel are calculated as
 
 .. math::
 
-    i(x) = \mathit{IP}(t + x) - \mathit{IP}(t)
+   \mathit{fee}_{\mathit{channel}}(x) := \mathit{flat} + q|x| + i(x)
 
-In (1) we pass the negative amount to :math:`i` because the incoming channel's balance is decreased by the transfer, while it is increased for outgoing channel in (2) .
-
-
-.. note::
-
-    These equations only have symbolic solutions when no imbalance fees are used. With imbalance fees only approximate solutions are presented below. This means that forward and backwards fee calculations can differ slightly.
-
-
-
-Forward calculation (as in the client)
---------------------------------------
-
-For the fee calculation in the client, only :math:`a` is known and it needs to calculate :math:`c` and :math:`b.`.
-
-From (1) follows:
+where the imbalance fee for that channel is defined as
 
 .. math::
 
-    {fee}_{in} = a - c = qa + f + i(-a)
+    i(x) := \mathit{IP}(t + x) - \mathit{IP}(t)
 
-From (2) follows:
+and :math:`t` is the balance of the that channel. The amount :math:`x`
+is positive for incoming channels and negative for outgoing channels to
+reflect the change in balance. The values :math:`\mathit{flat}`,
+:math:`\mathit{q}` and the function :math:`\mathit{IP}` comprise the
+fee schedule for the channel.
 
-.. math::
-
-    \begin{split}
-    c &= b + bq + f + i(b) \\
-    b &= \frac{c - f - i(b)}{1+q}
-    \end{split}
-
-This leads to
+To get the mediation fee for a single mediator, we have to sum up the fees
+across both involved channels:
 
 .. math::
 
-    {fee}_{out} = c - b = c - \frac{c - f - i(b)}{1+q}
+   \begin{align}
+   \mathit{fee}_m & := round(\mathit{fee}_{\mathit{in}}(\mathit{x_{in}}) + \mathit{fee}_{\mathit{out}}(-\mathit{x_{out}})) & (1)\\
+   \mathit{fee}_m & := x_{in} - x_{out} & (2)
+   \end{align}
 
-Here one can see that the calculation depends on both :math:`b` and :math:`c`. This formula doesn't have a symbolic solution for arbitrary functions :math:`i(x)`.
-
-We approximate the solution by calculating :math:`b \approx b' = \frac{c - f}{1+q}` and than use that to solve for :math:`b` (which is the first iteration towards the solution which assumes :math:`i = 0`):
+When the mediator has enabled fee capping (which is the default), the result will not go below zero.
 
 .. math::
 
-    {fee}_{out} = c - b \approx c - \frac{c - f - i(b')}{1+q}
+   \mathit{fee}_{m\_capped} := max(\mathit{fee}_m, 0)
 
-Backward calculation (as in the PFS)
+
+
+Forward calculation (used in the mediator)
+------------------------------------------
+
+A mediator already knows :math:`x_{in}`, but knows neither :math:`x_{out}` nor
+:math:`\mathit{fee}_m` both of which can't be calculated directly without
+knowing the other.  So instead of a directly calculating them, we solve the
+equation we get by equating (1) and (2).
+
+.. math::
+
+   x_{in} - x_{out} = round(\mathit{fee}_{\mathit{in}}(\mathit{x_{in}}) + \mathit{fee}_{\mathit{out}}(-\mathit{x_{out}}))
+
+The only unknown in this equation is :math:`x_{out}` which makes this
+equivalent to finding the zero of
+   
+.. math::
+   f(x_{out}) = round(\mathit{fee}_{\mathit{in}}(\mathit{x_{in}}) + \mathit{fee}_{\mathit{out}}(-\mathit{x_{out}})) - x_{in} + x_{out}
+
+Due to the constraints on the fee schedule, this function is monotonically
+decreasing. Thus there is only a single solution and it can be found easily by
+following the slope into the right direction. Additionally, the current
+implementation uses the fact that the mediation fees are a piecewise linear
+function by only searching for the section that includes the solution and then
+interpolating to get the exact solution.
+
+Backward calculation (in the PFS)
 ------------------------------------
 
-In the case of fee calculation in the PFS, only :math:`b` is known and it needs to calculate :math:`c` and :math:`a`.
-
-From (2) follows:
-
-.. math::
-
-    {fee}_{out} = c - b = bq + f + i(b)
-
-From (1) follows:
-
-.. math::
-
-    {fee}_{in} = a - c = \frac{c + f + i(-a)}{1-q} - c
-
-Here the same approximation approach is used for the imbalance fee. The approximation :math:`i(-a')` with :math:`a' = \frac{c + f}{1+q}` is used in the symbolic solution.
-
-.. math::
-
-    {fee}_{in} = a - c \approx \frac{c + f + i(-a')}{1-q} - c
-
-
+This works analogous to the forward calculation with the only difference that :math:`x_{in}` is the unknown variable and :math:`x_{out}` is given as input.
 
 Example
 -------
 
-Let's assume:
+Let's assume no fees for the incoming channel and:
 
-- :math:`f = 100`
-- :math:`q = 0.1`
-- :math:`c = 1200`
-- :math:`b = 1000`
+- :math:`\mathit{flat}_{out} = 100`
+- :math:`q_{out} = 0.1`
+- :math:`x_{in} = 1200`
+- :math:`x_{out} = 1000`
 
-Now forward and backward calculation should let us recalculate :math:`b` or :math:`c`.
+Now forward and backward calculation should let us confirm that :math:`x_{in}`
+and :math:`x_{out}` are correct.
 
-**Client**
+**Mediator**
+
+:math:`x_{in}` is known:
 
 .. math::
 
-    {fee}_{out} = c - b = c - \frac{c - f - i}{1+q} = 1200 - \frac{1200 - 100}{1 + 0.1} = 200
+   \begin{align}
+   f(x_{out}) \stackrel{!}{=} 0 & = round(\mathit{fee}_{\mathit{in}}(\mathit{x_{in}}) + \mathit{fee}_{\mathit{out}}(-\mathit{x_{out}})) - x_{in} + x_{out} \\
+   & = round(\mathit{fee}_{\mathit{out}}(-\mathit{x_{out}})) - x_{in} + x_{out} \\
+   & = round(\mathit{flat_{out}} + q|x_{out}| + i(-x_{out}) - x_{in} + x_{out} \\
+   & = round(100 + 0.1 \cdot x_{out}) - 1200 + x_{out} \\
+   & \implies x_{out} = 1000
+   \end{align}
+
+.. plot::
+
+   import matplotlib.pyplot as plt
+   xs = [800, 1200]
+   plt.plot(xs, [round(100 + 0.1 * x) - 1200 + x for x in xs])
+   plt.axhline(0, color='gray')
+   plt.plot([1000, 1000], [0,-220], linestyle='dashed')
+   plt.xlabel('x_out')
+   plt.ylabel('f(x_out)')
 
 **PFS**
 
+:math:`x_{out}` is known:
+
 .. math::
 
-    {fee}_{out} = c - b = bq + f + i = 1000 * 0.1 + 100 = 200
+   \begin{align}
+   f(x_{out}) \stackrel{!}{=} 0 & = round(\mathit{fee}_{\mathit{in}}(\mathit{x_{in}}) + \mathit{fee}_{\mathit{out}}(-\mathit{x_{out}})) - x_{in} + x_{out} \\
+   & = round(\mathit{fee}_{\mathit{out}}(-\mathit{x_{out}})) - x_{in} + x_{out} \\
+   & = round(\mathit{flat_{out}} + q|x_{out}| + i(-x_{out}) - x_{in} + x_{out} \\
+   & = round(100 + 0.1 \cdot 1000) - 1200 + 1000 \\
+   & = round(200) - 200 = 0 \\
+   \end{align}
 
+Due to the simple example this is true for any :math:`x_{in}`. If there was a scheduling involving proportional or imbalance fees, we would need to find the intersection with the x-axis as above for the mediator.
 
 Default Imbalance Penalty Curve
 ===============================
