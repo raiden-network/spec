@@ -89,7 +89,7 @@ The arguments are POSTed as a JSON object.
 Returns
 """""""
 
-When successfull, the request returns a list of path objects and a feedback
+When successful, the request returns a list of path objects and a feedback
 token. A feedback token is the 32-character hexadecimal string
 representation of a UUID and is valid for all routes that are included in the
 response.
