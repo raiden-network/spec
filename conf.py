@@ -40,7 +40,12 @@ release = '0.1'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinxcontrib.soliditydomain',
+    'matplotlib.sphinxext.plot_directive',
 ]
+
+# configure plot_directive extension
+plot_html_show_source_link = False
+plot_html_show_formats = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
