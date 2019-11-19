@@ -161,12 +161,14 @@ equivalent to finding the zero of
 .. math::
    f(x_{out}) = round(\mathit{fee}_{\mathit{in}}(\mathit{x_{in}}) + \mathit{fee}_{\mathit{out}}(-\mathit{x_{out}})) - x_{in} + x_{out}
 
-Due to the constraints on the fee schedule, this function is monotonically
+Due to the constraints [#cons]_ on the fee schedule, this function is monotonically
 decreasing. Thus there is only a single solution and it can be found easily by
 following the slope into the right direction. Additionally, the current
 implementation uses the fact that the mediation fees are a piecewise linear
 function by only searching for the section that includes the solution and then
 interpolating to get the exact solution.
+
+.. [#cons] ``PROPORTIONAL_MED_FEE_MAX`` + 2 * ``MAXIMUM_SLOPE`` must be strictly below 1, where ``MAXIMUM_SLOPE`` is the highest absolute slope allowed at any point of the IP function.
 
 Backward calculation (in the PFS)
 ------------------------------------
