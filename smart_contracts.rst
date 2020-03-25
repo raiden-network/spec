@@ -284,7 +284,8 @@ Attributes:
 - ``uint256 public settlement_timeout_max`` The longest settlement period that channel openers can choose (in number of blocks).
 - ``uint256 public max_token_network`` The maximum number of tokens that can be registered.
 
-**Register a token**
+Register a token
+^^^^^^^^^^^^^^^^
 
 Deploy a new ``TokenNetwork`` contract and add its address in the registry.
 
@@ -326,7 +327,8 @@ Provides the interface to interact with payment channels. The channels can only 
 .. Note::
     A ``channel_identifier`` value of ``0`` is not a valid value for an active channel. The counter starts at ``1``.
 
-**Attributes**
+Attributes
+^^^^^^^^^^
 
 - ``Token public token`` ERC20 Token contract whose tokens this TokenNetwork deals with.
 - ``SecretRegistry public secret_registry`` Address of SecretRegistry used for hashtimelocks in this TokenNetwork.
@@ -336,7 +338,8 @@ Provides the interface to interact with payment channels. The channels can only 
 - ``uint256 public channel_participant_deposit_limit`` The limit of total deposits per participant per channel.
 - ``uint256 public token_network_deposit_limit`` The limit of total deposits that this TokenNetwork can take.
 
-**Getters**
+Getters
+^^^^^^^
 
 .. _get-channel-identifier:
 
@@ -407,7 +410,8 @@ We currently limit the number of channels between two participants to one. There
 
 .. _open-channel:
 
-**Open a channel**
+Open a channel
+^^^^^^^^^^^^^^
 
 Opens a channel between ``participant1`` and ``participant2`` and sets the challenge period of the channel.
 
@@ -438,7 +442,8 @@ Opens a channel between ``participant1`` and ``participant2`` and sets the chall
 
 .. _deposit-channel:
 
-**Fund a channel**
+Fund a channel
+^^^^^^^^^^^^^^
 
 Deposit more tokens into a channel. This will only increase the deposit of one of the channel participants: the ``participant``.
 
@@ -477,7 +482,8 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 
 .. _withdraw-channel:
 
-**Withdraw tokens from a channel**
+Withdraw tokens from a channel
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Allows a channel participant to withdraw tokens from a channel without closing it. Can be called by anyone. Can only be called once per each signed withdraw proof.
 
@@ -515,7 +521,8 @@ Allows a channel participant to withdraw tokens from a channel without closing i
 
 .. _close-channel:
 
-**Close a channel**
+Close a channel
+^^^^^^^^^^^^^^^
 
 Allows anybody to close a channel with a channel participant's signature. After a channel is closed, the channel cannot be settled before the challenge period has ended.
 
@@ -562,7 +569,8 @@ Allows anybody to close a channel with a channel participant's signature. After 
 
 .. _update-channel:
 
-**Update the balance proof counting towards the non-closing participant**
+Update the balance proof counting towards the non-closing participant
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Called after a channel has been closed. Can be called by any Ethereum address and allows the non-closing participant to provide the latest :term:`balance proof` from the closing participant. This modifies the stored state for the closing participant.
 
@@ -612,7 +620,8 @@ Called after a channel has been closed. Can be called by any Ethereum address an
 
 .. _settle-channel:
 
-**Settle channel**
+Settle channel
+^^^^^^^^^^^^^^
 
 Settles the channel by transferring the amount of tokens each participant is owed. We need to provide the entire balance state because we only store the balance data hash when closing the channel and updating the non-closing participant balance.
 
@@ -666,7 +675,8 @@ Settles the channel by transferring the amount of tokens each participant is owe
 
 .. _cooperative-settle-channel:
 
-**Cooperatively close and settle a channel**
+Cooperatively close and settle a channel
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. Warning::
     ``cooperativeSettle`` function is currently commented out and is not available.
@@ -703,7 +713,8 @@ Allows the participants to cooperate and provide both of their balances and sign
 
 .. _unlock-channel:
 
-**Unlock lock**
+Unlock lock
+^^^^^^^^^^^
 
 Unlocks all pending transfers by providing all pending transfers data. The hash of the whole data must be the same as the ``locksroot`` provided in the latest :term:`balance proof`.
 
@@ -745,7 +756,8 @@ Unlocks all pending transfers by providing all pending transfers data. The hash 
 
 .. _turn_on_deprecation_switch:
 
-**Turning on the deprecation switch**
+Turning on the deprecation switch
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Allows the deprecation executor to deprecate the contract. After this no channels accept new deposits, and no new channel can be opened.
 
