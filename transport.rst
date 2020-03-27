@@ -1,8 +1,8 @@
 Transport
 #########
 
-Summary
-============
+Overview
+========
 
 Raiden is a network agnostic protocol. Protocol messages can in general be transferred over
 any network, e.g. ip, mesh networks, etc., where the only requirement is access to an
