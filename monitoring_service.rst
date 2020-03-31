@@ -13,8 +13,8 @@ offline or does not react itself, the Monitoring Service sends the latest
 balance proof to the ``TokenNetwork`` contract and thus ensures correct
 settlement of the channel.
 
-To do this a Monitoring Service listens to :ref:`Monitor Requests <Monitor
-Request>` in a public Matrix room. An MR is accompanied by a reward for acting
+To do this a Monitoring Service listens to :ref:`Monitor Requests (MRs) <Monitor
+Request>` in a public Matrix room. A MR is accompanied by a reward for acting
 on it. Based on this reward, the MS can decide to monitor a channel and store
 the corresponding MRs.
 
@@ -46,8 +46,8 @@ a working state faster. Therefore some user friendly features are currently out
 of scope.
 
 
-Monitoring Service Payment
---------------------------
+Rewards
+-------
 
 The MS can claim its reward after successfully submitting its client’s balance
 proof update. Sending this update is only allowed when the MS is registered in
@@ -60,13 +60,13 @@ gas. For more information see the description of the :ref:`Monitoring
 Service contract <MonitoringServiceContract>`.
 
 
-MS Reliability
---------------
+Reliability
+-----------
 
 The Monitoring Service itself is split into two components to increase reliability and lower the attack surface.
 
-* The request collector is a simple component that connects to the Matrix network and listens only for :ref:`Monitor Requests <Monitor Request>`, which are written to a database.
-* The monitoring service itself just reads these MRs from the database and otherwise listens to blockchain events and updates the respective smart contracts by sending transactions.
+* The request collector is a simple component that connects to the Matrix network and listens for :ref:`Monitor Requests <Monitor Request>`, which are written to a database.
+* The monitoring service itself reads the MRs from the database and listens to blockchain events. If necessary it updates the respective channels by sending transactions to the blockchain.
 
 
 Privacy
