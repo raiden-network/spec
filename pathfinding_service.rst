@@ -6,8 +6,10 @@ Pathfinding Service
 Overview
 ========
 
-A path finding service having a global view on a token network can provide suitable payment paths for Raiden nodes.
-Raiden nodes can request paths via public endpoints and pay per request. The service will keep its view on the
+A pathfinding service (PFS) has a global view on a token network and can provide suitable payment paths for Raiden nodes.
+Raiden nodes can request paths from a PFS via a public REST API and pay per request.
+
+The service will keep its view on the
 token network updated by listening to blockchain events and a public matrix room where current capacities and
 fees are being published. Nodes will publish this information in order to advertise their channels for mediation.
 
@@ -54,7 +56,7 @@ The method will do ``max_paths`` iterations of Dijkstras algorithm on the last-k
 Network (regarded as directed weighted graph) to return ``max_paths`` different paths for a mediated transfer of ``value``.
 
 * Checks if an edge (i.e. a channel) has ``capacity > value``, else ignores it.
-
+* Checks that further constraints are met, like the lock timeout being smaller than the settle timeout.
 * Applies on the fly changes to the graph's weights - depends on ``DIVERSITY_PEN_DEFAULT`` from ``config``, to penalize edges which are part of a path that is returned already.
 
 .. _path_args:
@@ -224,21 +226,26 @@ Example
 ::
 
     // Request
-    curl -X GET --data '{
-        "rdn_source_addressfrom": "0xrdn_alice",
-    }'  api/v1/info
+    curl -X GET api/v1/info
 
     // Result for success
     {
-        "price_info": 0,
+        "price_info": 100,
         "network_info": {
-            "chain_id": 3,
-            "registry_address": "0x4a6E1fe3dB979e600712E269b26207c49FEe116E"
+            "chain_id": 5,
+            "token_network_registry_address": "0xFfaf04Ad776AAa3AbD62AFA340f3c55931a68fB1",
+            "user_deposit_address": "0xB85703628262C8301298474e072D426fE9C3fEeC",
+            "service_token_address": "0xc116edAD88cda44E703ef1fc59766268E4aa187B",
+            "confirmed_block": {
+                "number": 2441022
+            }
         },
-        "settings": "PLACEHOLDER FOR PATHFINDER SETTINGS",
-        "version": "0.0.1",
-        "operator": "PLACEHOLDER FOR PATHFINDER OPERATOR",
-        "message": "PLACEHOLDER FOR ADDITIONAL MESSAGE BY THE PFS"
+        "version": "0.7.0",
+        "contracts_version": "0.37.0b0",
+        "operator": "John Doe",
+        "message": "This is your favorite PFS.",
+        "payment_address": "0x062C12c01D0f17fC9eAa33940D994594d91a0182",
+        "UTC": "2020-03-31T09:33:26.073566"
     }
 
 
