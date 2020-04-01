@@ -38,9 +38,12 @@ release = '0.1'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinxcontrib.soliditydomain',
-    'matplotlib.sphinxext.plot_directive',
+    "sphinx.ext.autodoc",
+    # Temporarily disabled: Version v0.5.1 of the plugin does not support the
+    # required version of solidity (0.6.4).
+    #
+    # 'sphinxcontrib.soliditydomain',
+    "matplotlib.sphinxext.plot_directive",
 ]
 
 # configure plot_directive extension
