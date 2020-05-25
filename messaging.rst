@@ -50,10 +50,10 @@ Structures used as part of many protocol messages.
 Off-chain Balance Proof
 -----------------------
 
-This data structure encapsulates the data required by the token network smart
-contract and is used by many messages. Each instance of this data structure
-determines the state of one participant in a given channel. Messages into smart
-contracts contain a shorter form called :ref:`On-chain Balance Proof
+This data structure encapsulates most of the data required by the token network
+smart contract and is used by many messages. Each instance of this data
+structure determines the state of one participant in a given channel. Messages
+into smart contracts contain a shorter form called :ref:`On-chain Balance Proof
 <balance-proof-on-chain>`.
 
 Fields
@@ -62,38 +62,25 @@ Fields
 +--------------------------+------------+--------------------------------------------------------------------------------+
 | Field Name               | Field Type |  Description                                                                   |
 +==========================+============+================================================================================+
-|  nonce                   | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1        |
+|  chain_id                | uint256    | Chain identifier as defined in EIP155.                                         |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-|  transferred_amount      | uint256    | Total transferred amount in the history of the channel (monotonic value)       |
+|  nonce                   | uint256    | Strictly monotonic value used to order transfers. The nonce starts at 1.       |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-|  locked_amount           | uint256    | Current locked amount                                                          |
+|  transferred_amount      | uint256    | Total transferred amount in the history of the channel (monotonic value).      |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-|  locksroot               | bytes32    | Hash of the pending locks encoded and concatenated                             |
+|  locked_amount           | uint256    | Current locked amount.                                                         |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-| token_network_address    | address    | Address of the TokenNetwork contract                                           |
+|  locksroot               | bytes32    | Hash of the pending locks encoded and concatenated.                            |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-|  channel_identifier      | uint256    | Channel identifier inside the TokenNetwork contract                            |
+|  channel_identifier      | uint256    | Channel identifier inside the TokenNetwork contract.                           |
 +--------------------------+------------+--------------------------------------------------------------------------------+
-|  additional_hash         | bytes32    | Hash of the message                                                            |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-|  signature               | bytes      | Elliptic Curve 256k1 signature on the above data                               |
-+--------------------------+------------+--------------------------------------------------------------------------------+
-|  chain_id                | uint256    | Chain identifier as defined in EIP155                                          |
+|  token_network_address   | address    | Address of the TokenNetwork contract.                                          |
 +--------------------------+------------+--------------------------------------------------------------------------------+
 
-- The ``channel_identifier``, ``token_network_address`` and ``chain_id`` together are a
-  globally unique identifier of the channel, also known as the :term:`canonical identifier`.
-
-- The :term:`balance data` consists of ``transferred_amount``, ``locked_amount`` and ``locksroot``.
-
-- The ``additional_hash`` is used to validate data which is not part of the
-  balance proof, usually fields of the envolping message, refer to the message
-  specification for its ``additional_hash``. The signature is defined as:
-
-::
-
-    ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id))
-
+- The ``channel_identifier``, ``token_network_address`` and ``chain_id``
+  together are a globally unique identifier of the channel, also known as the
+  :term:`canonical identifier`, this data is used to pin a balance proof to an
+  unique channel to prevent replay.
 
 .. _hash-time-lock:
 
