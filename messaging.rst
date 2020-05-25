@@ -45,10 +45,10 @@ Data Structures
 
 Structures used as part of many protocol messages.
 
-.. _balance-proof-off-chain:
-
 Off-chain Balance Proof
 -----------------------
+
+.. _balance-proof-off-chain:
 
 This data structure encapsulates most of the data required by the token network
 smart contract and is used by many messages. Each instance of this data
@@ -82,10 +82,10 @@ Fields
   :term:`canonical identifier`, this data is used to pin a balance proof to an
   unique channel to prevent replay.
 
-.. _hash-time-lock:
-
 HashTimeLock
 ------------
+
+.. _hash-time-lock:
 
 Fields
 ^^^^^^
@@ -100,6 +100,44 @@ Fields
 |  secrethash          | bytes32     | keccak256 hash of the secret                               |
 +----------------------+-------------+------------------------------------------------------------+
 
+Metadata
+--------
+
+.. _metadata:
+
+Message metadata, at the moment only routing information is supported.
+
+Fields
+^^^^^^
+
++----------------------+---------------------+----------------------------+
+| Field Name           | Field Type          |  Description               |
++======================+=====================+============================+
+|  routes              | List[RouteMetadata] | A list of possible routes. |
++----------------------+----------------+---------------------------------+
+
+RouteMetadata
+-------------
+
+.. _route-metadata:
+
+This datastructure describes a single route, the noce receiving the message
+will be the first entry in the list, the second node is the node which the
+transfer should be forwarded to.
+
+Each entry is EIP55-checksum addresses with ``0x``-prefix as usual. The last of
+the addresses in each list must be the target of the transfer, the former the
+desired mediators in order.
+
+Fields
+^^^^^^
+
++----------------------+----------------+---------------------------------------------------------+
+| Field Name           | Field Type     |  Description                                            |
++======================+================+=========================================================+
+|  route               | List[Address]  | A list of the node addresses which comprise one routes. |
++----------------------+----------------+---------------------------------------------------------+
+
 Messages
 ========
 
@@ -111,39 +149,25 @@ Locked Transfer
 Locked Transfer message
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-In order to create a valid, signed JSON message, four consecutive steps are conducted.
-
-1. Compute the :term:`additional hash`
-2. Compute the ``balance_hash`` from the :term:`balance data`
-3. Create the ``balance_proof`` with ``additional_hash`` and ``balance_hash``
-4. Pack and sign the ``balance_proof`` to get the signature of the Locked Transfer
-
-The ``LockedTransfer`` message consists of the fields of a :ref:`hash time lock <hash-time-lock>`,
-an :ref:`off-chain balance proof <balance-proof-off-chain>` and the following:
-
-+-----------------------+------------+-----------------------------------------------------------+
-| Field Name            | Type       |  Description                                              |
-+=======================+============+===========================================================+
-|  message_identifier   | uint64     | An ID for ``Delivered`` and ``Processed`` acknowledgments |
-+-----------------------+------------+-----------------------------------------------------------+
-|  payment_identifier   | uint64     | An identifier for the payment that the initiator specifies|
-+-----------------------+------------+-----------------------------------------------------------+
-|  token                | address    | Address of the token contract                             |
-+-----------------------+------------+-----------------------------------------------------------+
-|  recipient            | address    | Destination for this hop of the transfer                  |
-+-----------------------+------------+-----------------------------------------------------------+
-|  target               | address    | Final destination of the payment                          |
-+-----------------------+------------+-----------------------------------------------------------+
-|  initiator            | address    | Initiator of the transfer and party who knows the secret  |
-+-----------------------+------------+-----------------------------------------------------------+
-|  metadata             | object     | Routing information                                       |
-+-----------------------+------------+-----------------------------------------------------------+
-
-The ``metadata`` is a JSON object, which contains routing information under the key ``routes``.
-The value of ``routes`` must be a list of **route metadata objects**. Each route metadata object
-is again a json object with a key named ``route``, under which a list of ethereum addresses
-can be found. (EIP55-checksum addresses with ``0x``-prefix as usual). The last of the addresses
-in each list must be the target of the transfer, the former the desired mediators in order.
++-----------------------+--------------+-----------------------------------------------------------+
+| Field Name            | Type         |  Description                                              |
++=======================+==============+===========================================================+
+|  payment_identifier   | uint64       | An identifier for the payment, chosen by the initiator.   |
++-----------------------+--------------+-----------------------------------------------------------+
+|  token                | address      | Address of the token contract                             |
++-----------------------+--------------+-----------------------------------------------------------+
+|  recipient            | address      | Destination for this hop of the transfer                  |
++-----------------------+--------------+-----------------------------------------------------------+
+|  lock                 | HashTimeLock | A :ref:`lock <hash-time-lock>`                            |
++-----------------------+--------------+-----------------------------------------------------------+
+|  target               | address      | Final destination of the payment                          |
++-----------------------+--------------+-----------------------------------------------------------+
+|  initiator            | address      | Initiator of the transfer and party who knows the secret  |
++-----------------------+--------------+-----------------------------------------------------------+
+|  metadata             | Metadata     | Transfer metadata, atm only routing information.          |
++-----------------------+--------------+-----------------------------------------------------------+
+|  message_identifier   | uint64       | An ID for ``Delivered`` and ``Processed`` acknowledgments |
++-----------------------+--------------+-----------------------------------------------------------+
 
 1. Additional Hash
 ^^^^^^^^^^^^^^^^^^
