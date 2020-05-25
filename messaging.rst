@@ -50,19 +50,11 @@ Structures used as part of many protocol messages.
 Off-chain Balance Proof
 -----------------------
 
-Data required by the smart contracts to update the payment channel end of the participant that signed the balance proof.
-Messages into smart contracts contain a shorter form called :ref:`On-chain Balance Proof <balance-proof-on-chain>`.
-
-The off-chain balance proof consists of the :term:`balance data`, the channel's :term:`canonical identifier`, the
-signature, the additional hash and a nonce.
-
-The signature must be valid and is defined as:
-
-::
-
-    ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id))
-
-where ``additional_hash`` is the hash of the whole message being signed.
+This data structure encapsulates the data required by the token network smart
+contract and is used by many messages. Each instance of this data structure
+determines the state of one participant in a given channel. Messages into smart
+contracts contain a shorter form called :ref:`On-chain Balance Proof
+<balance-proof-on-chain>`.
 
 Fields
 ^^^^^^
@@ -93,6 +85,14 @@ Fields
   globally unique identifier of the channel, also known as the :term:`canonical identifier`.
 
 - The :term:`balance data` consists of ``transferred_amount``, ``locked_amount`` and ``locksroot``.
+
+- The ``additional_hash`` is used to validate data which is not part of the
+  balance proof, usually fields of the envolping message, refer to the message
+  specification for its ``additional_hash``. The signature is defined as:
+
+::
+
+    ecdsa_recoverable(privkey, keccak256(balance_hash || nonce || additional_hash || channel_identifier || token_network_address || chain_id))
 
 
 .. _hash-time-lock:
