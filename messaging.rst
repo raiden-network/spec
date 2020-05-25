@@ -6,11 +6,6 @@ Overview
 
 This is the specification of the messages used in the Raiden protocol.
 
-There are data structures which reappear in different messages:
-
-- The :ref:`off-chain balance proof <balance-proof-off-chain>`
-- and the :ref:`hash time lock <hash-time-lock>`.
-
 A :term:`mediated transfer` begins with a :ref:`LockedTransfer message <locked-transfer-message>`.
 
 We will explain the assembly of a ``LockedTransfer`` message step-by-step below.
@@ -62,6 +57,8 @@ conventions:
 
 Data Structures
 ===============
+
+Structures used as part of many protocol messages.
 
 .. _balance-proof-off-chain:
 
