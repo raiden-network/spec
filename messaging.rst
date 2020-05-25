@@ -87,20 +87,6 @@ Fields
 HashTimeLock
 ------------
 
-This data structure describes a :term:`hash time lock` with which a transfer is secured. The
-``locked_amount`` can be unlocked with the secret matching ``secrethash`` until ``expiration``
-is reached.
-
-Invariants
-^^^^^^^^^^
-
-- Expiration must be larger than the current block number and smaller than the channel’s settlement period.
-
-Hash
-^^^^^^
-
-- ``keccak256(expiration || amount || secrethash)``
-
 Fields
 ^^^^^^
 
