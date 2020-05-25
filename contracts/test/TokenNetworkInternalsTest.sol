@@ -1,4 +1,4 @@
-pragma solidity 0.5.4;
+pragma solidity 0.6.4;
 
 import "raiden/TokenNetwork.sol";
 
@@ -183,7 +183,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         );
     }
 
-    function recoverAddressFromBalanceProofUpdateMessagePublic(
+    function recoverAddressFromBalanceProofCounterSignaturePublic(
+        MessageTypeId message_type_id,
         uint256 channel_identifier,
         bytes32 balance_hash,
         uint256 nonce,
@@ -195,7 +196,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         view
         returns (address signature_address)
     {
-        return recoverAddressFromBalanceProofUpdateMessage(
+        return recoverAddressFromBalanceProofCounterSignature(
+            message_type_id,
             channel_identifier,
             balance_hash,
             nonce,
@@ -230,7 +232,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
     function recoverAddressFromWithdrawMessagePublic(
         uint256 channel_identifier,
         address participant,
-        uint256 amount_to_withdraw,
+        uint256 total_withdraw,
+        uint256 expiration_block,
         bytes memory signature
     )
         public
@@ -240,7 +243,8 @@ contract TokenNetworkSignatureTest is TokenNetwork {
         return recoverAddressFromWithdrawMessage(
             channel_identifier,
             participant,
-            amount_to_withdraw,
+            total_withdraw,
+            expiration_block,
             signature
         );
     }
