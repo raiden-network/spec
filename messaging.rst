@@ -4,24 +4,9 @@ Messages
 Overview
 ========
 
-This is the specification of the messages used in the Raiden protocol.
-
-A :term:`mediated transfer` begins with a :ref:`LockedTransfer message <locked-transfer-message>`.
-
-We will explain the assembly of a ``LockedTransfer`` message step-by-step below.
-The further messages within the transfer are based on it:
-
-- :ref:`SecretRequest <secret-request-message>`,
-  its reply :ref:`RevealSecret <reveal-secret-message>`, and
-  finally the :ref:`Unlock <unlock-message>` messages that complete the transfer.
-- The :ref:`LockExpired <lock-expired-message>` message in case the transfer is not completed in time.
-
-Further messages in the protocol are:
-
-- The :ref:`Processed and Delivered <processed-delivered-message>` messages to acknowledge received messages, and
-- The withdraw-related messages :ref:`WithdrawRequest <withdraw-request-message>`,
-  :ref:`WithdrawConfirmation <withdraw-confirmation-message>` and
-  :ref:`WithdrawExpired <withdraw-expired-message>`.
+Documentation of the messages, their fields and types. For information how the
+messages are used refer to :ref:`the mediated transfer example
+<mediated-transfer>`.
 
 Encoding, signing and transport
 ===============================
