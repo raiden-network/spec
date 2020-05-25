@@ -1,6 +1,8 @@
 Mediated transfers
 ##################
 
+.. _mediated-transfers:
+
 Overview
 ========
 
