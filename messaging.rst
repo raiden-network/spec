@@ -5,8 +5,7 @@ Overview
 ========
 
 Documentation of the messages, their fields and types. For information how the
-messages are used refer to :ref:`the mediated transfer example
-<mediated-transfer>`.
+messages are used refer to :ref:`the mediated transfer example <mediated-transfers>`.
 
 Encoding, signing and transport
 ===============================
