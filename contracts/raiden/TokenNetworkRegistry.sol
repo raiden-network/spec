@@ -1,4 +1,4 @@
-pragma solidity 0.5.4;
+pragma solidity 0.6.4;
 
 import "raiden/Utils.sol";
 import "raiden/Token.sol";
@@ -25,19 +25,19 @@ contract TokenNetworkRegistry is Utils {
     event TokenNetworkCreated(address indexed token_address, address indexed token_network_address);
 
     modifier canCreateTokenNetwork() {
-        require(token_network_created < max_token_networks);
+        require(token_network_created < max_token_networks, "registry full");
         _;
     }
 
     /// @param _secret_registry_address The address of SecretRegistry that's used by all
-    /// TokenNetworks created by this contract.
-    /// @param _chain_id EIP-155 Chain-ID of the chain where this contract is deployed.
+    /// TokenNetworks created by this contract
+    /// @param _chain_id EIP-155 Chain-ID of the chain where this contract is deployed
     /// @param _settlement_timeout_min The shortest settlement period (in number of blocks)
-    /// that can be chosen at the channel opening.
+    /// that can be chosen at the channel opening
     /// @param _settlement_timeout_max The longest settlement period (in number of blocks)
-    /// that can be chosen at the channel opening.
-    /// @param _max_token_networks the number of tokens that can be registered.
-    /// MAX_UINT256 means no limits.
+    /// that can be chosen at the channel opening
+    /// @param _max_token_networks the number of tokens that can be registered
+    /// MAX_UINT256 means no limits
     constructor(
         address _secret_registry_address,
         uint256 _chain_id,
@@ -64,9 +64,9 @@ contract TokenNetworkRegistry is Utils {
     }
 
     /// @notice Deploy a new TokenNetwork contract for the Token deployed at
-    /// `_token_address`.
+    /// `_token_address`
     /// @param _token_address Ethereum address of an already deployed token, to
-    /// be used in the new TokenNetwork contract.
+    /// be used in the new TokenNetwork contract
     function createERC20TokenNetwork(
         address _token_address,
         uint256 _channel_participant_deposit_limit,

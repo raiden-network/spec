@@ -1,4 +1,4 @@
-pragma solidity 0.5.4;
+pragma solidity 0.6.4;
 
 /*
 This Token Contract implements the standard token functionality (https://github.com/ethereum/EIPs/issues/20), the ERC223 functionality (https://github.com/ethereum/EIPs/issues/223) as well as the following OPTIONAL extras intended for use by humans.
@@ -37,10 +37,10 @@ contract CustomToken is StandardToken {
      *  Public functions
      */
     /// @dev Contract constructor function.
-    /// @param initial_supply Initial supply of tokens.
-    /// @param decimal_units Number of token decimals.
-    /// @param token_name Token name for display.
-    /// @param token_symbol Token symbol.
+    /// @param initial_supply Initial supply of tokens
+    /// @param decimal_units Number of token decimals
+    /// @param token_name Token name for display
+    /// @param token_symbol Token symbol
     constructor(
         uint256 initial_supply,
         uint8 decimal_units,
@@ -90,7 +90,7 @@ contract CustomToken is StandardToken {
         assert(address(this).balance == 0);
     }
 
-    function decimals() public view returns (uint8 decimals) {
+    function decimals() public override view returns (uint8 decimals) {
         return _decimals;
     }
 }
