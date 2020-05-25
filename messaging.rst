@@ -108,14 +108,8 @@ Messages
 Locked Transfer
 -----------------
 
-A Locked Transfer is a message used to reserve tokens for a mediated transfer to another node
-called the **target**.
-
 Locked Transfer message
 ^^^^^^^^^^^^^^^^^^^^^^^^
-
-The message is always sent to the next mediating node, altered and forwarded until the
-**target** is reached.
 
 In order to create a valid, signed JSON message, four consecutive steps are conducted.
 
