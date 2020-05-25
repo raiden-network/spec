@@ -65,7 +65,6 @@ contract HumanStandardToken is StandardToken {
         return true;
     }
 
-    fallback () external { revert(); }
 
     function decimals() public override view returns (uint8 decimals) {
         return _decimals;
