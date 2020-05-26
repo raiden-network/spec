@@ -1,4 +1,4 @@
-pragma solidity 0.5.4;
+pragma solidity 0.6.4;
 
 import "services/UserDeposit.sol";
 
