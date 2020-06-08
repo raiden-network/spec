@@ -411,6 +411,19 @@ Signature
 
 The signature is created by using ``ecdsa_recoverable`` on the fields in the order given above and stored in the ``signature`` field.
 
+When to send PFSFeeUpdates
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The fees depend on the total channel capacity across both participants, so whenever that changes, a PFSFeeUpdate should be sent. The capacity changes when participants deposit to or withdraw from a channel. For both of these actions, there is a time of uncertainty between the initiation and the confirmation of the action. The updates should assume the lower capacity during time, since it is the safe thing to do and it matches the node's internal state.
+
+Deposit
+"""""""
+With this pessimistic approach, the update must be sent when the blockchain confirms the deposit (``ContractReceiveChannelDeposit``).
+
+Withdraw
+""""""""
+The update will be sent when the withdraw is successfully initiated (``SendWithdrawRequest`` and ``ReceiveWithdrawRequest``). If the withdraw succeeds on-chain, this fee remains correct. In the unlikely case that the withdraw never reaches the blockchain, we have to revert back to the old fee schedule by sending a new fee update on the ``SendWithdrawExpired``/``ReceiveWithdrawExpired`` state change.
+
 
 Routing feedback
 ================
