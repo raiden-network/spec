@@ -8,8 +8,7 @@ Raiden is a network agnostic protocol. Protocol messages can in general be trans
 any network, e.g. ip, mesh networks, etc., where the only requirement is access to an
 Ethereum node.
 For efficient and reliable messaging, the reference implementation of Raiden currently **only**
-supports Matrix, an open standard
-for peer-to-peer messaging based on a server federation.
+supports Matrix, an open standard for peer-to-peer messaging based on a server federation.
 
 
 Requirements
@@ -26,13 +25,16 @@ Requirements
 * JS + Python SDK
 * Open Source / Open Protocol
 
-Proposed Solution: Federation of Matrix Homeservers
+Current Solution: Federation of Matrix Homeservers
 ===================================================
 https://matrix.org/docs/guides/faq.html
 
 Matrix is a federated open source messaging system, which supports group communication
 (multicast) via chat rooms. Direct messages are modeled as 2 participants in a private chat room.
-Homeservers can be extended with custom logic (application services) e.g. to enforce certain rules (or message formats) in a room.  It provides JS and Python bindings and communication is done via HTTP long polling. Although additional server logic may be implemented to enforce some of the rules below, this enforcement must not be a requirement for a server to join the servers federation. Therefore, any standard Matrix server should work on the network.
+Homeservers can be extended with custom logic (application services, password providers) e.g. to enforce certain rules (or message formats) in a room.
+It provides JS and Python bindings and communication is done via REST API and HTTP long polling.
+
+
 
 Use in Raiden
 =============
@@ -41,40 +43,54 @@ Identity
 --------
 
 The identity verification MUST not be tied to Matrix identities.
-Even though Matrix provides an identity server, it is a possible central point of failure. All state-changing messages passed between participants MUST be signed using the private key of the ethereum account, using Matrix only as a transport layer.
+Even though Matrix provides an identity system, it is a possible central point of failure.
+All state-changing messages passed between participants MUST be signed using the private key of the ethereum account,
+using Matrix only as a transport layer.
 
 The messages MUST be validated using ecrecover by receiving parties.
 
-The conventions below provide the means for the discovery process, and affect only the transport layer (thus not tying the whole stack to Matrix). It's enforced by the clients, and is not a requirement enforced by the server.
+The conventions below provide the means for the discovery process, and affect only the transport layer (thus not tying the whole stack to Matrix).
 
-Matrix's ``userId`` (defined at registration time, in the form ``@<userId>:<homeserver_uri>``) is required to be an ``@``, followed by the lowercased ethereum address of the node, possibly followed by a 4-bytes hex-encoded random suffix, separated from the address by a dot, and continuing with the domain/server uri, separated from the username by a colon.
+Authentication
+--------------
 
-This random suffix to the username serves to avoid a client being unable to register/join the network due to someone already having taken the canonical address on an open-registration server. It may be pseudo-randomly/deterministically generated from a secret known only by the account (e.g. a Python's ``Random()`` generator initialized with a secret derived from the user's privatekey). The same can be applied to the password generation, possibly including the server's URI on the generation process to avoid password-reuse. These conventions about how to determine the suffix and password can't be enforced by other clients, but may be useful to allow retrieval of credentials upon state-loss.
+A Matrix ``userId`` is required to be of the form ``@<eth-address>:<homeserver-uri>``, an ``@``, followed by
+the lowercased ``0x`` prefixed ethereum address of the node and the homeserver uri, separated from the username by a colon.
 
-As anyone can register any ``userId`` on any server, to avoid the need to process every invalid message, it's required that ``displayName`` (an attribute for every matrix-user) is the signature of the full ``userId`` with the same ethereum key. This is just an additional layer of protection, as the state-changing messages have their signatures validated further up in the stack.
+To prevent malicious name squatting all Matrix servers joining the Raiden federation must enforce the following rules:
+
+#. Account registration must be disabled
+#. A password provider that ensures only users in control of the private key corresponding to their node address can log in.
+   This is done by using an ec-recoverable signature of the server name the Raiden node is connecting to (without any protocol prefix) as the password.
+   The password provider must verify the following:
+
+   #. The user-id matches the format described above.
+   #. The ``homeserver_uri`` part of the user-id matches the local hostname.
+   #. The password is a valid ``0x`` prefixed, hex encoded ec-recoverable signature of the local hostname.
+   #. The recovered address matches the ``eth-address`` part of the user-id.
+
+#. Every Raiden node must set it's Matrix ``displayName`` to a ``0x`` prefixed hex encoded ec-recoverable signature of their complete user-id.
 
 Example:
-
 ::
 
-    seed = int.from_bytes(web3.eth.sign(b'seed')[-32:], 'big')
-    rand = Random()
-    rand.seed(seed)
-    suffix = rand.randint(0, 0xffffffff)
-    # 0xdeadbeef
-    username = web3.eth.defaultAccount + "." + hex(suffix)  # 0-left-padded
-    # 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.deadbeef
+    username = web3.eth.defaultAccount  # 0-left-padded
+    # 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     password = web3.eth.sign(server_uri)
-    matrix.register_with_password(username, password)
+    matrix.login_with_password(username, password)
     userid = "@" + username + ":" + server_uri
     matrix.get_user(userid).set_display_name(web3.eth.sign(userid))
-
 
 Discovery
 ---------
 
-In the above system, clients can search the matrix server for any “seen” user whose ``displayName`` or ``userId`` contains the ethereum address (through server-side user directory search). The server is made to know about users in the network by sharing a "global" presence room. Candidates for being the actual user should only be considered after validating their ``displayName`` as being the signed ``userId``. Most of the time though trust should not be required and all possible candidates may be contacted/invited (for a channel room, for example), as the actual interactions (messages) will always be validated up the stack. Privacy can be provided by using private p2p rooms (invite-only, encrypted rooms with 2 participants).
-The global presence rooms shouldn't be listened for messages nor written to in order to avoid spam. They should have the name in the format ``raiden_<network_name_or_id>_discovery`` (e.g. ``raiden_ropsten_discovery``), and be in a hardcoded homeserver. Such a server isn't a single point of failure because it's federated between all the servers in the network but it must have an owner server to be found by other clients/servers.
+All Raiden nodes must join a globally federated discovery room to allow for server-side user directory searches.
+The name of the discovery room is of the form ``raiden_<network_name_or_id>_discovery`` (e.g. ``raiden_mainnet_discovery``).
+
+User search results need to be checked by validating their ``displayName`` signature.
+
+The discovery rooms are not intended to exchange messages in.
+Clients should use the server-side filtering mechanism to exclude message data of the discovery rooms.
 
 
 Presence
@@ -85,15 +101,11 @@ Matrix allows to check for the presence of a user. Clients should listen for cha
 Sending transfer messages to other nodes
 ----------------------------------------
 
+Private channel rooms have random room_ids in the format ``!<random_room_id>:<homeserver-uri>``, where the ``random room_id`` is generated by the server.
+To avoid race conditions only the node with the lexicographically lower address will create rooms and invite peers.
 
-Private channel rooms have random room_ids in the format ``random_room_id:homeserver``, where the
-random room_id is generated by the server. For convenience, they have an alias in the format
-``raiden_<network_name_or_id>_<peerA>_<peerB>``,
-where ``peerA`` and ``peerB`` are sorted in lexical-order.
-As the users may roam to other homeservers, participants should keep listening for user-join events
-in the presence room, if it's a user of interest (with which it shares a room), with valid signed
-``displayName`` and not yet in the room we share with it, invite it to the room.
-
+Since users may roam to other homeservers, participants should keep listening for user-join events in the discovery room.
+When a new user for an address of interest joins it should be invited into a communications room.
 
 
 Chat Rooms

@@ -581,10 +581,12 @@ This message is used by a channel participant node to request the other particip
 Preconditions
 ^^^^^^^^^^^^^
 
+These preconditions must be validated when a ``WithdrawRequest`` is received
+
+(might be out of date - to be updated)
 - The channel for which the withdraw is requested must be open.
 - The ``total_withdraw`` value must only ever increase.
-- The participant's channel unlocked balance must be larger or equal to ``withdraw_amount``,
-  which is calculated using ``new_total_withdraw - previous_total_withdraw``.
+- The participant's channel unlocked balance must be larger or equal to ``withdraw_amount``, which is calculated using ``new_total_withdraw - previous_total_withdraw``.
 - The new total_withdraw value must not cause an underflow or overflow.
 - The message must be sent by one of the channel participants.
 - The :term:`nonce` is increased by ``1`` with respect to the previous :term:`nonce`.
@@ -594,34 +596,36 @@ Preconditions
 Fields and signature
 ^^^^^^^^^^^^^^^^^^^^
 
-The table below specifies the format in which a ``WithdrawRequest`` is packed to compute
-the signature.
+The table below specifies the data fields of a ``WithdrawRequest``.
+Column DTS (Data to sign) marks the data that needs to be signed on
 
-In addition to the signed fields listed below, the message has:
 
-- a ``nonce`` field
-- a ``message_identifier`` used for ``Processed`` and ``Delivered`` acknowledgements.
-
-+-------------------------------+---------------+----------------------------------------------------------------+
-| Field Name                    | Field Type    |  Description                                                   |
-+===============================+===============+================================================================+
-|  token network address        | address       | Part of the :term:`canonical identifier` of the channel        |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  chain identifier             | uint256       | Part of the :term:`canonical identifier` of the channel        |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  message type                 | uint256       | 3 for withdraw messages                                        |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  channel identifier           | uint256       | Part of the :term:`canonical identifier` of the channel        |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  message identifier           | uint64        | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  participant                  | address       | The address of the withdraw requesting node                    |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  total_withdraw               | uint256       | The new monotonic ``total_withdraw`` value                     |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  expiration                   | uint256       | The block number at which withdraw request is no longer        |
-|                               |               | usable on-chain.                                               |
-+-------------------------------+---------------+----------------------------------------------------------------+
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+| Field Name                    | DTS | Field Type    |  Description                                                   |
++===============================+=====+===============+================================================================+
+|  type                         | no  | str           | Message type                                                   |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  nonce                        | no  | uint256       | Monotonically increasing number to order messages              |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  signature                    | no  | uint256       | Sender's signature of data to be signed                        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  message identifier           | no  | uint256       | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  token network address        | yes | address       | Part of the :term:`canonical identifier` of the channel        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  chain identifier             | yes | uint256       | Part of the :term:`canonical identifier` of the channel        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  message type                 | yes | uint256       | 3 for withdraw messages                                        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  channel identifier           | yes | uint256       | Part of the :term:`canonical identifier` of the channel        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  participant                  | yes | address       | The address of the withdraw requesting node                    |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  total withdraw               | yes | uint256       | The new monotonic ``total_withdraw`` value                     |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  expiration                   | yes | uint256       | The block number at which withdraw request is no longer        |
+|                               |     |               | usable on-chain.                                               |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
 
 .. _withdraw-confirmation-message:
 
@@ -632,7 +636,9 @@ Message used by the :ref:`withdraw-request-message` receiver to confirm the requ
 
 Preconditions
 ^^^^^^^^^^^^^
+These preconditions must be validated when a ``WithdrawRequest`` is received
 
+(might be out of date - to be updated)
 - The channel for which the withdraw is confirmed should be open.
 - The received confirmation should map to a previously sent request.
 - The block at which withdraw expires should not have been reached.
@@ -646,33 +652,38 @@ Preconditions
 Fields
 ^^^^^^
 
-The table below specifies the format in which a ``WithdrawConfirmation`` message is packed to be
-signed. The signatures of both channel participants are needed for the call to the smart contract's
-``setTotalWithdraw`` function.
 
-In addition to the signed fields listed below, the message has:
+The table below specifies the data fields of a ``WithdrawConfirmation``. The signatures of both channel participants
+are needed for the call to the smart contract's ``setTotalWithdraw`` function.
+Column DTS (Data to sign) marks the data that needs to be signed on
 
-- a ``nonce`` field
-- a ``message_identifier`` used for ``Processed`` and ``Delivered`` acknowledgements.
 
-+-------------------------------+---------------+----------------------------------------------------------------+
-| Field Name                    | Field Type    |  Description                                                   |
-+===============================+===============+================================================================+
-|  token network address        | address       | Part of the :term:`canonical identifier` of the channel        |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  chain identifier             | uint256       | Part of the :term:`canonical identifier` of the channel        |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  message type                 | uint256       | 3 for withdraw messages                                        |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  channel identifier           | uint256       | Part of the :term:`canonical identifier` of the channel        |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  participant                  | address       | The address of the withdraw requesting node                    |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  total_withdraw               | uint256       | The new monotonic ``total_withdraw`` value                     |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  expiration                   | uint256       | The block number at which withdraw request is no longer        |
-|                               |               | usable on-chain.                                               |
-+-------------------------------+---------------+----------------------------------------------------------------+
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+| Field Name                    | DTS | Field Type    |  Description                                                   |
++===============================+=====+===============+================================================================+
+|  type                         | no  | str           | Message type                                                   |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  nonce                        | no  | uint256       | Monotonically increasing number to order messages              |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  signature                    | no  | uint256       | Sender's signature of data to be signed                        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  message identifier           | no  | uint256       | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  token network address        | yes | address       | Part of the :term:`canonical identifier` of the channel        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  chain identifier             | yes | uint256       | Part of the :term:`canonical identifier` of the channel        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  message type                 | yes | uint256       | 3 for withdraw messages                                        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  channel identifier           | yes | uint256       | Part of the :term:`canonical identifier` of the channel        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  participant                  | yes | address       | The address of the withdraw requesting node                    |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  total withdraw               | yes | uint256       | The new monotonic ``total_withdraw`` value                     |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  expiration                   | yes | uint256       | The block number at which withdraw request is no longer        |
+|                               |     |               | usable on-chain.                                               |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
 
 .. _withdraw-expired-message:
 
@@ -684,7 +695,9 @@ earliest-requested, non-confirmed withdraw has expired.
 
 Preconditions
 ^^^^^^^^^^^^^
+These preconditions must be validated when a ``WithdrawRequest`` is received
 
+(might be out of date - to be updated)
 - The channel for which the withdraw is confirmed should be open.
 - The sender waits ``expiration_block + NUMBER_OF_CONFIRMATION * 2`` until the message is sent.
 - The receiver should only accept the expiration message if the block at which the withdraw expires is confirmed.
@@ -698,36 +711,34 @@ Fields
 ^^^^^^
 
 The table below specifies the format in which ``WithdrawExpired`` is packed to compute its
-signature.
+signature. Column DTS (Data to sign) marks the data that needs to be signed on
 
-+-------------------------------+---------------+----------------------------------------------------------------+
-| Field Name                    | Field Type    |  Description                                                   |
-+===============================+===============+================================================================+
-|  cmdid                        | uint8         | Value 17 (indicating ``Withdraw Expired``),                    |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  (padding)                    | bytes3        | three zero bytes                                               |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  nonce                        | uint256       | Strictly monotonic value used to order transfers.              |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  message_identifier           | uint64        | An ID for ``Delivered`` and ``Processed`` acknowledgments      |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  token network address        | address       | Part of the :term:`canonical identifier` of the channel        |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  chain identifier             | uint256       | Part of the :term:`canonical identifier` of the channel        |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  message type                 | uint256       | 3 for withdraw messages                                        |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  channel identifier           | uint256       | Part of the :term:`canonical identifier` of the channel        |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  message identifier           | uint64        | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  participant                  | address       | The address of the withdraw requesting node                    |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  total_withdraw               | uint256       | The new monotonic ``total_withdraw`` value                     |
-+-------------------------------+---------------+----------------------------------------------------------------+
-|  expiration                   | uint256       | The block number at which the withdraw request is no longer    |
-|                               |               | usable on-chain.                                               |
-+-------------------------------+---------------+----------------------------------------------------------------+
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+| Field Name                    | DTS | Field Type    |  Description                                                   |
++===============================+=====+===============+================================================================+
+|  type (cmdid)                 | no  | uint8         | Value 17 (indicating ``Withdraw Expired``)                     |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  signature                    | no  | uint256       | Sender's signature of data to be signed                        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  nonce                        | yes | uint256       | Monotonically increasing number to order messages              |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  message identifier           | yes | uint256       | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  token network address        | yes | address       | Part of the :term:`canonical identifier` of the channel        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  chain identifier             | yes | uint256       | Part of the :term:`canonical identifier` of the channel        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  message type                 | yes | uint256       | 3 for withdraw messages                                        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  channel identifier           | yes | uint256       | Part of the :term:`canonical identifier` of the channel        |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  participant                  | yes | address       | The address of the withdraw requesting node                    |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  total withdraw               | yes | uint256       | The new monotonic ``total_withdraw`` value                     |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  expiration                   | yes | uint256       | The block number at which withdraw request is no longer        |
+|                               |     |               | usable on-chain.                                               |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
 
 .. _processed-delivered-message:
 
@@ -747,8 +758,6 @@ fields plus a ``signature``:
 | Field Name                    | Field Type|  Description                                       |
 +===============================+===========+====================================================+
 |  cmdid                        | uint8     | Value 0 for ``Processed`` or 12 for ``Delivered``  |
-+-------------------------------+-----------+----------------------------------------------------+
-|  (padding)                    | bytes3    | three zero bytes                                   |
 +-------------------------------+-----------+----------------------------------------------------+
 |  message_identifier           | uint64    | The identifier of the processed/delivered message. |
 +-------------------------------+-----------+----------------------------------------------------+
