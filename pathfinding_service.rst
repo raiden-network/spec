@@ -314,6 +314,66 @@ Returns
 * HTTP 200 when feedback was accepted
 * HTTP 400 when feedback was not accepted
 
+
+``GET api/v1/<token_network_address>/suggest_partner``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When a Raiden node joins a token network, it should connect to nodes which will
+be able to mediate payments. Since the PFS observes the whole network, it is in
+a better position than the client to choose suitable partners for a channel
+opening. This endpoint provides partners recommended by the PFS.
+
+The endpoint is free to use to encourage users to join the network. To avoid
+load on the PFS for these free requests, the recommendations can be
+aggressively cached by the PFS.
+
+
+Arguments
+"""""""""
+
+None. A custom limit on the number of results is not used to facilitate caching.
+
+Returns
+"""""""
+
+A sorted list of objects describing the suggested partners. The best
+recommendations come first, so the simplest approach to use the results is to
+connect to the node address given in the first element.
+
+Each object has an ``address`` attribute containing the recommended node's
+Ethereum address.
+For advanced use cases and for debugging, additional scoring information is
+provided (The overall score in the ``score`` attribute, as well as
+``centrality``, ``uptime`` and ``capacity``). There is no long term guarantee
+regarding the meaning of the specific values, but greater values will always
+indicate better recommendations.
+
+Example
+"""""""
+::
+
+    // Request
+    curl -X GET api/v1/0x3EA2a1fED7FdEf300DA19E97092Ce8FdF8bf66A3/suggest_partner
+
+    // Result for success
+    [
+      {
+        "address": "0x99eB1aADa98f3c523BE817f5c45Aa6a81B7c734B",
+        "score": 2906634538666422000,
+        "centrality": 0.0004132990448199853,
+        "uptime": 7032.763746,
+        "capacity": 1000000000000000000
+      },
+      {
+        "address": "0x4Fc53fBa9dFb545B66a0524216c982536012186e",
+        "score": 2906693668947465000,
+        "centrality": 0.0004132990448199853,
+        "uptime": 7032.906815,
+        "capacity": 1000000000000000000
+      }
+    ]
+
+
 Network Topology Updates
 ========================
 
