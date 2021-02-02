@@ -156,4 +156,51 @@ offline. The Monitoring Service will submit their balance proof on their behalf.
 Pathfinding Service Updates Room
 ''''''''''''''''''''''''''''''''
 Raiden Nodes publish :term:`PFSCapacityUpdate` and :term:`PFSFeeUpdate` to the Pathfinding Service room. The Pathfinding Service can
- compute efficient routes throughout the network and provide these routes to requesting nodes.
+compute efficient routes throughout the network and provide these routes to requesting nodes.
+
+Capabilities
+------------
+
+Raiden clients need a way to signal their capabilities to other nodes. This is done by encoding the capabilities in the ``avatar_url`` field of the user profile.
+
+Serialization for use in ``avatar_url``
+'''''''''''''''''''''''''''''''''''''''
+
+The following template is used to encode the capabilities in the avatar URL field:
+::
+
+    mxc://raiden.network/cap?{capabilities_url_encoded}
+
+Here ``{capabilities_url_encoded}`` is the url query parameter encoding of the capabilities.
+
+Rules for url encoding:
+
+* boolean values are encoded as truthy values, e.g. ``"0"`` and ``"1"``
+* other values are encoded as strings
+* lists of values are allowed
+
+Deserialization
+'''''''''''''''
+
+The final interpretation of capability values is up to the receiving client, or rather the specified capability. It's expected that clients use truthiness of the supplied value when decoding boolean values.
+
+Handling of unknown values
+''''''''''''''''''''''''''
+
+* Intentionally omitting (falsy or whatever) known default values is **discouraged**. Client implementations are asked to **explicitly** state all known capabilities.
+* Client implementations have to deal with receiving new/unknown capabilities gracefully, i.e. they should expect the peer to act backwards compatible.
+* Client implementations have to deal with not receiving known capabilities gracefully, i.e. assume the peer implementation is going to exert *legacy behavior* and therefore act backwards compatible.
+
+Example
+'''''''
+
+::
+
+    avatar_url = "mxc://raiden.network/cap?Delivered=0&Mediate=1&Receive=1&webRTC=1&list_capability=one&list_capability=two"
+    capabilities_decoded = {
+        'Delivered': False,
+        'Mediate': True,
+        'Receive': True,
+        'webRTC': True,
+        'list_capability': ['one', 'two']
+    }
