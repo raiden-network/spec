@@ -524,7 +524,7 @@ Allows a channel participant to withdraw tokens from a channel without closing i
 Close a channel
 ^^^^^^^^^^^^^^^
 
-Allows anybody to close a channel with a channel participant's signature. After a channel is closed, the channel cannot be settled before the challenge period has ended.
+Allows anybody to close a channel with a channel participant's signature. Closing a channel initiates an uncooperative settlement and marks the start of the challenge period. Once the challenge period has ended, the channel can be settled.
 
 ::
 
@@ -550,7 +550,7 @@ Allows anybody to close a channel with a channel participant's signature. After 
 - ``balance_hash``: Hash of the balance data ``keccak256(transferred_amount, locked_amount, locksroot)``
 
     - ``transferred_amount``: The monotonically increasing counter of the partner's amount of tokens sent.
-    - ``locked_amount``: The sum of the all the tokens that correspond to the the pending locks.
+    - ``locked_amount``: The sum of the all the tokens that correspond to the pending locks.
     - ``locksroot``: Hash of all pending locks for the partner.
 - ``nonce``: Strictly monotonic value used to order transfers.
 - ``additional_hash``: Computed from the message. Used for message authentication.
@@ -814,6 +814,16 @@ Opened Channel Lifecycle
 
 Channel Settlement
 ------------------
+
+If channel participants want to retrieve all tokens from a channel, they can do this by settling the channel. In case the other participant cooperates, this can be done quickly in a single transaction. If the other participant is not available or unwilling to cooperate, the tokens can still be retrieved through an uncooperative settlement. This process is slower and incurs higher gas fees, but is guaranteed to succeed within a limited time frame.
+
+The uncooperative settlement consists of three steps:
+
+* The :ref:`channel is closed <close-channel>` by (or on behalf of) one participant. This starts the challenge period.
+* The non-closing participant can :ref:`update the channel state <update-channel>` during the challenge period to ensure that all transfers he received are considered during settlement.
+* Once the challenge period is over, either party can finally :ref:`settle the channel <settle-channel>` which will cause the TokenNetwork contract to return all unlocked tokens.
+
+Irregardless whether the settlement was cooperative or not, only unlocked tokens are returned during the settlement itself. But after the settlement, the remaining tokens can be :ref:`unlocked <unlock-channel>`. If the secret has been registered in the SecretRegistry, they will be sent to the receiver, otherwise to the sender of the transfer.
 
 .. image:: diagrams/RaidenSC_channel_settlement.png
     :alt: Channel Settlement
