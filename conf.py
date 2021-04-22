@@ -41,6 +41,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinxcontrib.soliditydomain',
     'matplotlib.sphinxext.plot_directive',
+    'sphinxcontrib.mermaid',
 ]
 
 # configure plot_directive extension
