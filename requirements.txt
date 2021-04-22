@@ -1,4 +1,5 @@
 sphinx<3.0
 sphinx_rtd_theme
 sphinxcontrib-soliditydomain
+sphinxcontrib-mermaid
 matplotlib
