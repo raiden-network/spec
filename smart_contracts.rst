@@ -845,6 +845,31 @@ Unlocking Pending Transfers
     :alt: Channel Unlock Pending Transfers
     :width: 500px
 
+Withdraw
+--------
+
+Tokens can be :ref:`withdrawn <withdraw-channel>` from a payment channel without closing the channel, if the other participant is online and cooperates.
+
+.. mermaid::
+
+   sequenceDiagram
+      participant Alice
+      participant Bob
+      participant TokenNetwork
+      Alice->>Bob: WithdrawRequest
+      Bob->>Alice: WithdrawConfirmation
+      Alice->>TokenNetwork: setTotalWithdraw
+
+If the withdraw expires before it could be used (e.g. because Bob did not cooperate), a WithdrawExpired message is sent to clear the withdraw state across both nodes.
+
+.. mermaid::
+
+   sequenceDiagram
+      participant Alice
+      participant Bob
+      Alice->>Bob: WithdrawRequest
+      Alice->>Bob: WithdrawExpired
+
 
 .. _settlement-algorithm:
 
