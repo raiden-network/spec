@@ -1,11 +1,11 @@
 [UserDeposit|
 	user deposits for service payments
-	payments claimend by services
+	payments claimed by services
 	planned withdrawals
 ]
 
 [MonitoringService|
-	unclaimend rewards for monitoring
+	unclaimed rewards for monitoring
 ]
 
 [ServiceRegistry|
