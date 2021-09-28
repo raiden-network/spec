@@ -648,8 +648,10 @@ Settles the channel by transferring the amount of tokens each participant is owe
 
     event ChannelSettled(
         uint256 indexed channel_identifier,
+        address participant1,
         uint256 participant1_amount,
         bytes32 participant1_locksroot,
+        address participant2,
         uint256 participant2_amount,
         bytes32 participant2_locksroot
     );
@@ -678,38 +680,44 @@ Settles the channel by transferring the amount of tokens each participant is owe
 Cooperatively close and settle a channel
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. Warning::
-    ``cooperativeSettle`` function is currently commented out and is not available.
-
 Allows the participants to cooperate and provide both of their balances and signatures. This closes and settles the channel immediately, without triggering a challenge period.
 
 ::
 
+    struct WithdrawInput {
+        address participant;
+        uint256 total_withdraw;
+        uint256 expiration_block;
+        bytes participant_signature;
+        bytes partner_signature;
+    }
+
     function cooperativeSettle(
         uint256 channel_identifier,
-        address participant1_address,
-        uint256 participant1_balance,
-        address participant2_address,
-        uint256 participant2_balance,
-        bytes participant1_signature,
-        bytes participant2_signature
+        WithdrawInput memory data1,
+        WithdrawInput memory data2
     )
-        public
+        external
+        isOpen(channel_identifier)
+
 
 - ``channel_identifier``: :term:`Channel identifier` assigned by the current contract
-- ``participant1_address``: Ethereum address of one of the channel participants.
-- ``participant1_balance``: Channel balance of ``participant1_address``.
-- ``participant2_address``: Ethereum address of the other channel participant.
-- ``participant2_balance``: Channel balance of ``participant2_address``.
-- ``participant1_signature``: Elliptic Curve 256k1 signature of ``participant1`` on the :term:`cooperative settle proof` data.
-- ``participant2_signature``: Elliptic Curve 256k1 signature of ``participant2`` on the :term:`cooperative settle proof` data.
+- ``participant``: Ethereum address of the channel participant.
+- ``total_withdraw``: Channel balance of ``participant`` to be settled.
+- ``participant_signature``: Elliptic Curve 256k1 signature of the ``participant`` on the :term:`cooperative settle proof` data.
+- ``partner_signature``: Elliptic Curve 256k1 signature of the channel partner on the :term:`cooperative settle proof` data.
+- ``expiration_block``: Block from which the contract should not accept the given :term:`cooperative settle proof` data anymore.
+- ``data1``: Withdraw data by one of the participants, representing the channel state of the corresponding data's ``participant``
+- ``data2``: Withdraw data by the other participant, representing the channel state of the corresponding data's ``participant``
 
 .. Note::
-    Emits the ChannelSettled event.
+    Emits the ChannelSettled event, with empty locksroot (``0``) for both participants.
 
     A ``participant`` ``MUST NOT`` be able to cooperatively settle a channel without his ``partner``'s signature on the agreed upon balances.
 
     Can be called by a third party because both signatures are required.
+
+    ``data1`` / ``data2`` enforces no order on who's data should be passed first, as long as it is valid and mutually signed by the channel participants.
 
 .. _unlock-channel:
 
