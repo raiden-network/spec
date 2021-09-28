@@ -611,6 +611,8 @@ Column DTS (Data to sign) marks the data that needs to be signed on
 +-------------------------------+-----+---------------+----------------------------------------------------------------+
 |  message identifier           | no  | uint256       | An ID used in ``Delivered`` and ``Processed`` acknowledgements |
 +-------------------------------+-----+---------------+----------------------------------------------------------------+
+|  coop settle                  | no  | optional(bool)| If true, the withdraw is meant to initiate a coop settle       |
++-------------------------------+-----+---------------+----------------------------------------------------------------+
 |  token network address        | yes | address       | Part of the :term:`canonical identifier` of the channel        |
 +-------------------------------+-----+---------------+----------------------------------------------------------------+
 |  chain identifier             | yes | uint256       | Part of the :term:`canonical identifier` of the channel        |
