@@ -711,13 +711,14 @@ Allows the participants to cooperate and provide both of their balances and sign
 - ``data2``: Withdraw data by the other participant, representing the channel state of the corresponding data's ``participant``
 
 .. Note::
-    Emits the ChannelSettled event, with empty locksroot (``0``) for both participants.
+    Emits the ``ChannelSettled`` event, with empty locksroot (``0``) for both participants.
 
     A ``participant`` ``MUST NOT`` be able to cooperatively settle a channel without his ``partner``'s signature on the agreed upon balances.
 
     Can be called by a third party because both signatures are required.
 
     ``data1`` / ``data2`` enforces no order on who's data should be passed first, as long as it is valid and mutually signed by the channel participants.
+
 
 .. _unlock-channel:
 
@@ -819,40 +820,6 @@ Opened Channel Lifecycle
     :alt: Opened Channel Lifecycle
     :width: 500px
 
-
-Channel Settlement
-------------------
-
-If channel participants want to retrieve all tokens from a channel, they can do this by settling the channel. In case the other participant cooperates, this can be done quickly in a single transaction. If the other participant is not available or unwilling to cooperate, the tokens can still be retrieved through an uncooperative settlement. This process is slower and incurs higher gas fees, but is guaranteed to succeed within a limited time frame.
-
-The uncooperative settlement consists of three steps:
-
-* The :ref:`channel is closed <close-channel>` by (or on behalf of) one participant. This starts the challenge period.
-* The non-closing participant can :ref:`update the channel state <update-channel>` during the challenge period to ensure that all transfers he received are considered during settlement.
-* Once the challenge period is over, either party can finally :ref:`settle the channel <settle-channel>` which will cause the TokenNetwork contract to return all unlocked tokens.
-
-Irregardless whether the settlement was cooperative or not, only unlocked tokens are returned during the settlement itself. But after the settlement, the remaining tokens can be :ref:`unlocked <unlock-channel>`. If the secret has been registered in the SecretRegistry, they will be sent to the receiver, otherwise to the sender of the transfer.
-
-.. image:: diagrams/RaidenSC_channel_settlement.png
-    :alt: Channel Settlement
-    :width: 400px
-
-Channel Challenge Period
-------------------------
-
-The non-closing participant can update the closing participant's balance proof during the challenge period, by calling ``TokenNetwork.updateNonClosingBalanceProof``.
-
-.. image:: diagrams/RaidenSC_channel_update.png
-    :alt: Channel Challenge Period Updating NonClosing BalanceProof
-    :width: 650px
-
-Unlocking Pending Transfers
----------------------------
-
-.. image:: diagrams/RaidenSC_channel_unlock.png
-    :alt: Channel Unlock Pending Transfers
-    :width: 500px
-
 Withdraw
 --------
 
@@ -877,6 +844,72 @@ If the withdraw expires before it could be used (e.g. because Bob did not cooper
       participant Bob
       Alice->>Bob: WithdrawRequest
       Alice->>Bob: WithdrawExpired
+
+
+Channel Settlement
+------------------
+
+If channel participants want to retrieve all tokens from a channel, they can do this by settling the channel. In case the other participant cooperates, this can be done quickly in a single transaction. If the other participant is not available or unwilling to cooperate, the tokens can still be retrieved through an uncooperative settlement. This process is slower and incurs higher gas fees, but is guaranteed to succeed within a limited time frame.
+
+The uncooperative settlement consists of three steps:
+
+* The :ref:`channel is closed <close-channel>` by (or on behalf of) one participant. This starts the challenge period.
+* The non-closing participant can :ref:`update the channel state <update-channel>` during the challenge period to ensure that all transfers he received are considered during settlement.
+* Once the challenge period is over, either party can finally :ref:`settle the channel <settle-channel>` which will cause the TokenNetwork contract to return all unlocked tokens.
+
+Irregardless whether the settlement was cooperative or not, only unlocked tokens are returned during the settlement itself. But after the settlement, the remaining tokens can be :ref:`unlocked <unlock-channel>`. If the secret has been registered in the SecretRegistry, they will be sent to the receiver, otherwise to the sender of the transfer.
+
+.. image:: diagrams/RaidenSC_channel_settlement.png
+    :alt: Channel Settlement
+    :width: 400px
+
+
+Cooperative Channel Settlement
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The cooperative settlement leverages the withdraw protocol and therefore the ``WithdrawRequest`` and ``WithdrawConfirmation`` messages
+in order to cooperatively gather the signatures needed for the on-chain call to the ``cooperativeSettle()`` function.
+The initator of the cooperative settle will create a ``WithdrawRequest``, where the ``coop_settle`` field is set to ``True``
+and send it to it's channel partner. If the ``WithdrawRequest`` of the initator is accepted and validated by the channel partner,
+he will reply to the initiator with a corresponding ``WithdrawConfirmation`` as well as an additional ``WithdrawRequest`` that 
+represents the channel partners' withdraw data.
+The initiator will at this point gather all the required signatures from the withdraw messages and make the on-chain call.
+
+The ``total_withdraw`` from the ``WithdrawInput`` of both participants should be the maximally withdrawable amount,
+so that the on-chain balance after the cooperative settle is 0 for both participants.
+
+The following is a flowchart of the cooperate settle algorithm from the perspective of the initiator of the cooperative settle ("P1").
+The handling and verification of the ``WithdrawRequest`` and ``WithdrawConfirmation`` messages have to comply to the withdraw protocol.
+Once the ``WithdrawRequest`` ("WR1") is sent to the participant ("P2"), the cooperative settle is ongoing - therefore no new transfers
+or withdraws from P2 must be accepted by P1. In general, this is guaranteed by the withdraw protocol, since a withdraw with the maxmimally
+withdrawable amount implicitly locks the channel for new transfers or withdraws.
+
+.. image:: diagrams/CoopSettleInitatorFlowchart.drawio.svg
+
+The following is a flowchart of the cooperate settle algorithm from the perspective of the participant of the cooperative settle ("P2").
+The handling and verification of the ``WithdrawRequest`` and ``WithdrawConfirmation`` messages have to comply to the withdraw protocol.
+Once the ``WithdrawConfirmation`` ("WC2") is sent to the initiator ("P1"), the cooperative settle is ongoing - therefore no new transfers
+or withdraws from P1 must be accepted by P2. In general, this is guaranteed by the withdraw protocol, since a withdraw with the maxmimally
+withdrawable amount implicitly locks the channel for new transfers or withdraws.
+
+.. image:: diagrams/CoopSettleParticipantFlowchart.drawio.svg
+
+
+Channel Challenge Period
+------------------------
+
+The non-closing participant can update the closing participant's balance proof during the challenge period, by calling ``TokenNetwork.updateNonClosingBalanceProof``.
+
+.. image:: diagrams/RaidenSC_channel_update.png
+    :alt: Channel Challenge Period Updating NonClosing BalanceProof
+    :width: 650px
+
+Unlocking Pending Transfers
+---------------------------
+
+.. image:: diagrams/RaidenSC_channel_unlock.png
+    :alt: Channel Unlock Pending Transfers
+    :width: 500px
 
 
 .. _settlement-algorithm:
