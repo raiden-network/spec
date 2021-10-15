@@ -104,38 +104,111 @@ Metadata
 
 .. _metadata:
 
-Message metadata, at the moment only routing information is supported.
+Message metadata that can be used to provide additional information to a transfer.
+A route with additional ``routes`` metadata related to the transport discovery has to be provided
+from the initiator of the payment.
+
+The ``secret`` of the corresponding LockedTransfer ("LT") can optionally already be sent along by including it to
+the LT's ``metadata``. In order to not compromise the security-properties of the LT, the secret has 
+to be encrypted in a specific way, so that only the target of the LT can decrypt it.
+If the encrypted secret is included in the ``Metadata``, the transfer can't be cancelled by the initiator by not 
+revealing the secret via the additionally required :ref:`RevealSecret <reveal-secret-message>` message.
+
+..
+
+The secret should be encrypted with the public key of the LT's target, using the ECIES encryption scheme (look e.g. `here <https://ecies.org/>`__ for reference implementations).
+The encrypted data has to be encoded as an object containing secret and additional metadata needed for validation::
+
+        secret = encrypt_ecies(target_publickey, { "secret": <bytes32>, "amount": <int32>, "payment_identifier": <int32> })
+
+Note the encoding of the encrypted object's field is not part of this specification.
+
+When the target receives a transfer with an encrypted secret, it may try to decrypt it::
+
+        { "secret": <bytes32>, "amount": <int32>, "payment_identifier": <int32> } = encrypt_ecies(target_privatekey, secret)
+
+
+The target should only accept the decrypted secret, if the decrypted objects fields comply to the following properties:
+
+- ``secret`` must hash to the LT's ``lock.secrethash``
+- ``amount`` must be less than or equal to the received LT's ``lock.amount``
+- ``payment_identifier`` must be equal to LT's ``payment_identifier``
+
+If the validation passes, the target uses "secret" as this transfer's secret and skips sending a :ref:`SecretRequest <secret-request-message>` to the initator.
+Therefore the target can immediately start the unlock phase by sending a corresponding :ref:`RevealSecret <reveal-secret-message>` to the last mediator in the transfer's route.
+
 
 Fields
 ^^^^^^
 
-+----------------------+---------------------+----------------------------+
-| Field Name           | Field Type          |  Description               |
-+======================+=====================+============================+
-|  routes              | List[RouteMetadata] | A list of possible routes. |
-+----------------------+----------------+---------------------------------+
++----------------------+------------------------------+---------------------------------------------------------+
+| Field Name           | Field Type                   | Description                                             |
++======================+==============================+=========================================================+
+|  routes              | List[RouteMetadata]          | A list of possible routes and additional route metadata |
++----------------------+------------------------------+---------------------------------------------------------+
+|  secret              | Optional[bytes32]            | The LT's secret encrypted with the target's public key  |
++----------------------+------------------------------+---------------------------------------------------------+
 
 RouteMetadata
 -------------
 
 .. _route-metadata:
 
-This datastructure describes a single route, the noce receiving the message
-will be the first entry in the list, the second node is the node which the
-transfer should be forwarded to.
+This datastructure describes a single route and the metadata for all nodes included in that route.
 
-Each entry is EIP55-checksum addresses with ``0x``-prefix as usual. The last of
+Each entry in the ``route`` field list is EIP55-checksum addresses with ``0x``-prefix as usual. The last of
 the addresses in each list must be the target of the transfer, the former the
 desired mediators in order.
+An initiator can, but does not have to include its own address in the route.
+
+The address metadata is used for transport related information and is essential for a functional
+communication between nodes of the route. It does not strictly have to be provided by the initiator,
+but without address metadata for all nodes in the route (including the initiator), a functioning transfer is not guaranteed.
+
 
 Fields
 ^^^^^^
 
-+----------------------+----------------+---------------------------------------------------------+
-| Field Name           | Field Type     |  Description                                            |
-+======================+================+=========================================================+
-|  route               | List[Address]  | A list of the node addresses which comprise one routes. |
-+----------------------+----------------+---------------------------------------------------------+
++----------------------+--------------------------------------------+------------------------------------------------------------+
+| Field Name           | Field Type                                 |  Description                                               |
++======================+============================================+============================================================+
+| route                | List[Address]                              | A list of the node addresses which comprise one routes     |
++----------------------+--------------------------------------------+------------------------------------------------------------+
+| address_metadata     | Optional[Dict[Address, AddressMetadata]]   | A mapping from address (from route) to address-metadata    |
++----------------------+---------------------------------------------------------------------------------------------------------+
+
+AddressMetadata
+---------------
+
+.. _address-metadata:
+
+
+The `AddressMetadata` provides additional information about the transport and node configuration of a participant 
+in a route. This information might be mandatory to provide for all participants in the route, when a node 
+does not have the possibility to retrieve this information about other nodes by themselves - or when 
+the transfer speed should be optimized.
+
+Fields
+^^^^^^
+
++----------------------+----------------+---------------------------------------------------------------------------------------------------+
+| Field Name           | Field Type     |  Description                                                                                      |
++======================+================+===================================================================================================+
+| user_id              | str            | ``userId`` string for the :ref:`matrix transport authentication <transport-authentication>`       |
++----------------------+----------------+---------------------------------------------------------------------------------------------------+
+| capabilities         | str            | the node's capabilities encoded as the Matrix :ref:`avatar_url <transport-capabilities>`          |
++----------------------+----------------+---------------------------------------------------------------------------------------------------+
+| displayname          | str            |  ``displayName`` string for the :ref:`matrix transport authentication <transport-authentication>` |
++----------------------+----------------+---------------------------------------------------------------------------------------------------+
+
+
+.. _address-metadata-recover:
+
+Since the ``displayname`` is the signature of the ``user_id`` of the participant, a participant's public key can be recovered 
+from the ``AddressMetadata``::
+
+    ecdsa_recover(sha3_keccak("\x19Ethereum Signed Message:\n || len(user_id) || user_id", displayname)
+
 
 Messages
 ========
@@ -163,7 +236,7 @@ Locked Transfer message
 +-----------------------+--------------+-----------------------------------------------------------+
 |  initiator            | address      | Initiator of the transfer and party who knows the secret  |
 +-----------------------+--------------+-----------------------------------------------------------+
-|  metadata             | Metadata     | Transfer metadata, atm only routing information.          |
+|  metadata             | Metadata     | Transfer metadata, used for optimisations and discovery   |
 +-----------------------+--------------+-----------------------------------------------------------+
 |  message_identifier   | uint64       | An ID for ``Delivered`` and ``Processed`` acknowledgments |
 +-----------------------+--------------+-----------------------------------------------------------+
@@ -201,13 +274,13 @@ The data will be packed as follows to compute the :term:`additional hash`:
 | metadata_hash                        | bytes32 |  32         |
 +--------------------------------------+---------+-------------+
 
-The ``metadata_hash`` is defined using `RLP <https://github.com/ethereum/wiki/wiki/RLP>`__.
+
+The ``metadata_hash`` is defined using `JCS <https://datatracker.ietf.org/doc/html/rfc8785>`__.
 It is given as::
 
-    metadata_hash = sha3(rlp(list of route_hashes))
-    route_hash = sha3(rlp(list of addresses in binary form))
+    metadata_hash = keccak256(jcs(metadata))
 
-This will be used to generate the the data field called ``additional_hash``, which is a required
+This will be used to generate the data field called ``additional_hash``, which is a required
 part of the process to create the message signature. It is computed as the ``keccak256``-hash
 of the data structure given above::
 
