@@ -480,6 +480,34 @@ Deposit more tokens into a channel. This will only increase the deposit of one o
 
     A participant or a delegate ``MUST`` be able to deposit more tokens into a channel, regardless of his partner's availability.
 
+
+.. _open-deposit-channel:
+
+Open channel with funding
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This is an optimisation that combines opening and funding a channel in one transaction.
+It will open a new channel between `participant1` and `participant2` and make a deposit for `participant1`. 
+Can be called by anyone, as long as the deposited funds have been approved as in the :ref:``depositChannel <deposit-channel>`` function.
+
+::
+
+    function openChannelWithDeposit(
+        address participant1,
+        address participant2,
+        uint256 settle_timeout,
+        uint256 participant1_total_deposit
+    )
+        public
+
+
+- ``participant1``: Ethereum address of a channel participant
+- ``participant2``: Ethereum address of the other channel participant
+- ``settle_timeout``: Number of blocks that need to be mined between a call to closeChannel and settleChannel
+- ``participant1_total_deposit``: The total amount of tokens that ``participant1`` will have as deposit
+
+As the :ref:``depositChannel <deposit-channel>`` function, a successful call to this function will emit a `ChannelNewDeposit` event in the same way.
+
 .. _withdraw-channel:
 
 Withdraw tokens from a channel
