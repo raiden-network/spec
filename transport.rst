@@ -51,8 +51,11 @@ The messages MUST be validated using ecrecover by receiving parties.
 
 The conventions below provide the means for the discovery process, and affect only the transport layer (thus not tying the whole stack to Matrix).
 
+.. _transport-authentication:
+
 Authentication
 --------------
+
 
 A Matrix ``userId`` is required to be of the form ``@<eth-address>:<homeserver-uri>``, an ``@``, followed by
 the lowercased ``0x`` prefixed ethereum address of the node and the homeserver uri, separated from the username by a colon.
@@ -210,6 +213,8 @@ Raiden clients need a way to signal their capabilities to other nodes. This is d
 Serialization for use in ``avatar_url``
 '''''''''''''''''''''''''''''''''''''''
 
+.. _transport-capabilities:
+
 The following template is used to encode the capabilities in the avatar URL field:
 ::
 
@@ -240,11 +245,13 @@ Example
 
 ::
 
-    avatar_url = "mxc://raiden.network/cap?Delivered=0&Mediate=1&Receive=1&webRTC=1&list_capability=one&list_capability=two"
+    avatar_url = "mxc://raiden.network/cap?Delivered=0&Mediate=1&Receive=1&webRTC=1&toDevice=1&immutableMetadata=1&list_capability=one&list_capability=two"
     capabilities_decoded = {
         'Delivered': False,
         'Mediate': True,
         'Receive': True,
         'webRTC': True,
+        'toDevice': True,
+        'immutableMetadata': True,
         'list_capability': ['one', 'two']
     }

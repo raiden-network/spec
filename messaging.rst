@@ -137,6 +137,8 @@ The target should only accept the decrypted secret, if the decrypted objects fie
 If the validation passes, the target uses "secret" as this transfer's secret and skips sending a :ref:`SecretRequest <secret-request-message>` to the initator.
 Therefore the target can immediately start the unlock phase by sending a corresponding :ref:`RevealSecret <reveal-secret-message>` to the last mediator in the transfer's route.
 
+The Metadata should be determined by the initiator. All mediators of a transfer should pass it to the next hop of the transfer as-is and
+should not modify it. Complying to this behaviour is advertised as the :ref:`capability <transport-capabilities>` `immutableMetada=1`.
 
 Fields
 ^^^^^^
