@@ -47,6 +47,58 @@ A pathfinding service must provide the following endpoints. The interface has to
 The examples provided for each of the endpoints is for communication with a REST endpoint.
 
 
+``GET api/v1/address/<checksummed_address>/metadata``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+
+Arguments
+"""""""""
+
+The arguments are passed as part of the request path:
+
++----------------------+---------------+-----------------------------------------------------------------------+
+| Field Name           | Field Type    |  Description                                                          |
++======================+===============+=======================================================================+
+| checksummed_address  | address       | The Raiden node address for which the metadata is requested.          |
++----------------------+---------------+-----------------------------------------------------------------------+
+
+
+.. _pfs-address-metadata:
+
+Returns
+"""""""
+
+.. TODO insert cross references to the transport section (for "Matrix transport", displayname, capabilities and user-id) 
+
+
+
+An ``AddressMetadata`` object is returned for the node who's metadata was requested.
+It provides all necessary information in order to communicate with the node via the Matrix transport:
+
+
++----------------------+---------------+----------------------------------------------------------------------------+
+| Field Name           | Field Type    |  Description                                                               |
++======================+===============+============================================================================+
+| capabilities         | string        | Capabilities url of the participant the metadata was requested for         |
++----------------------+---------------+----------------------------------------------------------------------------+
+| displayname          | bytes         | Displayname of the participant the metadata was requested for              |
++----------------------+---------------+----------------------------------------------------------------------------+
+| user_id              | string        | User-id of the participant the metadata was requested for                  |
++----------------------+---------------+----------------------------------------------------------------------------+
+
+
+An example response looks like:
+
+::
+
+        {
+            "capabilities": "mxc://raiden.network/cap?Receive=1&Mediate=1&Delivery=1&webRTC=1&toDevice=1&immutableMetadata=1",
+            "displayname": "0xf61a67340eeb9ad9d1767a5bbc7347868e6366a082d1015cfa7b6f2dd56170024ff315c3b9df4825bb8dfca3da4bf8e22cbe16f8a0bb8554f8e3fc45d79caa341b",
+            "user_id": "@0x4d156a78ed6dfdfbbf3e569558eaf895b40217d6:transport.transport01.raiden.network"
+        }
+
+
 .. _pfs_api_paths:
 
 ``POST api/v1/<token_network_address>/paths``
@@ -98,35 +150,58 @@ response.
 
 Each path object consists of the following information:
 
-+----------------------+---------------+-----------------------------------------------------------------------+
-| Field Name           | Field Type    |  Description                                                          |
-+======================+===============+=======================================================================+
-| path                 | List[address] | An ordered list of the addresses that make up the payment path.       |
-+----------------------+---------------+-----------------------------------------------------------------------+
-| estimated_fee        | int           | An estimate of the fees required for that path.                       |
-+----------------------+---------------+-----------------------------------------------------------------------+
+
++----------------------+---------------------------------+-------------------------------------------------------------------------------------------------+
+| Field Name           | Field Type                      |  Description                                                                                    |
++======================+=================================+=================================================================================================+
+| path                 | List[address]                   | An ordered list of the addresses that make up the payment path.                                 |
++----------------------+---------------------------------+-------------------------------------------------------------------------------------------------+
+| address_metadata     | Dict[address, AddressMetadata]  | An mapping from address in the path to transport :ref:`address metadata <pfs-address-metadata>` |
++----------------------+---------------------------------+-------------------------------------------------------------------------------------------------+
+| estimated_fee        | int                             | An estimate of the fees required for that path.                                                 |
++----------------------+---------------------------------+-------------------------------------------------------------------------------------------------+
 
 
 An example response looks like:
 
 ::
 
-    {
-        "result":
-        [
-            {
-                "path":
-                [
-                    "0x627E3C777232243a6C766D20404f790B66456747",
-                    "0x574b315075443878652f2F403645743d5b4a7950",
-                    "0x49650D660c475e65253F666f302A4A662A3d533D",
-                    "0x6A273E6D557454520964484D23502C207361597D"
-                ],
-                "estimated_fee": 123
-            }
+  {
+    "result": [
+      {
+        "path": [
+          "0xCb27B9DAb141aA97Cfdce98AC50A9d4Df355D688",
+          "0x0ADdD863A406dDA82c93948267878108A8325E47",
+          "0xAD63746Dd8BD889542D3E45198dB5Cc7a0eB762c",
+          "0xB16326b4c7E3c546c1C22372123f05e40975781e"
         ],
-        "feedback_token": "381e4a005a4d4687ac200fa1acd15c6f"
-    }
+        "address_metadata": {
+          "0xCb27B9DAb141aA97Cfdce98AC50A9d4Df355D688": {
+            "user_id": "@0xcb27b9dab141aa97cfdce98ac50a9d4df355d688:transport.transport01.raiden.network",
+            "capabilities": "mxc://raiden.network/cap?Receive=1&Mediate=1&Delivery=1&webRTC=1&toDevice=1&immutableMetadata=1",
+            "displayname": "0xa4e5b92a6bedaf8841f10d57542ed758c6dfe425c5fda150cb72f0b64b78abc9046e352f7033e3ea7f81a36569e4201c9b83b3e4216e4336cbdc0e52942cf1531b"
+          },
+          "0x0ADdD863A406dDA82c93948267878108A8325E47": {
+            "user_id": "@0x0addd863a406dda82c93948267878108a8325e47:transport.transport01.raiden.network",
+            "capabilities": "mxc://raiden.network/cap?Receive=1&Mediate=1&Delivery=1&webRTC=1&toDevice=1&immutableMetadata=1",
+            "displayname": "0x2dc328eb50cf5b9d6a3cb0fb538350d34efb79ed1822f5703d0f769199615d2278b9e33a247ce3887edbe66103cee25469353dc1c38cae2e25168e49590d6b701c"
+          },
+          "0xAD63746Dd8BD889542D3E45198dB5Cc7a0eB762c": {
+            "user_id": "@0xad63746dd8bd889542d3e45198db5cc7a0eb762c:transport.transport01.raiden.network",
+            "capabilities": "mxc://raiden.network/cap?Receive=1&Mediate=1&Delivery=1&webRTC=1&toDevice=1&immutableMetadata=1",
+            "displayname": "0x0935fe9a32a364a689208f234c92c0a740e362b37abaa14bdfbb9724695c4bf15a27147ffe614a64dbe02c17f47d10b9faf82ff9abf9e08aa377990721493c181b"
+          },
+          "0xB16326b4c7E3c546c1C22372123f05e40975781e": {
+            "user_id": "@0xb16326b4c7e3c546c1c22372123f05e40975781e:transport.transport01.raiden.network",
+            "capabilities": "mxc://raiden.network/cap?Receive=1&Mediate=1&Delivery=1&webRTC=1&toDevice=1&immutableMetadata=1",
+            "displayname": "0xfa3b725d0877e42e83ba8df59c4436c7377e98c017db8b84519fe8379d6c9dc60f55aac7e0454d7cb969a003a64afe96a686dcfb173171ee34183aeeab0eb17b1c"
+          }
+        },
+        "estimated_fee": 0
+      }
+    ],
+    "feedback_token": "f6f0fb9b279e44faac9e3c1f9201fb66"
+  }
 
 
 Routing Preferences
@@ -168,42 +243,60 @@ Example
 """""""
 ::
 
+        // Request
+        curl -X POST --header 'Content-Type: application/json' --data '{
+                "from": "0xalice",
+                "to": "0xbob",
+                "value": 45,
+                "max_paths": 10
+        }'
+        // Wrong IOU signature
+        {
+            'errors': 'The signature did not match the signed content',
+            'error_code': 2001,
+        }
+        // Missing `amount` in IOU
+        {
+            'errors': 'Request parameter failed validation. See `error_details`.',
+            'error_code': 2000,
+            'error_details': {'iou': {'amount': ['Missing data for required field.']}}
+        }
+
+
+``GET api/v1/online_addresses``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This returns the list of all Raiden node addresses 
+that the PFS is tracking the presence of and that currently
+are considered as online.
+
+Arguments
+"""""""""
+
+This endpoint does not provide any arguments.
+
+
+Returns
+"""""""
+A list of checksum addresses.
+
+::
+
     // Request
-    curl -X POST --header 'Content-Type: application/json' --data '{
-        "from": "0xalice",
-        "to": "0xbob",
-        "value": 45,
-        "max_paths": 10
-    }'
+    curl -X GET api/v1/online_addresses
+
     // Result for success
-    {
-        "result": [
-        {
-            "path": ["0xalice", "0xcharlie", "0xbob"],
-            "estimated_fee": 110,
-        },
-        {
-            "path": ["0xalice", "0xeve", "0xdave", "0xbob"]
-            "estimated_fee": 142,
-        },
-        ...
-        ],
-        "feedback_token": "aaabbbcccdddeeefff"
-    }
-    // Wrong IOU signature
-    {
-        'errors': 'The signature did not match the signed content',
-        'error_code': 2001,
-    }
-    // Missing `amount` in IOU
-    {
-        'errors': 'Request parameter failed validation. See `error_details`.',
-        'error_code': 2000,
-        'error_details': {'iou': {'amount': ['Missing data for required field.']}}
-    }
+        [
+            "0x38c32a05D3782B22Df9A86968c107699eC5B3C3F",
+            "0x559A3E31d27faDec43D725673D0fC381d235B3b8",
+            "0x68E7846B25FD85548c1054F41D88FDC6DbC27B67",
+            "0x872E8494c5400D5387910d97c5d8A428e384D4Ea",
+            "0x3223587948d0490A4F625A8F241a5FF1D1733675"
+        ]
 
 
-``GET api/v1/info``
+
+``GET api/v2/info``
 ^^^^^^^^^^^^^^^^^^^
 
 Request price and path information on how and how much to pay the service for additional path requests.
@@ -218,34 +311,40 @@ A JSON object with at least the following properties:
 +======================+===============+===================================================================================================================+
 | price_info           | int           | Amount of RDN per request expected by the PFS                                                                     |
 +----------------------+---------------+-------------------------------------------------------------------------------------------------------------------+
+| matrix_server        | url           | URL of the Matrix server the PFS is connected to                                                                  |
++----------------------+---------------+-------------------------------------------------------------------------------------------------------------------+
 | network_info.chain_id| int           | The `chain ID <https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md>`_ for the network this PFS works on  |
 +----------------------+---------------+-------------------------------------------------------------------------------------------------------------------+
+| payment_address      | address       | Address of the PFS for the IOU payments used to pay path requests                                                 |
++----------------------+---------------+-------------------------------------------------------------------------------------------------------------------+
+
 
 Example
 """""""
 ::
 
     // Request
-    curl -X GET api/v1/info
+    curl -X GET api/v2/info
 
     // Result for success
     {
-        "price_info": 100,
+        "UTC": "2021-10-18T15:22:12.407699",
+        "contracts_version": "0.40.0rc0",
+        "matrix_server": "https://transport.transport01.raiden.network",
+        "message": "PFS at pfs.tranport01.raiden.network with fee",
         "network_info": {
             "chain_id": 5,
-            "token_network_registry_address": "0xFfaf04Ad776AAa3AbD62AFA340f3c55931a68fB1",
-            "user_deposit_address": "0xB85703628262C8301298474e072D426fE9C3fEeC",
-            "service_token_address": "0xc116edAD88cda44E703ef1fc59766268E4aa187B",
             "confirmed_block": {
-                "number": 2441022
-            }
+                "number": "5693235"
+            },
+            "service_token_address": "0x5Fc523e13fBAc2140F056AD7A96De2cC0C4Cc63A",
+            "token_network_registry_address": "0x44c886653B536178831CF2Ca0724e0dd3f75FEd6",
+            "user_deposit_address": "0xEC139fBAED94c54Db7Bfb49aC4e143A76bC422bB"
         },
-        "version": "0.7.0",
-        "contracts_version": "0.37.0b0",
-        "operator": "John Doe",
-        "message": "This is your favorite PFS.",
-        "payment_address": "0x062C12c01D0f17fC9eAa33940D994594d91a0182",
-        "UTC": "2020-03-31T09:33:26.073566"
+        "operator": "Raiden testnet RSB 01",
+        "payment_address": "0x23A74bd16E98a83be6F9c61807010C8e778ED3E2",
+        "price_info": "50000000000000000",
+        "version": "0.18.3"
     }
 
 
