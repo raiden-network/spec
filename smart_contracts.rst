@@ -506,7 +506,7 @@ Can be called by anyone, as long as the deposited funds have been approved as in
 - ``settle_timeout``: Number of blocks that need to be mined between a call to closeChannel and settleChannel
 - ``participant1_total_deposit``: The total amount of tokens that ``participant1`` will have as deposit
 
-As the :ref:``depositChannel <deposit-channel>`` function, a successful call to this function will emit a `ChannelNewDeposit` event in the same way.
+As the :ref:``depositChannel <deposit-channel>`` function, a successful call to this function will emit a `ChannelNewDeposit` event in the same way and same block (so clients must ensure they're able to react to deposit events inclusive on the block when `ChannelOpen` was detected).
 
 .. _withdraw-channel:
 
