@@ -159,7 +159,7 @@ RouteMetadata
 
 This datastructure describes a single route and the metadata for all nodes included in that route.
 
-Each entry in the ``route`` field list is EIP55-checksum addresses with ``0x``-prefix as usual. The last of
+Each entry in the ``route`` field list is a Raiden node address (both EIP55-checksum addresses and plain hex encoded addresses with ``0x``-prefix should be compatible). The last of
 the addresses in each list must be the target of the transfer, the former the
 desired mediators in order.
 An initiator can, but does not have to include its own address in the route.
