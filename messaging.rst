@@ -136,9 +136,10 @@ The target should only accept the decrypted secret, if the decrypted objects fie
 
 If the validation passes, the target uses "secret" as this transfer's secret and skips sending a :ref:`SecretRequest <secret-request-message>` to the initator.
 Therefore the target can immediately start the unlock phase by sending a corresponding :ref:`RevealSecret <reveal-secret-message>` to the last mediator in the transfer's route.
+Otherwise, the usual ``SecretRequest`` protocol should be performed as a fallback; even in unrecoverable cases like not enough `amount` (meaning mediators took more than initiator expected/were willing to pay), sending the received-by-target payment info back to initiator in ``SecretRequest``'s payload is useful to inform initiator if and why this transfer failed, and allow them to notify user.
 
 The Metadata should be determined by the initiator. All mediators of a transfer should pass it to the next hop of the transfer as-is and
-should not modify it. Complying to this behaviour is advertised as the :ref:`capability <transport-capabilities>` `immutableMetada=1`.
+should not modify it even though unknown fields are present. Complying to this behaviour is advertised as the :ref:`capability <transport-capabilities>` `immutableMetada=1`.
 
 Fields
 ^^^^^^
@@ -277,8 +278,7 @@ The data will be packed as follows to compute the :term:`additional hash`:
 +--------------------------------------+---------+-------------+
 
 
-The ``metadata_hash`` is defined using `JCS <https://datatracker.ietf.org/doc/html/rfc8785>`__.
-It is given as::
+The ``metadata_hash`` is defined using `JCS <https://datatracker.ietf.org/doc/html/rfc8785>`__, right after JSON parsing (i.e. before any decoding/transformation is performed). It is given as::
 
     metadata_hash = keccak256(jcs(metadata))
 
