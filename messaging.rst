@@ -119,13 +119,13 @@ revealing the secret via the additionally required :ref:`RevealSecret <reveal-se
 The secret should be encrypted with the public key of the LT's target, using the ECIES encryption scheme (look e.g. `here <https://ecies.org/>`__ for reference implementations).
 The encrypted data has to be encoded as an object containing secret and additional metadata needed for validation::
 
-        secret = encrypt_ecies(target_publickey, { "secret": <bytes32>, "amount": <int32>, "payment_identifier": <int32> })
+        secret = encrypt_ecies(target_publickey, { "secret": <bytes32>, "amount": <uint256>, "payment_identifier": <uint64> })
 
-Note the encoding of the encrypted object's field is not part of this specification.
+Note the encoding of the encrypted object's fields is not part of this specification.
 
 When the target receives a transfer with an encrypted secret, it may try to decrypt it::
 
-        { "secret": <bytes32>, "amount": <int32>, "payment_identifier": <int32> } = encrypt_ecies(target_privatekey, secret)
+        { "secret": <bytes32>, "amount": <uint256>, "payment_identifier": <uint64> } = encrypt_ecies(target_privatekey, secret)
 
 
 The target should only accept the decrypted secret, if the decrypted objects fields comply to the following properties:
