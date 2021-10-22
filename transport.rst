@@ -173,6 +173,34 @@ nodes is handled over a webRTC data-channel.
 Nodes that support WebRTC messages signal this functionality with the ``webRTC`` capability.
 The requirement is optional, but lack thereof will reduce transfer speeds significantly.
 
+To establish a WebRTC data-channel with another peer, the clients are expected to:
+
+#. Get peer's presence/address-metadata information, either from a PFS's specific endpoint or from a passing-through ``LockedTransfer``
+#. Verify that the peer has ``webRTC`` capability
+#. Signaling messages are sent to peer's ``userId`` using ``toDevice`` matrix messages, with ``type`` as ``m.room.message`` (even though it's not in a Matrix room) and ``content`` as ``{ "msgtype": "m.notice", "body": <payload> }``, where ``payload`` is the JSON-encoded string of an object in the format ``{ "type": <signal_type>, "call_id": <dataChannel.label>, ...<rest of payload> }``
+#. In parallel, start a call of its own, and also listen for calls/offers from peers of interest:
+
+   #. On the caller side:
+
+      #. create a ``RTCPeerConnection`` and a ``dataChannel`` on it, with whatever label is desired, to uniquely identify this channel upon related messages (e.g. ``<0xCaller_address>|<0xCallee_address>|<timestamp>``)
+      #. start listening for ``ICECandidates`` on this connection, and send them to peer, with ``type="candidates"`` and a ``candidates`` payload member containing an array with the gathered candidates
+      #. create an ``offer``, set it as ``local description`` on connecting, and send it to the peer with ``type="offer"`` and a ``sdp`` payload member containing the offer string
+      #. wait for an ``answer`` message from peer, and upon receiving it, set it as ``remote description``; ``RTCDataChannel`` should then become ``open``
+      #. a timeout may be put, to retry if neither this call nor callee's side managed to get a channel opened
+
+   #. On the callee side:
+
+      #. listen for ``offer`` messages
+      #. when receiving an ``offer`` message from a peer of interest, create an ``RTCPeerConnection`` and set ``offer`` as ``remote description``
+      #. start listening for ``ICECandidates`` on this connection, and send it to peer, the same as on caller's side
+      #. create ``answer``, set it as ``local description`` and send it to peer, with ``type="answer"`` and ``sdp`` payload member containing the answer string
+      #. wait for ``dataChannel`` to be emitted and to become ``open``
+      #. listening for offers on callee is permanent and any new offer coming through, if successful, may disconnect previous callee or caller channels
+
+#. Both caller and callee's codepaths can race; the winner of this race (first channel to become ``open``) for each pair of peers (by address) will disconnect the other direction, and this now-open ``RTCDataChannel`` will be kept and used for this partner's messaging
+#. Upon channel error or close, peers may send a ``type="hangup"`` message, without additional payload members, and then possibly retry the loop above
+#. Clients may retry whenever they want, if the peer is online; any new open RTC channel for each peer disconnects the previous one; usually, it's ok to retry this just a couple of times and give up, as partner seems to be offline or not responding, and assume they'll call when they come back online; additionally, they may trigger the loop again upon certain events, as new raiden ``ChannelOpen`` is detected or a message needs to be sent
+
 
 Capabilities
 ------------
