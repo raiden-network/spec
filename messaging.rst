@@ -660,7 +660,8 @@ Preconditions
 
 These preconditions must be validated when a ``WithdrawRequest`` is received
 
-(might be out of date - to be updated)
+.. TODO (might be out of date - to be updated)
+
 - The channel for which the withdraw is requested must be open.
 - The ``total_withdraw`` value must only ever increase.
 - The participant's channel unlocked balance must be larger or equal to ``withdraw_amount``, which is calculated using ``new_total_withdraw - previous_total_withdraw``.
@@ -717,7 +718,8 @@ Preconditions
 ^^^^^^^^^^^^^
 These preconditions must be validated when a ``WithdrawRequest`` is received
 
-(might be out of date - to be updated)
+.. TODO (might be out of date - to be updated)
+
 - The channel for which the withdraw is confirmed should be open.
 - The received confirmation should map to a previously sent request.
 - The block at which withdraw expires should not have been reached.
@@ -776,7 +778,8 @@ Preconditions
 ^^^^^^^^^^^^^
 These preconditions must be validated when a ``WithdrawRequest`` is received
 
-(might be out of date - to be updated)
+.. TODO (might be out of date - to be updated)
+
 - The channel for which the withdraw is confirmed should be open.
 - The sender waits ``expiration_block + NUMBER_OF_CONFIRMATION * 2`` until the message is sent.
 - The receiver should only accept the expiration message if the block at which the withdraw expires is confirmed.
