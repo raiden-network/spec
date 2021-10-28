@@ -86,3 +86,13 @@ Limit to number of simultaneously pending transfers
 The number of simultaneously pending transfers per channel is limited. The client will not initiate, mediate or accept a further pending transfer if the limit is reached. This is to avoid the risk of not being able to unlock the transfers, as the gas cost for this operation grows with the number of the pending locks and thus the number of pending transfers.
 
 The limit is currently set to 160. It is a rounded value that ensures the gas cost of unlocking will be less than 40% of Ethereum's traditional pi-million (3141592) block gas limit.
+
+Limit to total transferred amount in channel
+--------------------------------------------
+
+The balance proof uses monotonically increasing numbers, which imposes theoretical limits on the amount of transfers which can be done before having to close the channel. But these limits are high enough that they are not of practical relevance:
+
+* nonce: 2^256 ≈ 10^77 transfers
+* transferred amount: 2^256 ≈ 10^77 total amount of transferred tokens (in the smallest unit of account; e.g Wei for WETH). This means 10^59 USD of transferred value in the case of DAI and even more in the case of WETH.
+
+Apart from this, there is no limit on how often tokens can be transferred back and forth over the same payment channel.
