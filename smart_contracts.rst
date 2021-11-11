@@ -886,6 +886,8 @@ The uncooperative settlement consists of three steps:
 * Once the challenge period is over, either party can finally :ref:`settle the channel <settle-channel>` which will cause the TokenNetwork contract to return all unlocked tokens.
 
 Irregardless whether the settlement was cooperative or not, only unlocked tokens are returned during the settlement itself. But after the settlement, the remaining tokens can be :ref:`unlocked <unlock-channel>`. If the secret has been registered in the SecretRegistry, they will be sent to the receiver, otherwise to the sender of the transfer.
+The settlement process only relies on being initiatiated by the correct signature of one of the participants - no other third party in the Raiden system needs to give approval or could permit the settlement from being initiated.
+
 
 .. image:: diagrams/RaidenSC_channel_settlement.png
     :alt: Channel Settlement
