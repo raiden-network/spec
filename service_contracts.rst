@@ -358,10 +358,27 @@ would not be able to claim a reward for its work. To handle the rewards, the
 MonitoringService contract provides two functions. ``monitor()`` for wrapping
 `updateNonClosingBalanceProof` and creating the reward and ``claimReward()`` for
 claiming the reward after the settlement. ``monitor()`` only works for service
-providers that are registered in ServiceRegistry:
+providers that are registered in ServiceRegistry::
 
-.. autosolcontract:: MonitoringService
-    :members: monitor, claimReward
+    function monitor(address closing_participant, address non_closing_participant, bytes32 balance_hash, uint256 nonce, bytes32 additional_hash, bytes memory closing_signature, bytes memory non_closing_signature, uint256 reward_amount, address token_network_address, bytes memory reward_proof_signature)
+    public
+
+        Called by a registered MS, when providing a new balance proof to a monitored channel. Can be called multiple times by different registered MSs as long as the BP provided is newer than the current newest registered BP.
+        Parameters:
+            nonce – Strictly monotonic value used to order BPs omitting PB specific params, since these will not be provided in the future
+            reward_amount – Amount of tokens to be rewarded
+            token_network_address – Address of the Token Network in which the channel being monitored exists.
+            reward_proof_signature – The signature of the signed reward proof
+
+    function claimReward(uint256 channel_identifier, address token_network_address, address closing_participant, address non_closing_participant)
+    public
+    returns (bool)
+
+        Called after a monitored channel is settled in order for MS to claim the reward Can be called once per settled channel by everyone on behalf of MS.
+        Parameters:
+            token_network_address – Address of the Token Network in which the channel exists
+            closing_participant – Address of the participant of the channel that called close
+            non_closing_participant – The other participant of the channel
 
 In order to avoid an unproductive race between service providers, for the same participant on the same channel, different service providers have different block numbers from which they can call ``monitor()``.  Here we are not trying to get randomness, but merely trying to make differences in a fair way.
 

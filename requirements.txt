@@ -1,5 +1,4 @@
-sphinx==4.2.0
+sphinx==5.1.1
 sphinx_rtd_theme==1.0.0
-sphinxcontrib-soliditydomain==0.5.1
 sphinxcontrib-mermaid==0.7.1
 matplotlib==3.4.3
