@@ -15,6 +15,7 @@ Raiden Network Specification
    monitoring_service
    pathfinding_service
    terminology
+   adr/overview
 
 ..  Indices and tables
     ==================
