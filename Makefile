@@ -50,16 +50,6 @@ help:
 clean:
 	rm -rf $(BUILDDIR)/*
 
-# Download `raiden-contracts/raiden_contracts/contracts` to the local
-# `contracts` dir to provide up-to-date contracts for the solidity autodoc.
-# Due to the directory structure of the contracts tarball, this can only be
-# done with `--wildcard`, which is only available on GNU tar. MacOS users,
-# please install and use gtar.
-update_contracts:
-	rm -fr contracts/*
-	curl -sSL https://github.com/raiden-network/raiden-contracts/tarball/master | tar xvz --directory contracts --strip-components 4 --wildcards '*/raiden_contracts/data/source'
-	find contracts/ -not -name '*.sol' -not -type d -exec rm {} \;
-
 .PHONY: html
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html -W
